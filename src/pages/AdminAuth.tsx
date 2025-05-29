@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,8 @@ const AdminAuth = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [canRegister, setCanRegister] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -28,6 +29,16 @@ const AdminAuth = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Handle rate limiting countdown
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0 && !canRegister) {
+      setCanRegister(true);
+    }
+  }, [timeLeft, canRegister]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +92,15 @@ const AdminAuth = () => {
   const handleAdminRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!canRegister) {
+      toast({
+        title: "Even Wachten",
+        description: `Je kunt pas over ${timeLeft} seconden opnieuw proberen`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (password !== confirmPassword) {
       toast({
         title: "Wachtwoord Fout",
@@ -113,39 +133,36 @@ const AdminAuth = () => {
       });
 
       if (error) {
-        toast({
-          title: "Registratie Mislukt",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else if (data.user) {
-        // Assign admin role to the new user
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: data.user.id,
-            role: 'admin'
-          });
-
-        if (roleError) {
-          console.error('Error assigning admin role:', roleError);
+        // Handle rate limiting error specifically
+        if (error.message.includes("For security purposes, you can only request this after")) {
+          const match = error.message.match(/after (\d+) seconds/);
+          const seconds = match ? parseInt(match[1]) : 60;
+          setTimeLeft(seconds);
+          setCanRegister(false);
+          
           toast({
-            title: "Waarschuwing",
-            description: "Account aangemaakt maar admin rol kon niet worden toegewezen",
+            title: "Even Wachten",
+            description: `Te veel registratie pogingen. Probeer het over ${seconds} seconden opnieuw`,
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Admin Account Aangemaakt",
-            description: "Administrator account is succesvol aangemaakt!"
+            title: "Registratie Mislukt",
+            description: error.message,
+            variant: "destructive"
           });
-          setIsRegistering(false);
-          // Clear form
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-          setFullName('');
         }
+      } else if (data.user) {
+        toast({
+          title: "Admin Account Aangemaakt",
+          description: "Administrator account is succesvol aangemaakt! Je kunt nu inloggen.",
+        });
+        setIsRegistering(false);
+        // Clear form
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setFullName('');
       }
     } catch (error) {
       toast({
@@ -242,10 +259,19 @@ const AdminAuth = () => {
                   />
                 </div>
               )}
+              
+              {!canRegister && timeLeft > 0 && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <p className="text-sm text-orange-800">
+                    Te veel pogingen. Probeer het over {timeLeft} seconden opnieuw.
+                  </p>
+                </div>
+              )}
+              
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg"
-                disabled={loading}
+                disabled={loading || (isRegistering && !canRegister)}
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -253,7 +279,10 @@ const AdminAuth = () => {
                     {isRegistering ? 'Registreren...' : 'Inloggen...'}
                   </div>
                 ) : (
-                  isRegistering ? 'Administrator Registreren' : 'Administrator Login'
+                  <>
+                    {isRegistering ? 'Administrator Registreren' : 'Administrator Login'}
+                    {isRegistering && !canRegister && ` (${timeLeft}s)`}
+                  </>
                 )}
               </Button>
             </form>
@@ -270,6 +299,9 @@ const AdminAuth = () => {
                     setPassword('');
                     setConfirmPassword('');
                     setFullName('');
+                    // Reset rate limiting
+                    setCanRegister(true);
+                    setTimeLeft(0);
                   }}
                 >
                   {isRegistering ? 'Terug naar Login' : 'Nieuwe Admin Registreren'}
