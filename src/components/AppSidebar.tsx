@@ -1,5 +1,5 @@
 
-import { Home, FolderOpen, Settings, Users, BarChart3 } from "lucide-react";
+import { Home, FolderOpen, Settings, Users, BarChart3, CheckCircle, Clock } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,8 @@ import {
   SidebarHeader,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Project } from "@/pages/Index";
 
 interface AppSidebarProps {
@@ -32,6 +34,11 @@ export function AppSidebar({
   const handleNavigationClick = (view: 'dashboard' | 'team' | 'reports' | 'settings') => {
     onViewChange(view);
     onSelectProject(null); // Clear selected project when navigating
+  };
+
+  const getProjectProgress = (project: Project) => {
+    const completedPhases = project.phases.filter(phase => phase.completed).length;
+    return (completedPhases / 20) * 100;
   };
 
   return (
@@ -88,6 +95,59 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Selected Project Info Section */}
+        {selectedProject && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Project Info</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <div className="px-2 py-3 space-y-3">
+                <div>
+                  <h3 className="font-medium text-sm text-gray-900 truncate" title={selectedProject.name}>
+                    {selectedProject.name}
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                    {selectedProject.description}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Voortgang</span>
+                    <span className="text-xs font-medium">
+                      {Math.round(getProjectProgress(selectedProject))}%
+                    </span>
+                  </div>
+                  <Progress value={getProjectProgress(selectedProject)} className="h-2" />
+                  <div className="text-xs text-gray-500">
+                    {selectedProject.phases.filter(p => p.completed).length}/20 fases voltooid
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Huidige fase</span>
+                  <Badge variant="outline" className="text-xs">
+                    Fase {selectedProject.currentPhase}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Startdatum</span>
+                  <span className="text-xs text-gray-700">
+                    {new Date(selectedProject.startDate).toLocaleDateString('nl-NL')}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Team leden</span>
+                  <span className="text-xs text-gray-700">
+                    {selectedProject.teamMembers.length}
+                  </span>
+                </div>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Projecten</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -102,11 +162,21 @@ export function AppSidebar({
                     className={selectedProject?.id === project.id ? "bg-blue-100 text-blue-700" : ""}
                   >
                     <FolderOpen className="w-4 h-4" />
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">{project.name}</span>
-                      <span className="text-xs text-gray-500">
-                        Fase {project.currentPhase}/20
-                      </span>
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <span className="text-sm font-medium truncate w-full">{project.name}</span>
+                      <div className="flex items-center space-x-2 w-full">
+                        <span className="text-xs text-gray-500">
+                          Fase {project.currentPhase}/20
+                        </span>
+                        {project.phases.filter(p => p.completed).length > 0 && (
+                          <div className="flex items-center">
+                            <CheckCircle className="w-3 h-3 text-green-500" />
+                            <span className="text-xs text-green-600 ml-1">
+                              {Math.round(getProjectProgress(project))}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
