@@ -151,9 +151,17 @@ const Index = () => {
     }
   };
 
+  const handleBackToProjectDashboard = () => {
+    setSelectedProject(null);
+  };
+
   const renderMainContent = () => {
     if (selectedProject) {
-      return <ProjectDetail project={selectedProject} onUpdateProject={updateProject} />;
+      return <ProjectDetail 
+        project={selectedProject} 
+        onUpdateProject={updateProject} 
+        onBack={handleBackToProjectDashboard}
+      />;
     }
     switch (currentView) {
       case 'team':
