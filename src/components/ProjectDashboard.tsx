@@ -275,15 +275,30 @@ export function ProjectDashboard({
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
-                  <CardDescription 
-                    className="line-clamp-2 cursor-text hover:text-gray-800 transition-colors"
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      canAddProjects && handleDescriptionEditStart(project);
-                    }}
-                  >
-                    {project.description}
-                  </CardDescription>
+                  <div className="flex items-start justify-between group">
+                    <CardDescription 
+                      className="line-clamp-2 cursor-text hover:text-gray-800 transition-colors flex-1"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        canAddProjects && handleDescriptionEditStart(project);
+                      }}
+                    >
+                      {project.description}
+                    </CardDescription>
+                    {canAddProjects && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 ml-2 mt-0 flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDescriptionEditStart(project);
+                        }}
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </CardHeader>
               <CardContent className="space-y-4">
