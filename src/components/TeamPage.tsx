@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Mail, Phone, User, UserPlus, Shield } from "lucide-react";
@@ -225,7 +224,18 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Teamleden ({teamMembers.length})</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Teamleden ({teamMembers.length})</h2>
+            {isAdmin && (
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Teamlid Toevoegen
+              </Button>
+            )}
+          </div>
           
           {loading ? (
             <div className="text-center py-8">
