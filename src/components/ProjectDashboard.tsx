@@ -1,17 +1,22 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Calendar, Users, Clock, TrendingUp, Plus } from "lucide-react";
 import { Project } from "@/pages/Index";
+import { useState } from "react";
 
 interface ProjectDashboardProps {
   projects: Project[];
   onSelectProject: (project: Project) => void;
   onAddProject?: () => void;
+  onUpdateProject?: (project: Project) => void;
 }
 
-export function ProjectDashboard({ projects, onSelectProject, onAddProject }: ProjectDashboardProps) {
+export function ProjectDashboard({ projects, onSelectProject, onAddProject, onUpdateProject }: ProjectDashboardProps) {
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+
   const getProjectProgress = (project: Project) => {
     const completedPhases = project.phases.filter(phase => phase.completed).length;
     return (completedPhases / 20) * 100;
@@ -23,6 +28,33 @@ export function ProjectDashboard({ projects, onSelectProject, onAddProject }: Pr
       acc + project.phases.filter(phase => phase.completed).length, 0
     );
     return totalPhases > 0 ? (completedPhases / totalPhases) * 100 : 0;
+  };
+
+  const handleNameDoubleClick = (project: Project) => {
+    setEditingProjectId(project.id);
+    setEditingName(project.name);
+  };
+
+  const handleNameSave = (project: Project) => {
+    if (onUpdateProject && editingName.trim()) {
+      const updatedProject = { ...project, name: editingName.trim() };
+      onUpdateProject(updatedProject);
+    }
+    setEditingProjectId(null);
+    setEditingName("");
+  };
+
+  const handleNameCancel = () => {
+    setEditingProjectId(null);
+    setEditingName("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, project: Project) => {
+    if (e.key === 'Enter') {
+      handleNameSave(project);
+    } else if (e.key === 'Escape') {
+      handleNameCancel();
+    }
   };
 
   return (
@@ -97,7 +129,24 @@ export function ProjectDashboard({ projects, onSelectProject, onAddProject }: Pr
             <Card key={project.id} className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
+                  {editingProjectId === project.id ? (
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={() => handleNameSave(project)}
+                      onKeyDown={(e) => handleKeyPress(e, project)}
+                      className="text-lg font-semibold"
+                      autoFocus
+                    />
+                  ) : (
+                    <CardTitle 
+                      className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
+                      onDoubleClick={() => handleNameDoubleClick(project)}
+                      title="Dubbelklik om te bewerken"
+                    >
+                      {project.name}
+                    </CardTitle>
+                  )}
                   <span className="text-sm text-gray-500">
                     Fase {project.currentPhase}/20
                   </span>
