@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -126,7 +127,11 @@ const Auth = () => {
   return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img alt="NextGen Home Logo" className="h-16 w-auto mx-auto mb-4" src="/lovable-uploads/f35211b0-8251-4c69-8ef8-939678e45d4e.jpg" />
+          <img 
+            alt="NextGen Home Logo" 
+            className="h-32 w-auto mx-auto mb-4" 
+            src="/lovable-uploads/f35211b0-8251-4c69-8ef8-939678e45d4e.jpg" 
+          />
           <h1 className="text-2xl font-bold text-blue-900">Building Buddy</h1>
           <p className="text-gray-600">Je projectmanagement tool</p>
         </div>
@@ -218,4 +223,5 @@ const Auth = () => {
       </div>
     </div>;
 };
+
 export default Auth;
