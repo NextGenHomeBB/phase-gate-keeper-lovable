@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,23 +101,20 @@ export function ProjectDashboard({
       const { projectService } = await import("@/services/projectService");
       
       const newProject: Omit<Project, 'id' | 'phases'> = {
-        name: `${project.name} (COPY)`, // Also uppercase the copy suffix
+        name: `${project.name} (COPY)`,
         description: project.description,
-        currentPhase: 1, // Reset to first phase for the copy
-        startDate: new Date().toISOString().split('T')[0], // Set to today
-        teamMembers: [...project.teamMembers], // Copy team members
+        currentPhase: 1,
+        startDate: new Date().toISOString().split('T')[0],
+        teamMembers: [...project.teamMembers],
       };
       
       const addedProject = await projectService.addProject(newProject);
       
-      // Add to local state (this will be handled by the parent component)
-      // We'll need to trigger a refresh or update the parent state
       toast({
         title: "Project gekopieerd",
         description: `"${addedProject.name}" is succesvol aangemaakt`,
       });
       
-      // Trigger a page refresh to load the new project
       window.location.reload();
     } catch (error) {
       console.error('Error copying project:', error);
@@ -128,6 +124,14 @@ export function ProjectDashboard({
         variant: "destructive",
       });
     }
+  };
+
+  const handleProjectClick = (project: Project, e: React.MouseEvent) => {
+    if (editingProject === project.id || editingDescription === project.id) {
+      e.stopPropagation();
+      return;
+    }
+    onSelectProject(project);
   };
 
   const getProgressPercentage = (project: Project) => {
@@ -201,6 +205,7 @@ export function ProjectDashboard({
             <Card 
               key={project.id} 
               className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={(e) => handleProjectClick(project, e)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -213,13 +218,16 @@ export function ProjectDashboard({
                         onKeyDown={(e) => handleKeyPress(e, project)}
                         className="text-lg font-semibold"
                         autoFocus
+                        onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
                       <div className="flex items-center justify-between group">
                         <CardTitle 
                           className="text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer"
-                          onDoubleClick={() => canAddProjects && handleEditStart(project)}
-                          onClick={() => onSelectProject(project)}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            canAddProjects && handleEditStart(project);
+                          }}
                         >
                           {project.name}
                         </CardTitle>
@@ -264,20 +272,21 @@ export function ProjectDashboard({
                     className="min-h-[60px] resize-none"
                     placeholder="Project beschrijving..."
                     autoFocus
+                    onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
                   <CardDescription 
                     className="line-clamp-2 cursor-text hover:text-gray-800 transition-colors"
-                    onDoubleClick={() => canAddProjects && handleDescriptionEditStart(project)}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      canAddProjects && handleDescriptionEditStart(project);
+                    }}
                   >
                     {project.description}
                   </CardDescription>
                 )}
               </CardHeader>
-              <CardContent 
-                className="space-y-4"
-                onClick={() => editingProject !== project.id && editingDescription !== project.id && onSelectProject(project)}
-              >
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Voortgang</span>
