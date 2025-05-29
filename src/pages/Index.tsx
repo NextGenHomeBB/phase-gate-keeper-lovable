@@ -159,7 +159,7 @@ const Index = () => {
                   </Button>}
               </div>
               <div className="flex items-center gap-4">
-                <img alt="NextGen Home Logo" className="h-12 w-auto" src="/lovable-uploads/2c4e8ba9-0963-4b30-b4f2-c9aec6f9e323.jpg" />
+                <img alt="NextGen Home Logo" src="/lovable-uploads/2c4e8ba9-0963-4b30-b4f2-c9aec6f9e323.jpg" className="h-12 w-auto object-contain" />
                 <UserMenu />
               </div>
             </header>
