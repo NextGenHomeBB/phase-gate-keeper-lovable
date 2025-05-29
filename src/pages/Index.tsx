@@ -125,6 +125,28 @@ const Index = () => {
     setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
     setSelectedProject(updatedProject);
   };
+  const handleAddProject = () => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name: `Nieuw Project ${projects.length + 1}`,
+      description: "Beschrijving van het nieuwe project",
+      currentPhase: 1,
+      startDate: new Date().toISOString().split('T')[0],
+      teamMembers: [],
+      phases: Array.from({
+        length: 20
+      }, (_, i) => ({
+        id: i + 1,
+        name: `Fase ${i + 1}: ${getPhaseName(i + 1)}`,
+        description: getPhaseDescription(i + 1),
+        completed: false,
+        locked: i > 0,
+        checklist: getPhaseChecklist(i + 1)
+      }))
+    };
+    
+    setProjects([...projects, newProject]);
+  };
   const renderMainContent = () => {
     if (selectedProject) {
       return <ProjectDetail project={selectedProject} onUpdateProject={updateProject} />;
@@ -143,7 +165,7 @@ const Index = () => {
             <p className="text-gray-600">Instellingen functionaliteit komt binnenkort...</p>
           </div>;
       default:
-        return <ProjectDashboard projects={projects} onSelectProject={setSelectedProject} />;
+        return <ProjectDashboard projects={projects} onSelectProject={setSelectedProject} onAddProject={handleAddProject} />;
     }
   };
   return <div className="min-h-screen bg-gray-50">

@@ -2,15 +2,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Clock, TrendingUp } from "lucide-react";
+import { Calendar, Users, Clock, TrendingUp, Plus } from "lucide-react";
 import { Project } from "@/pages/Index";
 
 interface ProjectDashboardProps {
   projects: Project[];
   onSelectProject: (project: Project) => void;
+  onAddProject?: () => void;
 }
 
-export function ProjectDashboard({ projects, onSelectProject }: ProjectDashboardProps) {
+export function ProjectDashboard({ projects, onSelectProject, onAddProject }: ProjectDashboardProps) {
   const getProjectProgress = (project: Project) => {
     const completedPhases = project.phases.filter(phase => phase.completed).length;
     return (completedPhases / 20) * 100;
@@ -31,6 +32,10 @@ export function ProjectDashboard({ projects, onSelectProject }: ProjectDashboard
           <h1 className="text-3xl font-bold text-gray-900">Project Dashboard</h1>
           <p className="text-gray-600 mt-2">Overzicht van alle lopende projecten en hun voortgang</p>
         </div>
+        <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Nieuw Project
+        </Button>
       </div>
 
       {/* Statistieken Cards */}
@@ -84,10 +89,10 @@ export function ProjectDashboard({ projects, onSelectProject }: ProjectDashboard
         </Card>
       </div>
 
-      {/* Project Cards */}
+      {/* Project Cards - Now in vertical layout */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-900">Actieve Projecten</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {projects.map((project) => (
             <Card key={project.id} className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader>
