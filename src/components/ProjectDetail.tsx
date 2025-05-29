@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
@@ -17,6 +17,45 @@ interface ProjectDetailProps {
 
 export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) {
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
+  const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
+  const [editPhaseName, setEditPhaseName] = useState("");
+
+  const handlePhaseNameEditStart = (phase: Phase) => {
+    setEditingPhaseName(phase.id);
+    setEditPhaseName(phase.name);
+  };
+
+  const handlePhaseNameSave = (phase: Phase) => {
+    if (editPhaseName.trim() && editPhaseName !== phase.name) {
+      const updatedProject = { ...project };
+      const phaseToUpdate = updatedProject.phases.find(p => p.id === phase.id);
+      
+      if (phaseToUpdate) {
+        phaseToUpdate.name = editPhaseName.trim();
+        onUpdateProject(updatedProject);
+        
+        toast({
+          title: "Fase naam bijgewerkt",
+          description: `Fase hernoemd naar "${editPhaseName.trim()}"`,
+        });
+      }
+    }
+    setEditingPhaseName(null);
+    setEditPhaseName("");
+  };
+
+  const handlePhaseNameCancel = () => {
+    setEditingPhaseName(null);
+    setEditPhaseName("");
+  };
+
+  const handlePhaseNameKeyPress = (e: React.KeyboardEvent, phase: Phase) => {
+    if (e.key === 'Enter') {
+      handlePhaseNameSave(phase);
+    } else if (e.key === 'Escape') {
+      handlePhaseNameCancel();
+    }
+  };
 
   const getProjectProgress = () => {
     const completedPhases = project.phases.filter(phase => phase.completed).length;
@@ -227,9 +266,27 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
                         <Lock className="w-5 h-5 text-gray-400" />
                       )}
                     </div>
-                    <CardDescription className="text-xs">
-                      {phase.name.replace(`Fase ${phase.id}: `, '')}
-                    </CardDescription>
+                    {editingPhaseName === phase.id ? (
+                      <Input
+                        value={editPhaseName}
+                        onChange={(e) => setEditPhaseName(e.target.value)}
+                        onBlur={() => handlePhaseNameSave(phase)}
+                        onKeyDown={(e) => handlePhaseNameKeyPress(e, phase)}
+                        className="text-xs"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <CardDescription 
+                        className="text-xs cursor-text hover:text-gray-800 transition-colors"
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          handlePhaseNameEditStart(phase);
+                        }}
+                      >
+                        {phase.name.replace(`Fase ${phase.id}: `, '')}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -253,7 +310,23 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
         /* Phase Detail View */
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{selectedPhase.name}</h1>
+            {editingPhaseName === selectedPhase.id ? (
+              <Input
+                value={editPhaseName}
+                onChange={(e) => setEditPhaseName(e.target.value)}
+                onBlur={() => handlePhaseNameSave(selectedPhase)}
+                onKeyDown={(e) => handlePhaseNameKeyPress(e, selectedPhase)}
+                className="text-3xl font-bold text-gray-900 border-0 p-0 shadow-none focus-visible:ring-0"
+                autoFocus
+              />
+            ) : (
+              <h1 
+                className="text-3xl font-bold text-gray-900 cursor-text hover:text-gray-700 transition-colors"
+                onDoubleClick={() => handlePhaseNameEditStart(selectedPhase)}
+              >
+                {selectedPhase.name}
+              </h1>
+            )}
             <p className="text-gray-600 mt-2">{selectedPhase.description}</p>
           </div>
 
