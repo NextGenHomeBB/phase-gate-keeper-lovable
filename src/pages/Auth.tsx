@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import { Shield } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -29,6 +30,7 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -124,6 +126,7 @@ const Auth = () => {
       });
     }
   };
+
   return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
@@ -217,6 +220,18 @@ const Auth = () => {
                   GitHub
                 </Button>
               </div>
+            </div>
+
+            {/* Admin Login Link */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <Button 
+                variant="ghost" 
+                className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() => navigate('/admin-login')}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Administrator Login
+              </Button>
             </div>
           </CardContent>
         </Card>
