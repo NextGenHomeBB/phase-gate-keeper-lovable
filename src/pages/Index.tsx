@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -226,7 +227,7 @@ const Index = () => {
             {/* Header with logo and user menu */}
             <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <img alt="NextGen Home Logo" src="/lovable-uploads/2c4e8ba9-0963-4b30-b4f2-c9aec6f9e323.jpg" className="h-48 w-auto object-contain" />
+                <img alt="NextGen Home Logo" src="/lovable-uploads/2c4e8ba9-0963-4b30-b4f2-c9aec6f9e323.jpg" className="h-32 w-auto object-contain" />
                 {!user && <Button onClick={() => navigate('/auth')}>
                     Inloggen
                   </Button>}
