@@ -225,9 +225,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   const getFileIcon = (fileName: string, data: string) => {
     if (fileName.toLowerCase().endsWith('.pdf') || data.startsWith('data:application/pdf')) {
-      return <FileText className="w-3 h-3" />;
+      return <FileText className="w-4 h-4" />;
     }
-    return <ImageIcon className="w-3 h-3" />;
+    return <ImageIcon className="w-4 h-4" />;
   };
 
   const handleFileClick = (file: any) => {
@@ -322,7 +322,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0"
+                                className="h-6 w-6 p-0 flex items-center justify-center"
                                 onClick={() => handleFileClick(file)}
                               >
                                 {getFileIcon(file.name, file.data)}
@@ -330,7 +330,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex items-center justify-center"
                                 onClick={() => removeProjectInfoFile(file.id)}
                               >
                                 <X className="w-3 h-3" />
