@@ -13,6 +13,7 @@ export interface ChecklistItem {
   description: string;
   completed: boolean;
   required: boolean;
+  photos?: string[]; // Array of base64 encoded images
 }
 export interface Phase {
   id: number;

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar } from "lucide-react";
+import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
+import { CameraCapture } from "@/components/CameraCapture";
 
 interface ProjectDetailProps {
   project: Project;
@@ -67,6 +68,51 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
         }
         
         onUpdateProject(updatedProject);
+      }
+    }
+  };
+
+  const addPhotoToChecklistItem = (phaseId: number, itemId: string, photoBlob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      
+      const updatedProject = { ...project };
+      const phase = updatedProject.phases.find(p => p.id === phaseId);
+      
+      if (phase) {
+        const item = phase.checklist.find(item => item.id === itemId);
+        if (item) {
+          if (!item.photos) {
+            item.photos = [];
+          }
+          item.photos.push(base64String);
+          onUpdateProject(updatedProject);
+          
+          toast({
+            title: "Foto toegevoegd",
+            description: "De foto is succesvol toegevoegd aan het checklist item.",
+          });
+        }
+      }
+    };
+    reader.readAsDataURL(photoBlob);
+  };
+
+  const removePhotoFromChecklistItem = (phaseId: number, itemId: string, photoIndex: number) => {
+    const updatedProject = { ...project };
+    const phase = updatedProject.phases.find(p => p.id === phaseId);
+    
+    if (phase) {
+      const item = phase.checklist.find(item => item.id === itemId);
+      if (item && item.photos) {
+        item.photos.splice(photoIndex, 1);
+        onUpdateProject(updatedProject);
+        
+        toast({
+          title: "Foto verwijderd",
+          description: "De foto is succesvol verwijderd.",
+        });
       }
     }
   };
@@ -229,23 +275,62 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
             <CardContent>
               <div className="space-y-4">
                 {selectedPhase.checklist.map((item) => (
-                  <div key={item.id} className="flex items-start space-x-3 p-3 rounded-lg border">
-                    <Checkbox
-                      checked={item.completed}
-                      onCheckedChange={(checked) => 
-                        updateChecklistItem(selectedPhase.id, item.id, checked as boolean)
-                      }
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <p className={`text-sm ${item.completed ? 'line-through text-gray-500' : ''}`}>
-                        {item.description}
-                      </p>
-                      {item.required && (
-                        <Badge variant="outline" className="text-xs mt-1">
-                          Verplicht
-                        </Badge>
-                      )}
+                  <div key={item.id} className="p-3 rounded-lg border">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        checked={item.completed}
+                        onCheckedChange={(checked) => 
+                          updateChecklistItem(selectedPhase.id, item.id, checked as boolean)
+                        }
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm ${item.completed ? 'line-through text-gray-500' : ''}`}>
+                            {item.description}
+                          </p>
+                          <div className="flex items-center space-x-2">
+                            <CameraCapture
+                              onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                            />
+                            {item.photos && item.photos.length > 0 && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <ImageIcon className="w-4 h-4 mr-1" />
+                                {item.photos.length}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {item.required && (
+                          <Badge variant="outline" className="text-xs mt-1">
+                            Verplicht
+                          </Badge>
+                        )}
+                        
+                        {/* Photo Gallery */}
+                        {item.photos && item.photos.length > 0 && (
+                          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {item.photos.map((photo, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={photo}
+                                  alt={`Foto ${index + 1}`}
+                                  className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                  onClick={() => window.open(photo, '_blank')}
+                                />
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                  onClick={() => removePhotoFromChecklistItem(selectedPhase.id, item.id, index)}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -253,7 +338,7 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan.
+                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken om je voortgang te documenteren.
                 </p>
               </div>
             </CardContent>
