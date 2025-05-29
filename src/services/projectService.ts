@@ -45,13 +45,21 @@ export const projectService = {
   },
 
   async addProject(project: Omit<Project, 'id' | 'phases'>): Promise<Project> {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User must be authenticated to create projects');
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .insert({
         name: project.name,
         description: project.description,
         current_phase: project.currentPhase,
-        start_date: project.startDate
+        start_date: project.startDate,
+        created_by: user.id
       })
       .select()
       .single();
