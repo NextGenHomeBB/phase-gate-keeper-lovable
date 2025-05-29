@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,6 +142,49 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     reader.readAsDataURL(photoBlob);
   };
 
+  const addProjectInfoFile = (photoBlob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      
+      const updatedProject = { ...project };
+      
+      // Add projectFiles array if it doesn't exist
+      if (!updatedProject.projectFiles) {
+        updatedProject.projectFiles = [];
+      }
+      
+      updatedProject.projectFiles.push({
+        id: Date.now().toString(),
+        name: `Project File ${updatedProject.projectFiles.length + 1}`,
+        data: base64String,
+        uploadedAt: new Date().toISOString()
+      });
+      
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Bestand toegevoegd",
+        description: "Het bestand is succesvol toegevoegd aan het project.",
+      });
+    };
+    reader.readAsDataURL(photoBlob);
+  };
+
+  const removeProjectInfoFile = (fileId: string) => {
+    const updatedProject = { ...project };
+    
+    if (updatedProject.projectFiles) {
+      updatedProject.projectFiles = updatedProject.projectFiles.filter(file => file.id !== fileId);
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Bestand verwijderd",
+        description: "Het bestand is succesvol verwijderd.",
+      });
+    }
+  };
+
   const removePhotoFromChecklistItem = (phaseId: number, itemId: string, photoIndex: number) => {
     const updatedProject = { ...project };
     const phase = updatedProject.phases.find(p => p.id === phaseId);
@@ -226,7 +268,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     Project Info
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-4">
                   <div>
                     <span className="text-sm text-gray-600">Startdatum:</span>
                     <p className="font-medium">
@@ -236,6 +278,51 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <div>
                     <span className="text-sm text-gray-600">Huidige fase:</span>
                     <p className="font-medium">Fase {project.currentPhase}</p>
+                  </div>
+                  
+                  {/* Project Files Section */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">Bestanden:</span>
+                      <div className="flex items-center space-x-1">
+                        <CameraCapture
+                          onCapture={(blob) => addProjectInfoFile(blob)}
+                        />
+                        <ImageUpload
+                          onImageUpload={(blob) => addProjectInfoFile(blob)}
+                        />
+                      </div>
+                    </div>
+                    
+                    {project.projectFiles && project.projectFiles.length > 0 ? (
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {project.projectFiles.map((file) => (
+                          <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                            <span className="truncate">{file.name}</span>
+                            <div className="flex items-center space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => window.open(file.data, '_blank')}
+                              >
+                                <ImageIcon className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                onClick={() => removeProjectInfoFile(file.id)}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">Nog geen bestanden toegevoegd</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
