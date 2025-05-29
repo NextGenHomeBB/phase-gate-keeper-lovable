@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
@@ -13,6 +13,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { projectFileService, ProjectFile } from "@/services/projectFileService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ProjectDetailProps {
   project: Project;
@@ -26,6 +27,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editPhaseName, setEditPhaseName] = useState("");
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
+  const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
 
   // Load project files when component mounts or project changes
   useEffect(() => {
@@ -275,8 +277,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   const handleFileClick = (file: ProjectFile) => {
     if (file.file_name.toLowerCase().endsWith('.pdf') || file.file_type === 'application/pdf') {
-      // For PDFs, open in new tab
-      window.open(file.file_data, '_blank');
+      // For PDFs, open preview dialog
+      setPreviewFile(file);
     } else {
       // For images, open in new tab
       window.open(file.file_data, '_blank');
@@ -369,9 +371,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 size="sm"
                                 className="h-6 w-6 p-0"
                                 onClick={() => handleFileClick(file)}
-                                title="Bestand openen"
+                                title={file.file_type === 'application/pdf' ? "PDF voorvertoning" : "Bestand openen"}
                               >
-                                {getFileIcon(file.file_name, file.file_type)}
+                                {file.file_type === 'application/pdf' ? <Eye className="w-4 h-4" /> : getFileIcon(file.file_name, file.file_type)}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -613,5 +615,35 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </div>
       )}
     </div>
+
+    {/* PDF Preview Dialog */}
+    <Dialog open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="flex items-center justify-between">
+            <span className="flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              {previewFile?.file_name}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => previewFile && window.open(previewFile.file_data, '_blank')}
+            >
+              Openen in nieuw tabblad
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 p-6 pt-2">
+          {previewFile && (
+            <iframe
+              src={previewFile.file_data}
+              className="w-full h-[70vh] border rounded"
+              title={previewFile.file_name}
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
