@@ -1,189 +1,202 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar, Users, Clock, TrendingUp, Plus } from "lucide-react";
+import { Calendar, Users, Plus, Edit3, Shield } from "lucide-react";
 import { Project } from "@/pages/Index";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface ProjectDashboardProps {
   projects: Project[];
   onSelectProject: (project: Project) => void;
-  onAddProject?: () => void;
-  onUpdateProject?: (project: Project) => void;
+  onAddProject: () => void;
+  onUpdateProject: (project: Project) => void;
+  loading?: boolean;
+  canAddProjects?: boolean;
 }
 
-export function ProjectDashboard({ projects, onSelectProject, onAddProject, onUpdateProject }: ProjectDashboardProps) {
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
+export function ProjectDashboard({ 
+  projects, 
+  onSelectProject, 
+  onAddProject, 
+  onUpdateProject,
+  loading = false,
+  canAddProjects = false
+}: ProjectDashboardProps) {
+  const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const { toast } = useToast();
+  const { isAdmin } = useUserRole();
 
-  const getProjectProgress = (project: Project) => {
-    const completedPhases = project.phases.filter(phase => phase.completed).length;
-    return (completedPhases / 20) * 100;
+  const handleEditStart = (project: Project) => {
+    setEditingProject(project.id);
+    setEditName(project.name);
   };
 
-  const getTotalProgress = () => {
-    const totalPhases = projects.length * 20;
-    const completedPhases = projects.reduce((acc, project) => 
-      acc + project.phases.filter(phase => phase.completed).length, 0
-    );
-    return totalPhases > 0 ? (completedPhases / totalPhases) * 100 : 0;
-  };
-
-  const handleNameDoubleClick = (project: Project) => {
-    setEditingProjectId(project.id);
-    setEditingName(project.name);
-  };
-
-  const handleNameSave = (project: Project) => {
-    if (onUpdateProject && editingName.trim()) {
-      const updatedProject = { ...project, name: editingName.trim() };
+  const handleEditSave = (project: Project) => {
+    if (editName.trim() && editName !== project.name) {
+      const updatedProject = { ...project, name: editName.trim() };
       onUpdateProject(updatedProject);
+      toast({
+        title: "Project naam bijgewerkt",
+        description: `Project hernoemd naar "${editName.trim()}"`,
+      });
     }
-    setEditingProjectId(null);
-    setEditingName("");
+    setEditingProject(null);
+    setEditName("");
   };
 
-  const handleNameCancel = () => {
-    setEditingProjectId(null);
-    setEditingName("");
+  const handleEditCancel = () => {
+    setEditingProject(null);
+    setEditName("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, project: Project) => {
     if (e.key === 'Enter') {
-      handleNameSave(project);
+      handleEditSave(project);
     } else if (e.key === 'Escape') {
-      handleNameCancel();
+      handleEditCancel();
     }
   };
 
+  const getProgressPercentage = (project: Project) => {
+    const completedPhases = project.phases.filter(phase => phase.completed).length;
+    return (completedPhases / project.phases.length) * 100;
+  };
+
+  const getCurrentPhaseName = (project: Project) => {
+    const currentPhase = project.phases.find(phase => phase.id === project.currentPhase);
+    return currentPhase ? currentPhase.name : `Fase ${project.currentPhase}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-blue-900">Project Dashboard</h1>
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Projecten laden...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Project Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overzicht van alle lopende projecten en hun voortgang</p>
+          <h1 className="text-3xl font-bold text-blue-900">Project Dashboard</h1>
+          <p className="text-gray-600 mt-2">Overzicht van al je actieve projecten</p>
+          {isAdmin && (
+            <div className="flex items-center mt-2 text-sm text-blue-600">
+              <Shield className="w-4 h-4 mr-1" />
+              Administrator rechten actief
+            </div>
+          )}
         </div>
-        <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nieuw Project
-        </Button>
+        {canAddProjects && (
+          <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nieuw Project
+          </Button>
+        )}
       </div>
 
-      {/* Statistieken Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Totale Projecten</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{projects.length}</div>
-            <p className="text-xs text-muted-foreground">Actieve projecten</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gemiddelde Voortgang</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Math.round(getTotalProgress())}%</div>
-            <p className="text-xs text-muted-foreground">Van alle fases</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Leden</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {projects.reduce((acc, project) => acc + project.teamMembers.length, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Totaal betrokken</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Actieve Fases</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {projects.reduce((acc, project) => acc + 1, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">In uitvoering</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Project Cards - Now in vertical layout */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900">Actieve Projecten</h2>
-        <div className="space-y-4">
+      {projects.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <Calendar className="w-12 h-12 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Geen projecten gevonden</h3>
+          <p className="text-gray-600 mb-6">
+            {canAddProjects 
+              ? "Begin met het toevoegen van je eerste project om te starten."
+              : "Er zijn nog geen projecten beschikbaar."
+            }
+          </p>
+          {canAddProjects && (
+            <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Eerste Project Toevoegen
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  {editingProjectId === project.id ? (
-                    <Input
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={() => handleNameSave(project)}
-                      onKeyDown={(e) => handleKeyPress(e, project)}
-                      className="text-lg font-semibold"
-                      autoFocus
-                    />
-                  ) : (
-                    <CardTitle 
-                      className="text-lg cursor-pointer hover:text-blue-600 transition-colors"
-                      onDoubleClick={() => handleNameDoubleClick(project)}
-                      title="Dubbelklik om te bewerken"
-                    >
-                      {project.name}
-                    </CardTitle>
-                  )}
-                  <span className="text-sm text-gray-500">
-                    Fase {project.currentPhase}/20
-                  </span>
+            <Card 
+              key={project.id} 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {editingProject === project.id ? (
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onBlur={() => handleEditSave(project)}
+                        onKeyDown={(e) => handleKeyPress(e, project)}
+                        className="text-lg font-semibold"
+                        autoFocus
+                      />
+                    ) : (
+                      <CardTitle 
+                        className="text-lg mb-1 hover:text-blue-600 transition-colors"
+                        onDoubleClick={() => canAddProjects && handleEditStart(project)}
+                        onClick={() => onSelectProject(project)}
+                      >
+                        {project.name}
+                        {canAddProjects && (
+                          <Edit3 className="w-4 h-4 inline ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </CardTitle>
+                    )}
+                  </div>
                 </div>
-                <CardDescription>{project.description}</CardDescription>
+                <CardDescription className="line-clamp-2">
+                  {project.description}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent 
+                className="space-y-4"
+                onClick={() => editingProject !== project.id && onSelectProject(project)}
+              >
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Voortgang</span>
-                    <span>{Math.round(getProjectProgress(project))}%</span>
+                    <span className="text-gray-600">Voortgang</span>
+                    <span className="font-medium">{Math.round(getProgressPercentage(project))}%</span>
                   </div>
-                  <Progress value={getProjectProgress(project)} className="h-2" />
-                </div>
-                
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>Start: {new Date(project.startDate).toLocaleDateString('nl-NL')}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>{project.teamMembers.length} teamleden</span>
-                  </div>
+                  <Progress value={getProgressPercentage(project)} className="h-2" />
                 </div>
 
-                <Button 
-                  onClick={() => onSelectProject(project)}
-                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
-                >
-                  Project Bekijken
-                </Button>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>Start: {new Date(project.startDate).toLocaleDateString('nl-NL')}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-gray-600">
+                    <Users className="w-4 h-4 mr-2" />
+                    <span>{project.teamMembers.length} teamleden</span>
+                  </div>
+                  
+                  <div className="bg-blue-50 px-3 py-2 rounded-md">
+                    <span className="text-blue-700 font-medium text-xs">
+                      HUIDIGE FASE: {getCurrentPhaseName(project)}
+                    </span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
