@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectDetail } from "@/components/ProjectDetail";
 import { TeamPage, TeamMember } from "@/components/TeamPage";
+import { UserMenu } from "@/components/UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export interface ChecklistItem {
   id: string;
@@ -32,9 +36,35 @@ export interface Project {
 }
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'team' | 'reports' | 'settings'>('dashboard');
   
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Laden...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated
+  if (!user) {
+    return null;
+  }
+
   // Sample project data - in een echte app zou dit uit een database komen
   const [projects, setProjects] = useState<Project[]>([
     {
@@ -157,13 +187,23 @@ const Index = () => {
             onViewChange={setCurrentView}
           />
           <main className="flex-1 flex flex-col">
-            {/* Header with logo */}
-            <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-end">
-              <img 
-                src="/lovable-uploads/d2b512fc-e733-439d-97b7-eaed0cae1425.png" 
-                alt="NextGen Home Logo" 
-                className="h-12 w-auto"
-              />
+            {/* Header with logo and user menu */}
+            <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                {!user && (
+                  <Button onClick={() => navigate('/auth')}>
+                    Inloggen
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <img 
+                  src="/lovable-uploads/d2b512fc-e733-439d-97b7-eaed0cae1425.png" 
+                  alt="NextGen Home Logo" 
+                  className="h-12 w-auto"
+                />
+                <UserMenu />
+              </div>
             </header>
             
             {/* Main content */}
