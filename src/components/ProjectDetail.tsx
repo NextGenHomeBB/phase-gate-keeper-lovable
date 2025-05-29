@@ -13,9 +13,10 @@ import { CameraCapture } from "@/components/CameraCapture";
 interface ProjectDetailProps {
   project: Project;
   onUpdateProject: (project: Project) => void;
+  onBack?: () => void;
 }
 
-export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) {
+export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
   const [editPhaseName, setEditPhaseName] = useState("");
@@ -160,11 +161,19 @@ export function ProjectDetail({ project, onUpdateProject }: ProjectDetailProps) 
     return !phase.locked || phase.completed;
   };
 
+  const handleBackClick = () => {
+    if (selectedPhase) {
+      setSelectedPhase(null);
+    } else if (onBack) {
+      onBack();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Header */}
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" onClick={() => setSelectedPhase(null)}>
+        <Button variant="ghost" size="sm" onClick={handleBackClick}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           {selectedPhase ? "Terug naar Fases" : "Terug naar Dashboard"}
         </Button>
