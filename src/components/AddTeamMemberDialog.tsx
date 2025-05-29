@@ -25,7 +25,6 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
     email: '',
     role: '',
     phone: '',
-    startDate: new Date().toISOString().split('T')[0],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,14 +35,13 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
         email: formData.email,
         role: formData.role,
         phone: formData.phone || undefined,
-        startDate: formData.startDate,
+        startDate: new Date().toISOString().split('T')[0], // Default to today
       });
       setFormData({
         name: '',
         email: '',
         role: '',
         phone: '',
-        startDate: new Date().toISOString().split('T')[0],
       });
     }
   };
@@ -101,15 +99,6 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+31 6 12345678"
-              />
-            </div>
-            <div>
-              <Label htmlFor="startDate">Startdatum</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange('startDate', e.target.value)}
               />
             </div>
           </div>
