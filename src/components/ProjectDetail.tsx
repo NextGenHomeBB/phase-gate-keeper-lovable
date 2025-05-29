@@ -367,16 +367,18 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 flex items-center justify-center"
+                                className="h-6 w-6 p-0"
                                 onClick={() => handleFileClick(file)}
+                                title="Bestand openen"
                               >
                                 {getFileIcon(file.file_name, file.file_type)}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex items-center justify-center"
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                                 onClick={() => removeProjectInfoFile(file.id)}
+                                title="Bestand verwijderen"
                               >
                                 <X className="w-3 h-3" />
                               </Button>
