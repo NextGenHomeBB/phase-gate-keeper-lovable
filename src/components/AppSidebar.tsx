@@ -26,7 +26,7 @@ export function AppSidebar({ projects, selectedProject, onSelectProject }: AppSi
       <SidebarHeader className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-blue-900">ProjectBeheer</h2>
-          <SidebarTrigger />
+          <SidebarTrigger className="h-8 w-8 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-md transition-colors duration-200" />
         </div>
       </SidebarHeader>
       
