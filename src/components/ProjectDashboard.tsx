@@ -1,9 +1,8 @@
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, Plus, Edit3, Shield, Copy } from "lucide-react";
+import { Calendar, Users, Plus, Edit3, Shield, Copy, GripVertical } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,8 +14,18 @@ interface ProjectDashboardProps {
   onSelectProject: (project: Project) => void;
   onAddProject: () => void;
   onUpdateProject: (project: Project) => void;
+  onReorderProjects?: (projects: Project[]) => void;
   loading?: boolean;
   canAddProjects?: boolean;
+}
+
+interface DragState {
+  isDragging: boolean;
+  draggedIndex: number | null;
+  draggedProject: Project | null;
+  startY: number;
+  currentY: number;
+  longPressTimer: NodeJS.Timeout | null;
 }
 
 export function ProjectDashboard({ 
@@ -24,6 +33,7 @@ export function ProjectDashboard({
   onSelectProject, 
   onAddProject, 
   onUpdateProject,
+  onReorderProjects,
   loading = false,
   canAddProjects = false
 }: ProjectDashboardProps) {
@@ -31,8 +41,17 @@ export function ProjectDashboard({
   const [editingDescription, setEditingDescription] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [dragState, setDragState] = useState<DragState>({
+    isDragging: false,
+    draggedIndex: null,
+    draggedProject: null,
+    startY: 0,
+    currentY: 0,
+    longPressTimer: null
+  });
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
+  const dragRef = useRef<HTMLDivElement>(null);
 
   const handleEditStart = (project: Project) => {
     setEditingProject(project.id);
@@ -127,8 +146,100 @@ export function ProjectDashboard({
     }
   };
 
+  const startLongPress = (e: React.TouchEvent | React.MouseEvent, project: Project, index: number) => {
+    e.preventDefault();
+    
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const timer = setTimeout(() => {
+      setDragState({
+        isDragging: true,
+        draggedIndex: index,
+        draggedProject: project,
+        startY: clientY,
+        currentY: clientY,
+        longPressTimer: null
+      });
+      
+      toast({
+        title: "Drag gestart",
+        description: "Sleep het project naar de gewenste positie",
+      });
+    }, 500); // 500ms long press
+
+    setDragState(prev => ({
+      ...prev,
+      longPressTimer: timer
+    }));
+  };
+
+  const cancelLongPress = () => {
+    if (dragState.longPressTimer) {
+      clearTimeout(dragState.longPressTimer);
+      setDragState(prev => ({
+        ...prev,
+        longPressTimer: null
+      }));
+    }
+  };
+
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!dragState.isDragging) return;
+    
+    e.preventDefault();
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    setDragState(prev => ({
+      ...prev,
+      currentY: clientY
+    }));
+  };
+
+  const handleDragEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    cancelLongPress();
+    
+    if (!dragState.isDragging || dragState.draggedIndex === null) {
+      setDragState({
+        isDragging: false,
+        draggedIndex: null,
+        draggedProject: null,
+        startY: 0,
+        currentY: 0,
+        longPressTimer: null
+      });
+      return;
+    }
+
+    const clientY = 'touches' in e ? e.changedTouches[0].clientY : e.clientY;
+    const cardHeight = 120; // Approximate card height
+    const deltaY = clientY - dragState.startY;
+    const newIndex = Math.max(0, Math.min(projects.length - 1, dragState.draggedIndex + Math.round(deltaY / cardHeight)));
+
+    if (newIndex !== dragState.draggedIndex && onReorderProjects) {
+      const newProjects = [...projects];
+      const [draggedProject] = newProjects.splice(dragState.draggedIndex, 1);
+      newProjects.splice(newIndex, 0, draggedProject);
+      
+      onReorderProjects(newProjects);
+      
+      toast({
+        title: "Project verplaatst",
+        description: `"${dragState.draggedProject?.name}" is verplaatst`,
+      });
+    }
+
+    setDragState({
+      isDragging: false,
+      draggedIndex: null,
+      draggedProject: null,
+      startY: 0,
+      currentY: 0,
+      longPressTimer: null
+    });
+  };
+
   const handleProjectClick = (project: Project, e: React.MouseEvent) => {
-    if (editingProject === project.id || editingDescription === project.id) {
+    if (editingProject === project.id || editingDescription === project.id || dragState.isDragging) {
       e.stopPropagation();
       return;
     }
@@ -201,67 +312,86 @@ export function ProjectDashboard({
           )}
         </div>
       ) : (
-        <div className="space-y-4">
-          {projects.map((project) => (
+        <div className="space-y-4" ref={dragRef}>
+          {projects.map((project, index) => (
             <Card 
               key={project.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
+              className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
+                dragState.isDragging && dragState.draggedIndex === index 
+                  ? 'opacity-50 scale-105 shadow-2xl transform' 
+                  : ''
+              }`}
+              style={{
+                transform: dragState.isDragging && dragState.draggedIndex === index 
+                  ? `translateY(${dragState.currentY - dragState.startY}px)` 
+                  : 'none'
+              }}
               onClick={(e) => handleProjectClick(project, e)}
+              onTouchStart={(e) => startLongPress(e, project, index)}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              onMouseDown={(e) => startLongPress(e, project, index)}
+              onMouseMove={handleDragMove}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={cancelLongPress}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {editingProject === project.id ? (
-                      <Input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        onBlur={() => handleEditSave(project)}
-                        onKeyDown={(e) => handleKeyPress(e, project)}
-                        className="text-lg font-semibold"
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-between group">
-                        <CardTitle 
-                          className="text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer"
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            canAddProjects && handleEditStart(project);
-                          }}
-                        >
-                          {project.name}
-                        </CardTitle>
-                        <div className="flex items-center gap-1">
-                          {canAddProjects && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditStart(project);
-                                }}
-                              >
-                                <Edit3 className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopyProject(project);
-                                }}
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </>
-                          )}
+                  <div className="flex items-center gap-2 flex-1">
+                    <GripVertical className="w-4 h-4 text-gray-400" />
+                    <div className="flex-1">
+                      {editingProject === project.id ? (
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onBlur={() => handleEditSave(project)}
+                          onKeyDown={(e) => handleKeyPress(e, project)}
+                          className="text-lg font-semibold"
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-between group">
+                          <CardTitle 
+                            className="text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              canAddProjects && handleEditStart(project);
+                            }}
+                          >
+                            {project.name}
+                          </CardTitle>
+                          <div className="flex items-center gap-1">
+                            {canAddProjects && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditStart(project);
+                                  }}
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyProject(project);
+                                  }}
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
                 {editingDescription === project.id ? (

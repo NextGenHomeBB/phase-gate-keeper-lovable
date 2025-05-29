@@ -116,6 +116,21 @@ const Index = () => {
     }
   };
 
+  const handleReorderProjects = async (reorderedProjects: Project[]) => {
+    try {
+      setProjects(reorderedProjects);
+      // Here you could add API call to persist the new order if needed
+      // await projectService.updateProjectOrder(reorderedProjects);
+    } catch (error) {
+      console.error('Error reordering projects:', error);
+      toast({
+        title: "Fout",
+        description: "Kon project volgorde niet bijwerken",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleAddProject = async () => {
     if (!isAdmin()) {
       toast({
@@ -190,6 +205,7 @@ const Index = () => {
           onSelectProject={setSelectedProject} 
           onAddProject={handleAddProject}
           onUpdateProject={updateProject}
+          onReorderProjects={handleReorderProjects}
           loading={projectsLoading}
           canAddProjects={isAdmin()}
         />;
