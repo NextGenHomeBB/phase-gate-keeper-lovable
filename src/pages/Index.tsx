@@ -84,18 +84,30 @@ const Index = () => {
             selectedProject={selectedProject}
             onSelectProject={setSelectedProject}
           />
-          <main className="flex-1 p-6">
-            {selectedProject ? (
-              <ProjectDetail 
-                project={selectedProject} 
-                onUpdateProject={updateProject}
+          <main className="flex-1 flex flex-col">
+            {/* Header with logo */}
+            <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-end">
+              <img 
+                src="/lovable-uploads/d2b512fc-e733-439d-97b7-eaed0cae1425.png" 
+                alt="NextGen Home Logo" 
+                className="h-12 w-auto"
               />
-            ) : (
-              <ProjectDashboard 
-                projects={projects}
-                onSelectProject={setSelectedProject}
-              />
-            )}
+            </header>
+            
+            {/* Main content */}
+            <div className="flex-1 p-6">
+              {selectedProject ? (
+                <ProjectDetail 
+                  project={selectedProject} 
+                  onUpdateProject={updateProject}
+                />
+              ) : (
+                <ProjectDashboard 
+                  projects={projects}
+                  onSelectProject={setSelectedProject}
+                />
+              )}
+            </div>
           </main>
         </div>
       </SidebarProvider>
