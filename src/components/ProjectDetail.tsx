@@ -5,11 +5,11 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
-import { ImageUpload } from "@/components/ImageUpload";
+import { FileUpload } from "@/components/FileUpload";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
 
@@ -142,7 +142,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     reader.readAsDataURL(photoBlob);
   };
 
-  const addProjectInfoFile = (photoBlob: Blob) => {
+  const addProjectInfoFile = (fileBlob: Blob) => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64String = reader.result as string;
@@ -154,9 +154,11 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         updatedProject.projectFiles = [];
       }
       
+      const fileName = fileBlob instanceof File ? fileBlob.name : `Project File ${updatedProject.projectFiles.length + 1}`;
+      
       updatedProject.projectFiles.push({
         id: Date.now().toString(),
-        name: `Project File ${updatedProject.projectFiles.length + 1}`,
+        name: fileName,
         data: base64String,
         uploadedAt: new Date().toISOString()
       });
@@ -168,7 +170,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         description: "Het bestand is succesvol toegevoegd aan het project.",
       });
     };
-    reader.readAsDataURL(photoBlob);
+    reader.readAsDataURL(fileBlob);
   };
 
   const removeProjectInfoFile = (fileId: string) => {
@@ -219,6 +221,23 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     // Trigger a reload of project data if needed
     // This would typically involve calling the parent component to refresh data
     console.log('Team members changed for project:', project.id);
+  };
+
+  const getFileIcon = (fileName: string, data: string) => {
+    if (fileName.toLowerCase().endsWith('.pdf') || data.startsWith('data:application/pdf')) {
+      return <FileText className="w-3 h-3" />;
+    }
+    return <ImageIcon className="w-3 h-3" />;
+  };
+
+  const handleFileClick = (file: any) => {
+    if (file.name.toLowerCase().endsWith('.pdf') || file.data.startsWith('data:application/pdf')) {
+      // For PDFs, open in new tab
+      window.open(file.data, '_blank');
+    } else {
+      // For images, open in new tab
+      window.open(file.data, '_blank');
+    }
   };
 
   return (
@@ -288,8 +307,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         <CameraCapture
                           onCapture={(blob) => addProjectInfoFile(blob)}
                         />
-                        <ImageUpload
-                          onImageUpload={(blob) => addProjectInfoFile(blob)}
+                        <FileUpload
+                          onFileUpload={(blob) => addProjectInfoFile(blob)}
                         />
                       </div>
                     </div>
@@ -304,9 +323,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                onClick={() => window.open(file.data, '_blank')}
+                                onClick={() => handleFileClick(file)}
                               >
-                                <ImageIcon className="w-3 h-3" />
+                                {getFileIcon(file.name, file.data)}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -490,8 +509,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             <CameraCapture
                               onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
                             />
-                            <ImageUpload
-                              onImageUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                            <FileUpload
+                              onFileUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                              acceptedTypes="image/*"
                             />
                             {item.photos && item.photos.length > 0 && (
                               <div className="flex items-center text-sm text-gray-600">
@@ -538,7 +558,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken of uploaden om je voortgang te documenteren.
+                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken, afbeeldingen uploaden of PDF-bestanden toevoegen om je voortgang te documenteren.
                 </p>
               </div>
             </CardContent>
