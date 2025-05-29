@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, Users, Plus, Edit3, Shield } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -27,13 +28,20 @@ export function ProjectDashboard({
   canAddProjects = false
 }: ProjectDashboardProps) {
   const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [editingDescription, setEditingDescription] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
 
   const handleEditStart = (project: Project) => {
     setEditingProject(project.id);
     setEditName(project.name);
+  };
+
+  const handleDescriptionEditStart = (project: Project) => {
+    setEditingDescription(project.id);
+    setEditDescription(project.description);
   };
 
   const handleEditSave = (project: Project) => {
@@ -49,9 +57,27 @@ export function ProjectDashboard({
     setEditName("");
   };
 
+  const handleDescriptionSave = (project: Project) => {
+    if (editDescription.trim() !== project.description) {
+      const updatedProject = { ...project, description: editDescription.trim() };
+      onUpdateProject(updatedProject);
+      toast({
+        title: "Project beschrijving bijgewerkt",
+        description: "De beschrijving is succesvol bijgewerkt",
+      });
+    }
+    setEditingDescription(null);
+    setEditDescription("");
+  };
+
   const handleEditCancel = () => {
     setEditingProject(null);
     setEditName("");
+  };
+
+  const handleDescriptionCancel = () => {
+    setEditingDescription(null);
+    setEditDescription("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, project: Project) => {
@@ -59,6 +85,14 @@ export function ProjectDashboard({
       handleEditSave(project);
     } else if (e.key === 'Escape') {
       handleEditCancel();
+    }
+  };
+
+  const handleDescriptionKeyPress = (e: React.KeyboardEvent, project: Project) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleDescriptionSave(project);
+    } else if (e.key === 'Escape') {
+      handleDescriptionCancel();
     }
   };
 
@@ -159,13 +193,28 @@ export function ProjectDashboard({
                     )}
                   </div>
                 </div>
-                <CardDescription className="line-clamp-2">
-                  {project.description}
-                </CardDescription>
+                {editingDescription === project.id ? (
+                  <Textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    onBlur={() => handleDescriptionSave(project)}
+                    onKeyDown={(e) => handleDescriptionKeyPress(e, project)}
+                    className="min-h-[60px] resize-none"
+                    placeholder="Project beschrijving..."
+                    autoFocus
+                  />
+                ) : (
+                  <CardDescription 
+                    className="line-clamp-2 cursor-text hover:text-gray-800 transition-colors"
+                    onDoubleClick={() => canAddProjects && handleDescriptionEditStart(project)}
+                  >
+                    {project.description}
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent 
                 className="space-y-4"
-                onClick={() => editingProject !== project.id && onSelectProject(project)}
+                onClick={() => editingProject !== project.id && editingDescription !== project.id && onSelectProject(project)}
               >
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
