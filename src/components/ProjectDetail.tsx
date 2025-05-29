@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -12,6 +12,7 @@ import { CameraCapture } from "@/components/CameraCapture";
 import { FileUpload } from "@/components/FileUpload";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { projectFileService, ProjectFile } from "@/services/projectFileService";
 
 interface ProjectDetailProps {
   project: Project;
@@ -23,6 +24,30 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
   const [editPhaseName, setEditPhaseName] = useState("");
+  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+
+  // Load project files when component mounts or project changes
+  useEffect(() => {
+    const loadProjectFiles = async () => {
+      try {
+        setFilesLoading(true);
+        const files = await projectFileService.getProjectFiles(project.id);
+        setProjectFiles(files);
+      } catch (error) {
+        console.error('Error loading project files:', error);
+        toast({
+          title: "Fout",
+          description: "Kon projectbestanden niet laden",
+          variant: "destructive",
+        });
+      } finally {
+        setFilesLoading(false);
+      }
+    };
+
+    loadProjectFiles();
+  }, [project.id]);
 
   const handlePhaseNameEditStart = (phase: Phase) => {
     setEditingPhaseName(phase.id);
@@ -142,47 +167,65 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     reader.readAsDataURL(photoBlob);
   };
 
-  const addProjectInfoFile = (fileBlob: Blob) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      
-      const updatedProject = { ...project };
-      
-      // Add projectFiles array if it doesn't exist
-      if (!updatedProject.projectFiles) {
-        updatedProject.projectFiles = [];
-      }
-      
-      const fileName = fileBlob instanceof File ? fileBlob.name : `Project File ${updatedProject.projectFiles.length + 1}`;
-      
-      updatedProject.projectFiles.push({
-        id: Date.now().toString(),
-        name: fileName,
-        data: base64String,
-        uploadedAt: new Date().toISOString()
-      });
-      
-      onUpdateProject(updatedProject);
-      
+  const addProjectInfoFile = async (fileBlob: Blob) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64String = reader.result as string;
+        const fileName = fileBlob instanceof File ? fileBlob.name : `Project File ${projectFiles.length + 1}`;
+        const fileType = fileBlob.type;
+        const fileSize = fileBlob.size;
+
+        try {
+          const uploadedFile = await projectFileService.uploadProjectFile(
+            project.id,
+            fileName,
+            base64String,
+            fileType,
+            fileSize
+          );
+
+          setProjectFiles(prev => [uploadedFile, ...prev]);
+          
+          toast({
+            title: "Bestand toegevoegd",
+            description: "Het bestand is succesvol toegevoegd aan het project.",
+          });
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          toast({
+            title: "Fout",
+            description: "Kon bestand niet uploaden",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsDataURL(fileBlob);
+    } catch (error) {
+      console.error('Error processing file:', error);
       toast({
-        title: "Bestand toegevoegd",
-        description: "Het bestand is succesvol toegevoegd aan het project.",
+        title: "Fout",
+        description: "Kon bestand niet verwerken",
+        variant: "destructive",
       });
-    };
-    reader.readAsDataURL(fileBlob);
+    }
   };
 
-  const removeProjectInfoFile = (fileId: string) => {
-    const updatedProject = { ...project };
-    
-    if (updatedProject.projectFiles) {
-      updatedProject.projectFiles = updatedProject.projectFiles.filter(file => file.id !== fileId);
-      onUpdateProject(updatedProject);
+  const removeProjectInfoFile = async (fileId: string) => {
+    try {
+      await projectFileService.deleteProjectFile(fileId);
+      setProjectFiles(prev => prev.filter(file => file.id !== fileId));
       
       toast({
         title: "Bestand verwijderd",
         description: "Het bestand is succesvol verwijderd.",
+      });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      toast({
+        title: "Fout",
+        description: "Kon bestand niet verwijderen",
+        variant: "destructive",
       });
     }
   };
@@ -223,20 +266,20 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     console.log('Team members changed for project:', project.id);
   };
 
-  const getFileIcon = (fileName: string, data: string) => {
-    if (fileName.toLowerCase().endsWith('.pdf') || data.startsWith('data:application/pdf')) {
+  const getFileIcon = (fileName: string, fileType: string) => {
+    if (fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf') {
       return <FileText className="w-4 h-4" />;
     }
     return <ImageIcon className="w-4 h-4" />;
   };
 
-  const handleFileClick = (file: any) => {
-    if (file.name.toLowerCase().endsWith('.pdf') || file.data.startsWith('data:application/pdf')) {
+  const handleFileClick = (file: ProjectFile) => {
+    if (file.file_name.toLowerCase().endsWith('.pdf') || file.file_type === 'application/pdf') {
       // For PDFs, open in new tab
-      window.open(file.data, '_blank');
+      window.open(file.file_data, '_blank');
     } else {
       // For images, open in new tab
-      window.open(file.data, '_blank');
+      window.open(file.file_data, '_blank');
     }
   };
 
@@ -313,11 +356,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </div>
                     </div>
                     
-                    {project.projectFiles && project.projectFiles.length > 0 ? (
+                    {filesLoading ? (
+                      <p className="text-xs text-gray-500">Bestanden laden...</p>
+                    ) : projectFiles.length > 0 ? (
                       <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {project.projectFiles.map((file) => (
+                        {projectFiles.map((file) => (
                           <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                            <span className="truncate">{file.name}</span>
+                            <span className="truncate">{file.file_name}</span>
                             <div className="flex items-center space-x-1">
                               <Button
                                 variant="ghost"
@@ -325,7 +370,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 className="h-6 w-6 p-0 flex items-center justify-center"
                                 onClick={() => handleFileClick(file)}
                               >
-                                {getFileIcon(file.name, file.data)}
+                                {getFileIcon(file.file_name, file.file_type)}
                               </Button>
                               <Button
                                 variant="ghost"

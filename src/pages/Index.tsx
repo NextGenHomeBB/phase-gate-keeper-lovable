@@ -35,12 +35,6 @@ export interface Project {
   currentPhase: number;
   startDate: string;
   teamMembers: string[];
-  projectFiles?: {
-    id: string;
-    name: string;
-    data: string;
-    uploadedAt: string;
-  }[];
 }
 
 const Index = () => {
