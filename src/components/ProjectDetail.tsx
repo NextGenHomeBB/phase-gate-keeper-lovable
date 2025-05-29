@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X } 
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
+import { ImageUpload } from "@/components/ImageUpload";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
 
@@ -401,6 +403,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             <CameraCapture
                               onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
                             />
+                            <ImageUpload
+                              onImageUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                            />
                             {item.photos && item.photos.length > 0 && (
                               <div className="flex items-center text-sm text-gray-600">
                                 <ImageIcon className="w-4 h-4 mr-1" />
@@ -446,7 +451,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken om je voortgang te documenteren.
+                  💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken of uploaden om je voortgang te documenteren.
                 </p>
               </div>
             </CardContent>
