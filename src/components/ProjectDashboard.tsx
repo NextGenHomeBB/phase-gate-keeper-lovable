@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, Plus, Edit3, Shield } from "lucide-react";
+import { Calendar, Users, Plus, Edit3, Shield, Copy } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -93,6 +92,39 @@ export function ProjectDashboard({
       handleDescriptionSave(project);
     } else if (e.key === 'Escape') {
       handleDescriptionCancel();
+    }
+  };
+
+  const handleCopyProject = async (project: Project) => {
+    try {
+      const { projectService } = await import("@/services/projectService");
+      
+      const newProject: Omit<Project, 'id' | 'phases'> = {
+        name: `${project.name} (Copy)`,
+        description: project.description,
+        currentPhase: 1, // Reset to first phase for the copy
+        startDate: new Date().toISOString().split('T')[0], // Set to today
+        teamMembers: [...project.teamMembers], // Copy team members
+      };
+      
+      const addedProject = await projectService.addProject(newProject);
+      
+      // Add to local state (this will be handled by the parent component)
+      // We'll need to trigger a refresh or update the parent state
+      toast({
+        title: "Project gekopieerd",
+        description: `"${addedProject.name}" is succesvol aangemaakt`,
+      });
+      
+      // Trigger a page refresh to load the new project
+      window.location.reload();
+    } catch (error) {
+      console.error('Error copying project:', error);
+      toast({
+        title: "Fout",
+        description: "Kon project niet kopiëren",
+        variant: "destructive",
+      });
     }
   };
 
@@ -189,19 +221,34 @@ export function ProjectDashboard({
                         >
                           {project.name}
                         </CardTitle>
-                        {canAddProjects && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 ml-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditStart(project);
-                            }}
-                          >
-                            <Edit3 className="w-3 h-3" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {canAddProjects && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditStart(project);
+                                }}
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyProject(project);
+                                }}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
