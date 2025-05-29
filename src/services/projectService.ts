@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/pages/Index';
+import { TeamMember } from '@/components/TeamPage';
 
 export interface DatabaseProject {
   id: string;
@@ -25,23 +26,88 @@ export const projectService = {
       throw error;
     }
 
-    // For now, return projects with sample phase data since phase structure is complex
-    return (data || []).map(project => ({
-      id: project.id,
-      name: project.name,
-      description: project.description || '',
-      currentPhase: project.current_phase || 1,
-      startDate: project.start_date || new Date().toISOString().split('T')[0],
-      teamMembers: [],
-      phases: Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        name: `Fase ${i + 1}: ${getPhaseName(i + 1)}`,
-        description: getPhaseDescription(i + 1),
-        completed: i < (project.current_phase || 1) - 1,
-        locked: i >= (project.current_phase || 1),
-        checklist: getPhaseChecklist(i + 1)
-      }))
+    // For each project, fetch associated team members
+    const projectsWithTeamMembers = await Promise.all(
+      (data || []).map(async (project) => {
+        const teamMembers = await this.fetchProjectTeamMembers(project.id);
+        
+        return {
+          id: project.id,
+          name: project.name,
+          description: project.description || '',
+          currentPhase: project.current_phase || 1,
+          startDate: project.start_date || new Date().toISOString().split('T')[0],
+          teamMembers: teamMembers.map(tm => tm.name),
+          phases: Array.from({ length: 20 }, (_, i) => ({
+            id: i + 1,
+            name: `Fase ${i + 1}: ${getPhaseName(i + 1)}`,
+            description: getPhaseDescription(i + 1),
+            completed: i < (project.current_phase || 1) - 1,
+            locked: i >= (project.current_phase || 1),
+            checklist: getPhaseChecklist(i + 1)
+          }))
+        };
+      })
+    );
+
+    return projectsWithTeamMembers;
+  },
+
+  async fetchProjectTeamMembers(projectId: string): Promise<TeamMember[]> {
+    const { data, error } = await supabase
+      .from('project_team_members')
+      .select(`
+        team_members (
+          id,
+          name,
+          email,
+          role_title,
+          phone,
+          start_date
+        )
+      `)
+      .eq('project_id', projectId);
+
+    if (error) {
+      console.error('Error fetching project team members:', error);
+      throw error;
+    }
+
+    return (data || []).map(item => ({
+      id: item.team_members.id,
+      name: item.team_members.name,
+      email: item.team_members.email,
+      role: item.team_members.role_title || 'Team Member',
+      phone: item.team_members.phone || undefined,
+      startDate: item.team_members.start_date || new Date().toISOString().split('T')[0]
     }));
+  },
+
+  async addTeamMemberToProject(projectId: string, teamMemberId: string): Promise<void> {
+    const { error } = await supabase
+      .from('project_team_members')
+      .insert({
+        project_id: projectId,
+        team_member_id: teamMemberId
+      });
+
+    if (error) {
+      console.error('Error adding team member to project:', error);
+      throw error;
+    }
+  },
+
+  async removeTeamMemberFromProject(projectId: string, teamMemberId: string): Promise<void> {
+    const { error } = await supabase
+      .from('project_team_members')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('team_member_id', teamMemberId);
+
+    if (error) {
+      console.error('Error removing team member from project:', error);
+      throw error;
+    }
   },
 
   async addProject(project: Omit<Project, 'id' | 'phases'>): Promise<Project> {
@@ -105,7 +171,7 @@ export const projectService = {
   }
 };
 
-// Helper functions (same as in Index.tsx)
+// Helper functions (same as before)
 function getPhaseName(phaseNumber: number): string {
   const phases = ["Projectinitiatie", "Requirements Analyse", "Ontwerp", "Planning", "Ontwikkeling Setup", "Frontend Ontwikkeling", "Backend Ontwikkeling", "Database Implementatie", "API Ontwikkeling", "Testing Setup", "Unit Testing", "Integratie Testing", "Performance Testing", "Security Testing", "User Acceptance Testing", "Deployment Voorbereiding", "Productie Deploy", "Monitoring Setup", "Documentatie", "Project Afsluiting"];
   return phases[phaseNumber - 1] || `Fase ${phaseNumber}`;

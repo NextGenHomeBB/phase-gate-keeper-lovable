@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X } 
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
+import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 
 interface ProjectDetailProps {
   project: Project;
@@ -169,6 +171,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleTeamMembersChange = () => {
+    // Trigger a reload of project data if needed
+    // This would typically involve calling the parent component to refresh data
+    console.log('Team members changed for project:', project.id);
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Header */}
@@ -239,6 +247,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
+                    <ProjectTeamManager 
+                      projectId={project.id} 
+                      onTeamMembersChange={handleTeamMembersChange}
+                    />
                     {project.teamMembers.map((member, index) => (
                       <div key={index} className="text-sm">
                         {member}
