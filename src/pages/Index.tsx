@@ -117,7 +117,7 @@ const Index = () => {
   };
 
   const handleAddProject = async () => {
-    if (!isAdmin) {
+    if (!isAdmin()) {
       toast({
         title: "Geen toegang",
         description: "Alleen administrators kunnen projecten toevoegen",
@@ -183,7 +183,7 @@ const Index = () => {
           onAddProject={handleAddProject}
           onUpdateProject={updateProject}
           loading={projectsLoading}
-          canAddProjects={isAdmin}
+          canAddProjects={isAdmin()}
         />;
     }
   };
