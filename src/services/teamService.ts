@@ -37,6 +37,13 @@ export const teamService = {
   },
 
   async addTeamMember(member: Omit<TeamMember, 'id'>): Promise<TeamMember> {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User must be authenticated to add team members');
+    }
+
     const { data, error } = await supabase
       .from('team_members')
       .insert({
@@ -44,7 +51,8 @@ export const teamService = {
         email: member.email,
         role_title: member.role,
         phone: member.phone,
-        start_date: member.startDate
+        start_date: member.startDate,
+        user_id: user.id // Add the current user ID
       })
       .select()
       .single();
