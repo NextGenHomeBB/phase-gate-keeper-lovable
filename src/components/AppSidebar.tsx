@@ -18,9 +18,22 @@ interface AppSidebarProps {
   projects: Project[];
   selectedProject: Project | null;
   onSelectProject: (project: Project | null) => void;
+  currentView: 'dashboard' | 'team' | 'reports' | 'settings';
+  onViewChange: (view: 'dashboard' | 'team' | 'reports' | 'settings') => void;
 }
 
-export function AppSidebar({ projects, selectedProject, onSelectProject }: AppSidebarProps) {
+export function AppSidebar({ 
+  projects, 
+  selectedProject, 
+  onSelectProject,
+  currentView,
+  onViewChange
+}: AppSidebarProps) {
+  const handleNavigationClick = (view: 'dashboard' | 'team' | 'reports' | 'settings') => {
+    onViewChange(view);
+    onSelectProject(null); // Clear selected project when navigating
+  };
+
   return (
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="p-4 border-b border-gray-200">
@@ -37,27 +50,36 @@ export function AppSidebar({ projects, selectedProject, onSelectProject }: AppSi
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  onClick={() => onSelectProject(null)}
-                  className={!selectedProject ? "bg-blue-100 text-blue-700" : ""}
+                  onClick={() => handleNavigationClick('dashboard')}
+                  className={currentView === 'dashboard' && !selectedProject ? "bg-blue-100 text-blue-700" : ""}
                 >
                   <Home className="w-4 h-4" />
                   <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton
+                  onClick={() => handleNavigationClick('reports')}
+                  className={currentView === 'reports' ? "bg-blue-100 text-blue-700" : ""}
+                >
                   <BarChart3 className="w-4 h-4" />
                   <span>Rapportages</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton
+                  onClick={() => handleNavigationClick('team')}
+                  className={currentView === 'team' ? "bg-blue-100 text-blue-700" : ""}
+                >
                   <Users className="w-4 h-4" />
                   <span>Team</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton
+                  onClick={() => handleNavigationClick('settings')}
+                  className={currentView === 'settings' ? "bg-blue-100 text-blue-700" : ""}
+                >
                   <Settings className="w-4 h-4" />
                   <span>Instellingen</span>
                 </SidebarMenuButton>
@@ -73,7 +95,10 @@ export function AppSidebar({ projects, selectedProject, onSelectProject }: AppSi
               {projects.map((project) => (
                 <SidebarMenuItem key={project.id}>
                   <SidebarMenuButton 
-                    onClick={() => onSelectProject(project)}
+                    onClick={() => {
+                      onSelectProject(project);
+                      onViewChange('dashboard');
+                    }}
                     className={selectedProject?.id === project.id ? "bg-blue-100 text-blue-700" : ""}
                   >
                     <FolderOpen className="w-4 h-4" />

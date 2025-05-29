@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectDetail } from "@/components/ProjectDetail";
+import { TeamPage, TeamMember } from "@/components/TeamPage";
 
 export interface ChecklistItem {
   id: string;
@@ -33,6 +33,7 @@ export interface Project {
 
 const Index = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'team' | 'reports' | 'settings'>('dashboard');
   
   // Sample project data - in een echte app zou dit uit een database komen
   const [projects, setProjects] = useState<Project[]>([
@@ -70,9 +71,78 @@ const Index = () => {
     }
   ]);
 
+  // Sample team members data
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
+    {
+      id: "1",
+      name: "Alice Johnson",
+      email: "alice@nextgenhome.nl",
+      role: "Project Manager",
+      phone: "+31 6 12345678",
+      startDate: "2024-01-15",
+    },
+    {
+      id: "2",
+      name: "Bob Smith",
+      email: "bob@nextgenhome.nl",
+      role: "Frontend Developer",
+      phone: "+31 6 87654321",
+      startDate: "2024-02-01",
+    },
+    {
+      id: "3",
+      name: "Carol Williams",
+      email: "carol@nextgenhome.nl",
+      role: "UX Designer",
+      startDate: "2024-01-20",
+    }
+  ]);
+
   const updateProject = (updatedProject: Project) => {
     setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
     setSelectedProject(updatedProject);
+  };
+
+  const renderMainContent = () => {
+    if (selectedProject) {
+      return (
+        <ProjectDetail 
+          project={selectedProject} 
+          onUpdateProject={updateProject}
+        />
+      );
+    }
+
+    switch (currentView) {
+      case 'team':
+        return (
+          <TeamPage 
+            teamMembers={teamMembers}
+            onUpdateTeamMembers={setTeamMembers}
+          />
+        );
+      case 'reports':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-blue-900">Rapportages</h1>
+            <p className="text-gray-600">Rapportage functionaliteit komt binnenkort...</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-blue-900">Instellingen</h1>
+            <p className="text-gray-600">Instellingen functionaliteit komt binnenkort...</p>
+          </div>
+        );
+      default:
+        return (
+          <ProjectDashboard 
+            projects={projects}
+            onSelectProject={setSelectedProject}
+          />
+        );
+    }
   };
 
   return (
@@ -83,6 +153,8 @@ const Index = () => {
             projects={projects}
             selectedProject={selectedProject}
             onSelectProject={setSelectedProject}
+            currentView={currentView}
+            onViewChange={setCurrentView}
           />
           <main className="flex-1 flex flex-col">
             {/* Header with logo */}
@@ -96,17 +168,7 @@ const Index = () => {
             
             {/* Main content */}
             <div className="flex-1 p-6">
-              {selectedProject ? (
-                <ProjectDetail 
-                  project={selectedProject} 
-                  onUpdateProject={updateProject}
-                />
-              ) : (
-                <ProjectDashboard 
-                  projects={projects}
-                  onSelectProject={setSelectedProject}
-                />
-              )}
+              {renderMainContent()}
             </div>
           </main>
         </div>
