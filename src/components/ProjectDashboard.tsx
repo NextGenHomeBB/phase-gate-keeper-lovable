@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,11 +46,12 @@ export function ProjectDashboard({
 
   const handleEditSave = (project: Project) => {
     if (editName.trim() && editName !== project.name) {
-      const updatedProject = { ...project, name: editName.trim() };
+      const uppercaseName = editName.trim().toUpperCase();
+      const updatedProject = { ...project, name: uppercaseName };
       onUpdateProject(updatedProject);
       toast({
         title: "Project naam bijgewerkt",
-        description: `Project hernoemd naar "${editName.trim()}"`,
+        description: `Project hernoemd naar "${uppercaseName}"`,
       });
     }
     setEditingProject(null);
@@ -100,7 +102,7 @@ export function ProjectDashboard({
       const { projectService } = await import("@/services/projectService");
       
       const newProject: Omit<Project, 'id' | 'phases'> = {
-        name: `${project.name} (Copy)`,
+        name: `${project.name} (COPY)`, // Also uppercase the copy suffix
         description: project.description,
         currentPhase: 1, // Reset to first phase for the copy
         startDate: new Date().toISOString().split('T')[0], // Set to today
