@@ -122,6 +122,7 @@ export function ProjectDashboard({
 
   return (
     <div className="space-y-6">
+      {/* Project Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-blue-900">Project Dashboard</h1>
@@ -180,16 +181,28 @@ export function ProjectDashboard({
                         autoFocus
                       />
                     ) : (
-                      <CardTitle 
-                        className="text-lg mb-1 hover:text-blue-600 transition-colors"
-                        onDoubleClick={() => canAddProjects && handleEditStart(project)}
-                        onClick={() => onSelectProject(project)}
-                      >
-                        {project.name}
+                      <div className="flex items-center justify-between group">
+                        <CardTitle 
+                          className="text-lg mb-1 hover:text-blue-600 transition-colors cursor-pointer"
+                          onDoubleClick={() => canAddProjects && handleEditStart(project)}
+                          onClick={() => onSelectProject(project)}
+                        >
+                          {project.name}
+                        </CardTitle>
                         {canAddProjects && (
-                          <Edit3 className="w-4 h-4 inline ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 ml-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditStart(project);
+                            }}
+                          >
+                            <Edit3 className="w-3 h-3" />
+                          </Button>
                         )}
-                      </CardTitle>
+                      </div>
                     )}
                   </div>
                 </div>
