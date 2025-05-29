@@ -36,6 +36,53 @@ export type Database = {
         }
         Relationships: []
       }
+      project_photos: {
+        Row: {
+          caption: string | null
+          checklist_item_id: string | null
+          created_at: string
+          id: string
+          phase_id: number | null
+          photo_data: string | null
+          photo_url: string
+          project_id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          checklist_item_id?: string | null
+          created_at?: string
+          id?: string
+          phase_id?: number | null
+          photo_data?: string | null
+          photo_url: string
+          project_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          checklist_item_id?: string | null
+          created_at?: string
+          id?: string
+          phase_id?: number | null
+          photo_data?: string | null
+          photo_url?: string
+          project_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_photos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_team_members: {
         Row: {
           created_at: string

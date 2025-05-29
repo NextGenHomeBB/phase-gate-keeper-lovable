@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
+import { PhotoGallery } from "@/components/PhotoGallery";
 
 interface ProjectDetailProps {
   project: Project;
@@ -260,6 +260,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 </CardContent>
               </Card>
             </div>
+
+            {/* Project Photo Gallery */}
+            <PhotoGallery 
+              projectId={project.id}
+              title="Project Foto Galerij"
+              className="mt-6"
+            />
           </div>
 
           {/* Phases Grid */}
@@ -350,6 +357,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             )}
             <p className="text-gray-600 mt-2">{selectedPhase.description}</p>
           </div>
+
+          {/* Phase Photo Gallery */}
+          <PhotoGallery 
+            projectId={project.id}
+            phaseId={selectedPhase.id}
+            title={`Foto's voor ${selectedPhase.name}`}
+          />
 
           <Card>
             <CardHeader>
