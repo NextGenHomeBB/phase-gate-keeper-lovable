@@ -65,7 +65,7 @@ const Index = () => {
   // Sample project data - in een echte app zou dit uit een database komen
   const [projects, setProjects] = useState<Project[]>([{
     id: "1",
-    name: "Website Redesign Project",
+    name: "OETEWALERSTRAAT 42",
     description: "Volledig herontwerp van de bedrijfswebsite",
     currentPhase: 1,
     startDate: "2024-01-15",
