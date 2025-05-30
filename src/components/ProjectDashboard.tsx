@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectDashboardProps {
   projects: Project[];
@@ -51,6 +52,7 @@ export function ProjectDashboard({
   });
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
+  const { t } = useLanguage();
   const dragRef = useRef<HTMLDivElement>(null);
 
   const handleEditStart = (project: Project) => {
@@ -69,8 +71,8 @@ export function ProjectDashboard({
       const updatedProject = { ...project, name: uppercaseName };
       onUpdateProject(updatedProject);
       toast({
-        title: "Project naam bijgewerkt",
-        description: `Project hernoemd naar "${uppercaseName}"`,
+        title: t('dashboard.projectNameUpdated'),
+        description: `${t('dashboard.projectRenamed')} "${uppercaseName}"`,
       });
     }
     setEditingProject(null);
@@ -82,8 +84,8 @@ export function ProjectDashboard({
       const updatedProject = { ...project, description: editDescription.trim() };
       onUpdateProject(updatedProject);
       toast({
-        title: "Project beschrijving bijgewerkt",
-        description: "De beschrijving is succesvol bijgewerkt",
+        title: t('dashboard.projectDescriptionUpdated'),
+        description: t('dashboard.descriptionUpdateSuccess'),
       });
     }
     setEditingDescription(null);
@@ -131,16 +133,16 @@ export function ProjectDashboard({
       const addedProject = await projectService.addProject(newProject);
       
       toast({
-        title: "Project gekopieerd",
-        description: `"${addedProject.name}" is succesvol aangemaakt`,
+        title: t('dashboard.projectCopied'),
+        description: `"${addedProject.name}" ${t('dashboard.projectCopySuccess')}`,
       });
       
       window.location.reload();
     } catch (error) {
       console.error('Error copying project:', error);
       toast({
-        title: "Fout",
-        description: "Kon project niet kopiëren",
+        title: t('common.error'),
+        description: t('dashboard.copyError'),
         variant: "destructive",
       });
     }
@@ -162,8 +164,8 @@ export function ProjectDashboard({
       });
       
       toast({
-        title: "Drag gestart",
-        description: "Sleep het project naar de gewenste positie",
+        title: t('dashboard.dragStarted'),
+        description: t('dashboard.dragInstruction'),
       });
     }, 500); // 500ms long press
 
@@ -223,8 +225,8 @@ export function ProjectDashboard({
       onReorderProjects(newProjects);
       
       toast({
-        title: "Project verplaatst",
-        description: `"${dragState.draggedProject?.name}" is verplaatst`,
+        title: t('dashboard.projectMoved'),
+        description: `"${dragState.draggedProject?.name}" ${t('dashboard.projectMovedSuccess')}`,
       });
     }
 
@@ -260,11 +262,11 @@ export function ProjectDashboard({
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-blue-900">Project Dashboard</h1>
+          <h1 className="text-3xl font-bold text-blue-900">{t('dashboard.title')}</h1>
         </div>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Projecten laden...</p>
+          <p className="mt-2 text-gray-600">{t('dashboard.loading')}</p>
         </div>
       </div>
     );
@@ -275,19 +277,19 @@ export function ProjectDashboard({
       {/* Project Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900">Project Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overzicht van al je actieve projecten</p>
+          <h1 className="text-3xl font-bold text-blue-900">{t('dashboard.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('dashboard.subtitle')}</p>
           {isAdmin && (
             <div className="flex items-center mt-2 text-sm text-blue-600">
               <Shield className="w-4 h-4 mr-1" />
-              Administrator rechten actief
+              {t('dashboard.adminRights')}
             </div>
           )}
         </div>
         {canAddProjects && (
           <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
-            Nieuw Project
+            {t('dashboard.newProject')}
           </Button>
         )}
       </div>
@@ -297,17 +299,17 @@ export function ProjectDashboard({
           <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <Calendar className="w-12 h-12 text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Geen projecten gevonden</h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('dashboard.noProjects')}</h3>
           <p className="text-gray-600 mb-6">
             {canAddProjects 
-              ? "Begin met het toevoegen van je eerste project om te starten."
-              : "Er zijn nog geen projecten beschikbaar."
+              ? t('dashboard.noProjectsSubtitle')
+              : t('dashboard.noProjectsUser')
             }
           </p>
           {canAddProjects && (
             <Button onClick={onAddProject} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Eerste Project Toevoegen
+              {t('dashboard.addFirstProject')}
             </Button>
           )}
         </div>
@@ -435,7 +437,7 @@ export function ProjectDashboard({
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Voortgang</span>
+                    <span className="text-gray-600">{t('dashboard.progress')}</span>
                     <span className="font-medium">{Math.round(getProgressPercentage(project))}%</span>
                   </div>
                   <Progress value={getProgressPercentage(project)} className="h-2" />
@@ -444,17 +446,17 @@ export function ProjectDashboard({
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center text-gray-600">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span>Start: {new Date(project.startDate).toLocaleDateString('nl-NL')}</span>
+                    <span>{t('dashboard.start')}: {new Date(project.startDate).toLocaleDateString('nl-NL')}</span>
                   </div>
                   
                   <div className="flex items-center text-gray-600">
                     <Users className="w-4 h-4 mr-2" />
-                    <span>{project.teamMembers.length} teamleden</span>
+                    <span>{project.teamMembers.length} {t('dashboard.teamMembers')}</span>
                   </div>
                   
                   <div className="bg-blue-50 px-3 py-2 rounded-md">
                     <span className="text-blue-700 font-medium text-xs">
-                      HUIDIGE FASE: {getCurrentPhaseName(project)}
+                      {t('dashboard.currentPhase')}: {getCurrentPhaseName(project)}
                     </span>
                   </div>
                 </div>
