@@ -488,36 +488,25 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 )}
               </div>
               
-              <div className="flex items-start space-x-3">
+              <div>
                 {editingProjectDescription ? (
                   <Textarea
                     value={editProjectDescriptionValue}
                     onChange={(e) => setEditProjectDescriptionValue(e.target.value)}
                     onBlur={handleProjectDescriptionSave}
                     onKeyDown={handleProjectDescriptionKeyPress}
-                    className="text-gray-600 border-0 p-0 shadow-none focus-visible:ring-0 resize-none flex-1"
+                    className="text-gray-600 border-0 p-0 shadow-none focus-visible:ring-0 resize-none w-full"
                     rows={2}
                     autoFocus
                     placeholder="Project beschrijving..."
                   />
                 ) : (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={handleProjectDescriptionEditStart}
-                      title="Project beschrijving bewerken"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                    </Button>
-                    <p 
-                      className="text-gray-600 cursor-text hover:text-gray-800 transition-colors flex-1"
-                      onDoubleClick={handleProjectDescriptionEditStart}
-                    >
-                      {project.description || "Geen beschrijving"}
-                    </p>
-                  </>
+                  <p 
+                    className="text-gray-600 cursor-text hover:text-gray-800 transition-colors"
+                    onDoubleClick={handleProjectDescriptionEditStart}
+                  >
+                    {project.description || "Geen beschrijving"}
+                  </p>
                 )}
               </div>
 
