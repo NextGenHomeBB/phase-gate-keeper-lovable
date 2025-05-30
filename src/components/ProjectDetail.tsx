@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye, Check, Edit3 } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
@@ -36,6 +37,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [teamMembersLoading, setTeamMembersLoading] = useState(false);
   const [editingProjectName, setEditingProjectName] = useState(false);
   const [editProjectNameValue, setEditProjectNameValue] = useState("");
+  const [editingProjectDescription, setEditingProjectDescription] = useState(false);
+  const [editProjectDescriptionValue, setEditProjectDescriptionValue] = useState("");
 
   // Load project files when component mounts or project changes
   useEffect(() => {
@@ -407,6 +410,38 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleProjectDescriptionEditStart = () => {
+    setEditingProjectDescription(true);
+    setEditProjectDescriptionValue(project.description);
+  };
+
+  const handleProjectDescriptionSave = async () => {
+    if (editProjectDescriptionValue.trim() && editProjectDescriptionValue !== project.description) {
+      const updatedProject = { ...project, description: editProjectDescriptionValue.trim() };
+      await onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Project beschrijving bijgewerkt",
+        description: "De beschrijving is succesvol bijgewerkt",
+      });
+    }
+    setEditingProjectDescription(false);
+    setEditProjectDescriptionValue("");
+  };
+
+  const handleProjectDescriptionCancel = () => {
+    setEditingProjectDescription(false);
+    setEditProjectDescriptionValue("");
+  };
+
+  const handleProjectDescriptionKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleProjectDescriptionSave();
+    } else if (e.key === 'Escape') {
+      handleProjectDescriptionCancel();
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -452,7 +487,39 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </>
                 )}
               </div>
-              <p className="text-gray-600 mt-2">{project.description}</p>
+              
+              <div className="flex items-start space-x-3">
+                {editingProjectDescription ? (
+                  <Textarea
+                    value={editProjectDescriptionValue}
+                    onChange={(e) => setEditProjectDescriptionValue(e.target.value)}
+                    onBlur={handleProjectDescriptionSave}
+                    onKeyDown={handleProjectDescriptionKeyPress}
+                    className="text-gray-600 border-0 p-0 shadow-none focus-visible:ring-0 resize-none"
+                    rows={2}
+                    autoFocus
+                    placeholder="Project beschrijving..."
+                  />
+                ) : (
+                  <>
+                    <p 
+                      className="text-gray-600 cursor-text hover:text-gray-800 transition-colors flex-1"
+                      onDoubleClick={handleProjectDescriptionEditStart}
+                    >
+                      {project.description || "Geen beschrijving"}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={handleProjectDescriptionEditStart}
+                      title="Project beschrijving bewerken"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                  </>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
