@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -7,6 +6,7 @@ import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectDetail } from "@/components/ProjectDetail";
 import { TeamPage, TeamMember } from "@/components/TeamPage";
 import { UserMenu } from "@/components/UserMenu";
+import { BackgroundColorPicker } from "@/components/BackgroundColorPicker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { projectService } from "@/services/projectService";
@@ -51,6 +51,7 @@ const Index = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState("bg-gray-50");
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -213,7 +214,7 @@ const Index = () => {
     }
   };
 
-  return <div className="min-h-screen bg-gray-50">
+  return <div className={`min-h-screen ${backgroundColor}`}>
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
           <AppSidebar 
@@ -233,6 +234,10 @@ const Index = () => {
                   </Button>}
               </div>
               <div className="flex items-center gap-4">
+                <BackgroundColorPicker 
+                  onColorChange={setBackgroundColor}
+                  currentColor={backgroundColor}
+                />
                 <UserMenu />
               </div>
             </header>
