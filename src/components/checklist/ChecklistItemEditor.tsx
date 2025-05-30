@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, GripVertical, Calendar, User, MessageSquare } from "lucide-react";
+import { Trash2, GripVertical, User, MessageSquare } from "lucide-react";
 import { ChecklistItem } from "@/pages/ChecklistCreator";
 
 interface ChecklistItemEditorProps {
@@ -32,10 +32,6 @@ export function ChecklistItemEditor({
 
   const handleTextChange = (text: string) => {
     onUpdate({ ...item, text });
-  };
-
-  const handleDueDateChange = (dueDate: string) => {
-    onUpdate({ ...item, dueDate });
   };
 
   const handleAssignedToChange = (assignedTo: string) => {
@@ -77,19 +73,7 @@ export function ChecklistItemEditor({
               />
               
               {/* Additional Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-600 flex items-center">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    Due Date
-                  </label>
-                  <Input
-                    type="date"
-                    value={item.dueDate || ""}
-                    onChange={(e) => handleDueDateChange(e.target.value)}
-                    className="text-sm"
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-600 flex items-center">
                     <User className="w-3 h-3 mr-1" />
@@ -124,14 +108,8 @@ export function ChecklistItemEditor({
               </p>
               
               {/* Metadata */}
-              {(item.dueDate || item.assignedTo || item.notes) && (
+              {(item.assignedTo || item.notes) && (
                 <div className="flex flex-wrap gap-2">
-                  {item.dueDate && (
-                    <Badge variant="outline" className="text-xs">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      {new Date(item.dueDate).toLocaleDateString()}
-                    </Badge>
-                  )}
                   {item.assignedTo && (
                     <Badge variant="outline" className="text-xs">
                       <User className="w-3 h-3 mr-1" />
