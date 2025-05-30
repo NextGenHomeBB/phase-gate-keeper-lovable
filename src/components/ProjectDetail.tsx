@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,8 @@ import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { projectFileService, ProjectFile } from "@/services/projectFileService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TeamMember } from "@/components/TeamPage";
+import { projectService } from "@/services/projectService";
 
 interface ProjectDetailProps {
   project: Project;
@@ -29,6 +30,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
+  const [projectTeamMembers, setProjectTeamMembers] = useState<TeamMember[]>([]);
+  const [teamMembersLoading, setTeamMembersLoading] = useState(false);
 
   // Load project files when component mounts or project changes
   useEffect(() => {
@@ -50,6 +53,28 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     };
 
     loadProjectFiles();
+  }, [project.id]);
+
+  // Load project team members when component mounts or project changes
+  useEffect(() => {
+    const loadProjectTeamMembers = async () => {
+      try {
+        setTeamMembersLoading(true);
+        const teamMembers = await projectService.fetchProjectTeamMembers(project.id);
+        setProjectTeamMembers(teamMembers);
+      } catch (error) {
+        console.error('Error loading project team members:', error);
+        toast({
+          title: "Fout",
+          description: "Kon teamleden niet laden",
+          variant: "destructive",
+        });
+      } finally {
+        setTeamMembersLoading(false);
+      }
+    };
+
+    loadProjectTeamMembers();
   }, [project.id]);
 
   const handlePhaseNameEditStart = (phase: Phase) => {
@@ -263,10 +288,17 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
-  const handleTeamMembersChange = () => {
-    // Trigger a reload of project data if needed
-    // This would typically involve calling the parent component to refresh data
-    console.log('Team members changed for project:', project.id);
+  const handleTeamMembersChange = async () => {
+    // Reload team members when changes are made
+    try {
+      setTeamMembersLoading(true);
+      const teamMembers = await projectService.fetchProjectTeamMembers(project.id);
+      setProjectTeamMembers(teamMembers);
+    } catch (error) {
+      console.error('Error reloading team members:', error);
+    } finally {
+      setTeamMembersLoading(false);
+    }
   };
 
   const getFileIcon = (fileName: string, fileType: string) => {
@@ -405,16 +437,37 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <ProjectTeamManager 
                         projectId={project.id} 
                         onTeamMembersChange={handleTeamMembersChange}
                       />
-                      {project.teamMembers.map((member, index) => (
-                        <div key={index} className="text-sm">
-                          {member}
-                        </div>
-                      ))}
+                      
+                      {/* Current Team Members Display */}
+                      <div className="border-t pt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Teamleden</h4>
+                        {teamMembersLoading ? (
+                          <p className="text-xs text-gray-500">Teamleden laden...</p>
+                        ) : projectTeamMembers.length > 0 ? (
+                          <div className="space-y-2">
+                            {projectTeamMembers.map((member) => (
+                              <div key={member.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <span className="text-xs font-medium text-blue-600">
+                                    {member.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
+                                  <p className="text-xs text-gray-500">{member.role}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500">Geen teamleden toegewezen</p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
