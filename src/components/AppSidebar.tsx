@@ -1,5 +1,5 @@
 
-import { Home, FolderOpen, Settings, Users, BarChart3, CheckCircle, Clock } from "lucide-react";
+import { Home, FolderOpen, Settings, Users, BarChart3, CheckCircle, Clock, ClipboardList } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Project } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 
 interface AppSidebarProps {
   projects: Project[];
@@ -33,6 +34,7 @@ export function AppSidebar({
   onViewChange
 }: AppSidebarProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const handleNavigationClick = (view: 'dashboard' | 'team' | 'reports' | 'settings') => {
     onViewChange(view);
@@ -65,6 +67,14 @@ export function AppSidebar({
                 >
                   <Home className="w-4 h-4" />
                   <span>{t('navigation.dashboard')}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/easy-checklist')}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  <span>Eenvoudige Checklist</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
