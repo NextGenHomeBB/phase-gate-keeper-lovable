@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -6,7 +7,6 @@ import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectDetail } from "@/components/ProjectDetail";
 import { TeamPage, TeamMember } from "@/components/TeamPage";
 import { UserMenu } from "@/components/UserMenu";
-import { BackgroundColorPicker } from "@/components/BackgroundColorPicker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { projectService } from "@/services/projectService";
