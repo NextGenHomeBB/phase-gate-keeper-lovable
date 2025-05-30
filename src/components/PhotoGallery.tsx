@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { X, Image as ImageIcon, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
+import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Photo {
@@ -172,9 +173,12 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
                     placeholder="Voer een bijschrift in..."
                   />
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-2">
                   <CameraCapture
                     onCapture={(blob) => addPhoto(blob, caption)}
+                  />
+                  <ImageUpload
+                    onImageUpload={(blob) => addPhoto(blob, caption)}
                   />
                 </div>
               </div>
