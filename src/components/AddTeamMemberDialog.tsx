@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TeamMember } from "@/components/TeamPage";
 
 interface AddTeamMemberDialogProps {
@@ -18,6 +25,17 @@ interface AddTeamMemberDialogProps {
   onClose: () => void;
   onAdd: (member: Omit<TeamMember, 'id'>) => void;
 }
+
+const predefinedRoles = [
+  "Project Manager",
+  "Developer", 
+  "Designer",
+  "Loodgieter",
+  "Electrician",
+  "Architect",
+  "Engineer",
+  "Contractor"
+];
 
 export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDialogProps) {
   const [formData, setFormData] = useState({
@@ -84,13 +102,27 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
             </div>
             <div>
               <Label htmlFor="role">Rol *</Label>
-              <Input
-                id="role"
-                value={formData.role}
-                onChange={(e) => handleInputChange('role', e.target.value)}
-                placeholder="Project Manager, Developer, Designer..."
-                required
-              />
+              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer een rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  {predefinedRoles.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Aangepaste rol...</SelectItem>
+                </SelectContent>
+              </Select>
+              {formData.role === 'custom' && (
+                <Input
+                  className="mt-2"
+                  value={formData.role}
+                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  placeholder="Voer aangepaste rol in..."
+                />
+              )}
             </div>
             <div>
               <Label htmlFor="phone">Telefoon</Label>
