@@ -51,7 +51,6 @@ const Index = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState("bg-gray-50");
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -214,7 +213,7 @@ const Index = () => {
     }
   };
 
-  return <div className={`min-h-screen ${backgroundColor}`}>
+  return <div className="min-h-screen bg-gray-50">
       <SidebarProvider>
         <div className="flex w-full min-h-screen">
           <AppSidebar 
@@ -234,10 +233,6 @@ const Index = () => {
                   </Button>}
               </div>
               <div className="flex items-center gap-4">
-                <BackgroundColorPicker 
-                  onColorChange={setBackgroundColor}
-                  currentColor={backgroundColor}
-                />
                 <UserMenu />
               </div>
             </header>
