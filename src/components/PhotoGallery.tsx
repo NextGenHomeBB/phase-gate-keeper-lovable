@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -255,11 +256,11 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : photos.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 py-16">
             <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>Nog geen foto's toegevoegd</p>
             <p className="text-sm mt-2">Sleep bestanden hierheen of gebruik de knoppen hierboven</p>
@@ -271,7 +272,7 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
                 <img
                   src={photo.photo_url}
                   alt={photo.caption || "Project foto"}
-                  className="w-full h-24 object-cover rounded border hover:opacity-75 transition-opacity"
+                  className="w-full h-48 object-cover rounded border hover:opacity-75 transition-opacity"
                   onClick={() => setSelectedPhoto(photo)}
                 />
                 {photo.caption && (
