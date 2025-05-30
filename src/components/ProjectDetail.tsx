@@ -748,7 +748,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 </div>
 
                 {/* Duplicate Back Button at Bottom */}
-                <div className="mt-6 flex justify-center">
+                <div className="mt-6 flex justify-start">
                   <Button variant="ghost" size="sm" onClick={handleBackClick}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Terug naar Fases
