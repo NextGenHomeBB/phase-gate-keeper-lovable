@@ -12,6 +12,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { projectService } from "@/services/projectService";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export interface ChecklistItem {
   id: string;
@@ -44,6 +46,7 @@ const Index = () => {
     loading
   } = useAuth();
   const { role, isAdmin, loading: roleLoading } = useUserRole();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -71,8 +74,8 @@ const Index = () => {
       } catch (error) {
         console.error('Error loading projects:', error);
         toast({
-          title: "Fout",
-          description: "Kon projecten niet laden",
+          title: t('common.error'),
+          description: t('project.loadError'),
           variant: "destructive",
         });
       } finally {
@@ -104,14 +107,14 @@ const Index = () => {
       setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
       setSelectedProject(updatedProject);
       toast({
-        title: "Project bijgewerkt",
-        description: "Het project is succesvol bijgewerkt",
+        title: t('project.updated'),
+        description: t('project.updateSuccess'),
       });
     } catch (error) {
       console.error('Error updating project:', error);
       toast({
-        title: "Fout",
-        description: "Kon project niet bijwerken",
+        title: t('common.error'),
+        description: t('project.updateError'),
         variant: "destructive",
       });
     }
@@ -125,8 +128,8 @@ const Index = () => {
     } catch (error) {
       console.error('Error reordering projects:', error);
       toast({
-        title: "Fout",
-        description: "Kon project volgorde niet bijwerken",
+        title: t('common.error'),
+        description: t('project.reorderError'),
         variant: "destructive",
       });
     }
@@ -135,16 +138,16 @@ const Index = () => {
   const handleAddProject = async () => {
     if (!isAdmin()) {
       toast({
-        title: "Geen toegang",
-        description: "Alleen administrators kunnen projecten toevoegen",
+        title: t('common.noAccess'),
+        description: t('project.adminOnly'),
         variant: "destructive",
       });
       return;
     }
 
     const newProject: Omit<Project, 'id' | 'phases'> = {
-      name: `Nieuw Project ${projects.length + 1}`,
-      description: "Beschrijving van het nieuwe project",
+      name: `${t('project.newProject')} ${projects.length + 1}`,
+      description: t('project.newProjectDescription'),
       currentPhase: 1,
       startDate: new Date().toISOString().split('T')[0],
       teamMembers: [],
@@ -154,14 +157,14 @@ const Index = () => {
       const addedProject = await projectService.addProject(newProject);
       setProjects([...projects, addedProject]);
       toast({
-        title: "Project toegevoegd",
-        description: "Het nieuwe project is succesvol aangemaakt",
+        title: t('project.added'),
+        description: t('project.addSuccess'),
       });
     } catch (error) {
       console.error('Error adding project:', error);
       toast({
-        title: "Fout",
-        description: "Kon project niet toevoegen",
+        title: t('common.error'),
+        description: t('project.addError'),
         variant: "destructive",
       });
     }
@@ -184,19 +187,19 @@ const Index = () => {
         return <TeamPage teamMembers={teamMembers} onUpdateTeamMembers={setTeamMembers} />;
       case 'reports':
         return <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-blue-900">Rapportages</h1>
-            <p className="text-gray-600">Rapportage functionaliteit komt binnenkort...</p>
+            <h1 className="text-3xl font-bold text-blue-900">{t('navigation.reports')}</h1>
+            <p className="text-gray-600">{t('reports.comingSoon')}</p>
           </div>;
       case 'settings':
         return <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-blue-900">Instellingen</h1>
+            <h1 className="text-3xl font-bold text-blue-900">{t('navigation.settings')}</h1>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold mb-4">Gebruiker Informatie</h2>
+              <h2 className="text-xl font-semibold mb-4">{t('settings.userInfo')}</h2>
               <div className="space-y-2">
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Naam:</strong> {user.user_metadata?.full_name || 'Niet ingesteld'}</p>
-                <p><strong>Rol:</strong> {role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Laden...'}</p>
-                <p><strong>Account aangemaakt:</strong> {new Date(user.created_at).toLocaleDateString('nl-NL')}</p>
+                <p><strong>{t('settings.email')}:</strong> {user.email}</p>
+                <p><strong>{t('settings.name')}:</strong> {user.user_metadata?.full_name || t('settings.notSet')}</p>
+                <p><strong>{t('settings.role')}:</strong> {role ? role.charAt(0).toUpperCase() + role.slice(1) : t('common.loading')}</p>
+                <p><strong>{t('settings.accountCreated')}:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
               </div>
             </div>
           </div>;
@@ -229,10 +232,11 @@ const Index = () => {
               <div className="flex items-center gap-4">
                 <img alt="NextGen Home Logo" src="/lovable-uploads/2c4e8ba9-0963-4b30-b4f2-c9aec6f9e323.jpg" className="h-32 w-auto object-contain" />
                 {!user && <Button onClick={() => navigate('/auth')}>
-                    Inloggen
+                    {t('auth.login')}
                   </Button>}
               </div>
               <div className="flex items-center gap-4">
+                <LanguageSwitcher />
                 <UserMenu />
               </div>
             </header>
