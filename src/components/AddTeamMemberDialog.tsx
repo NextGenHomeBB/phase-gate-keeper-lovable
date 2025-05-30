@@ -44,14 +44,16 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
     role: '',
     phone: '',
   });
+  const [customRole, setCustomRole] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.role) {
+    const finalRole = formData.role === 'custom' ? customRole : formData.role;
+    if (formData.name && formData.email && finalRole) {
       onAdd({
         name: formData.name,
         email: formData.email,
-        role: formData.role,
+        role: finalRole,
         phone: formData.phone || undefined,
         startDate: new Date().toISOString().split('T')[0], // Default to today
       });
@@ -61,11 +63,20 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
         role: '',
         phone: '',
       });
+      setCustomRole('');
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'role' && value !== 'custom') {
+      setCustomRole('');
+    }
+  };
+
+  const isFormValid = () => {
+    const finalRole = formData.role === 'custom' ? customRole : formData.role;
+    return formData.name && formData.email && finalRole;
   };
 
   return (
@@ -118,8 +129,8 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
               {formData.role === 'custom' && (
                 <Input
                   className="mt-2"
-                  value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value)}
                   placeholder="Voer aangepaste rol in..."
                 />
               )}
@@ -141,7 +152,7 @@ export function AddTeamMemberDialog({ isOpen, onClose, onAdd }: AddTeamMemberDia
             <Button 
               type="submit" 
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={!formData.name || !formData.email || !formData.role}
+              disabled={!isFormValid()}
             >
               Toevoegen
             </Button>
