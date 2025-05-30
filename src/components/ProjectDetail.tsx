@@ -746,6 +746,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken, afbeeldingen uploaden of PDF-bestanden toevoegen om je voortgang te documenteren. Dubbelklik op een checklist item om de beschrijving te bewerken.
                   </p>
                 </div>
+
+                {/* Duplicate Back Button at Bottom */}
+                <div className="mt-6 flex justify-center">
+                  <Button variant="ghost" size="sm" onClick={handleBackClick}>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Terug naar Fases
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
