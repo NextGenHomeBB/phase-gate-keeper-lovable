@@ -1,14 +1,14 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Image as ImageIcon, Plus } from "lucide-react";
+import { X, Image as ImageIcon, Plus, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
 import { ImageUpload } from "@/components/ImageUpload";
+import { FileUpload } from "@/components/FileUpload";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Photo {
@@ -34,6 +34,7 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [caption, setCaption] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     loadPhotos();
@@ -144,6 +145,54 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
     }
   };
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    
+    for (const file of files) {
+      // Check if it's an image or PDF
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      
+      if (!isImage && !isPdf) {
+        toast({
+          title: "Bestandstype niet ondersteund",
+          description: `${file.name} is geen afbeelding of PDF bestand`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Check file size (max 10MB for PDFs, 5MB for images)
+      const maxSize = isPdf ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast({
+          title: "Bestand te groot",
+          description: `${file.name} is groter dan ${isPdf ? '10MB' : '5MB'}`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      await addPhoto(file, file.name);
+    }
+  }, [addPhoto]);
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -180,13 +229,31 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
                   <ImageUpload
                     onImageUpload={(blob) => addPhoto(blob, caption)}
                   />
+                  <FileUpload
+                    onFileUpload={(blob) => addPhoto(blob, caption)}
+                  />
                 </div>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`relative ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed' : ''}`}
+      >
+        {isDragOver && (
+          <div className="absolute inset-0 flex items-center justify-center bg-blue-50 bg-opacity-90 z-10 border-2 border-blue-300 border-dashed rounded">
+            <div className="text-center">
+              <Upload className="w-12 h-12 mx-auto mb-2 text-blue-500" />
+              <p className="text-blue-700 font-medium">Sleep bestanden hier om te uploaden</p>
+              <p className="text-blue-600 text-sm">Ondersteunt afbeeldingen en PDF bestanden</p>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -195,6 +262,7 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
           <div className="text-center text-gray-500 py-8">
             <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>Nog geen foto's toegevoegd</p>
+            <p className="text-sm mt-2">Sleep bestanden hierheen of gebruik de knoppen hierboven</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
