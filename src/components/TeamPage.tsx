@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Mail, Phone, User, UserPlus, Shield } from "lucide-react";
@@ -5,6 +6,7 @@ import { AddTeamMemberDialog } from "@/components/AddTeamMemberDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { teamService } from "@/services/teamService";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Table,
   TableBody,
@@ -47,6 +49,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
   const [inviteLoading, setInviteLoading] = useState(false);
   const { toast } = useToast();
   const { isAdmin, loading: roleLoading } = useUserRole();
+  const { t } = useLanguage();
 
   // Load team members from database on component mount
   useEffect(() => {
@@ -60,8 +63,8 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       } catch (error) {
         console.error('Error loading team members:', error);
         toast({
-          title: "Fout",
-          description: "Kon teamleden niet laden",
+          title: t('common.error'),
+          description: t('team.loadError'),
           variant: "destructive",
         });
       } finally {
@@ -70,7 +73,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
     }
 
     loadTeamMembers();
-  }, [roleLoading, onUpdateTeamMembers, toast]);
+  }, [roleLoading, onUpdateTeamMembers, toast, t]);
 
   const handleAddTeamMember = async (newMember: Omit<TeamMember, 'id'>) => {
     try {
@@ -78,14 +81,14 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       onUpdateTeamMembers([...teamMembers, memberWithId]);
       setIsAddDialogOpen(false);
       toast({
-        title: "Teamlid toegevoegd",
-        description: `${newMember.name} is succesvol toegevoegd aan het team`,
+        title: t('team.memberAdded'),
+        description: `${newMember.name} ${t('team.memberAddedSuccess')}`,
       });
     } catch (error) {
       console.error('Error adding team member:', error);
       toast({
-        title: "Fout",
-        description: "Kon teamlid niet toevoegen",
+        title: t('common.error'),
+        description: t('team.memberAddError'),
         variant: "destructive",
       });
     }
@@ -96,14 +99,14 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       await teamService.deleteTeamMember(memberId);
       onUpdateTeamMembers(teamMembers.filter(member => member.id !== memberId));
       toast({
-        title: "Teamlid verwijderd",
-        description: "Het teamlid is succesvol verwijderd",
+        title: t('team.memberRemoved'),
+        description: t('team.memberRemovedSuccess'),
       });
     } catch (error) {
       console.error('Error deleting team member:', error);
       toast({
-        title: "Fout",
-        description: "Kon teamlid niet verwijderen",
+        title: t('common.error'),
+        description: t('team.memberRemoveError'),
         variant: "destructive",
       });
     }
@@ -112,8 +115,8 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
   const handleInviteUser = async () => {
     if (!inviteEmail.trim()) {
       toast({
-        title: "Fout",
-        description: "Vul een geldig email adres in",
+        title: t('common.error'),
+        description: t('team.invalidEmail'),
         variant: "destructive",
       });
       return;
@@ -125,14 +128,14 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       setIsInviteDialogOpen(false);
       setInviteEmail('');
       toast({
-        title: "Uitnodiging verzonden",
-        description: `Een uitnodiging is verzonden naar ${inviteEmail}`,
+        title: t('team.inviteSent'),
+        description: `${t('team.inviteSentSuccess')} ${inviteEmail}`,
       });
     } catch (error) {
       console.error('Error sending invitation:', error);
       toast({
-        title: "Fout",
-        description: "Kon uitnodiging niet verzenden",
+        title: t('common.error'),
+        description: t('team.inviteError'),
         variant: "destructive",
       });
     } finally {
@@ -145,7 +148,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Laden...</p>
+          <p className="mt-4 text-gray-600">{t('loading.text')}</p>
         </div>
       </div>
     );
@@ -155,14 +158,14 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900">Team Beheer</h1>
+          <h1 className="text-3xl font-bold text-blue-900">{t('team.management')}</h1>
           <p className="text-gray-600 mt-2">
-            Beheer je teamleden en hun rollen binnen projecten
+            {t('team.description')}
           </p>
           {isAdmin && (
             <div className="flex items-center mt-2 text-sm text-blue-600">
               <Shield className="w-4 h-4 mr-1" />
-              Administrator rechten actief
+              {t('team.adminRights')}
             </div>
           )}
         </div>
@@ -172,19 +175,19 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
               <DialogTrigger asChild>
                 <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200">
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Gebruiker Uitnodigen
+                  {t('team.inviteUser')}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Nieuwe gebruiker uitnodigen</DialogTitle>
+                  <DialogTitle>{t('team.inviteNew')}</DialogTitle>
                   <DialogDescription>
-                    Stuur een uitnodiging om een nieuw account aan te maken
+                    {t('team.inviteDescription')}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="inviteEmail">Email adres</Label>
+                    <Label htmlFor="inviteEmail">{t('team.emailAddress')}</Label>
                     <Input
                       id="inviteEmail"
                       type="email"
@@ -198,13 +201,13 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                       variant="outline" 
                       onClick={() => setIsInviteDialogOpen(false)}
                     >
-                      Annuleren
+                      {t('team.cancel')}
                     </Button>
                     <Button 
                       onClick={handleInviteUser}
                       disabled={inviteLoading}
                     >
-                      {inviteLoading ? 'Verzenden...' : 'Uitnodiging Versturen'}
+                      {inviteLoading ? t('team.sending') : t('team.sendInvite')}
                     </Button>
                   </div>
                 </div>
@@ -216,7 +219,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nieuw Teamlid
+              {t('team.newMember')}
             </Button>
           </div>
         )}
@@ -225,14 +228,14 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Teamleden ({teamMembers.length})</h2>
+            <h2 className="text-xl font-semibold">{t('team.members')} ({teamMembers.length})</h2>
             {isAdmin && (
               <Button 
                 onClick={() => setIsAddDialogOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Teamlid Toevoegen
+                {t('team.addMember')}
               </Button>
             )}
           </div>
@@ -240,16 +243,16 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Teamleden laden...</p>
+              <p className="mt-2 text-gray-600">{t('team.loading')}</p>
             </div>
           ) : teamMembers.length === 0 ? (
             <div className="text-center py-8">
               <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Geen teamleden</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('team.noMembers')}</h3>
               <p className="text-gray-500 mb-4">
                 {isAdmin 
-                  ? "Voeg je eerste teamlid toe om te beginnen met samenwerken."
-                  : "Er zijn nog geen teamleden toegevoegd."
+                  ? t('team.noMembersAdmin')
+                  : t('team.noMembersUser')
                 }
               </p>
               {isAdmin && (
@@ -258,7 +261,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                   variant="outline"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Eerste teamlid toevoegen
+                  {t('team.addFirst')}
                 </Button>
               )}
             </div>
@@ -266,12 +269,12 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Naam</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Telefoon</TableHead>
-                  <TableHead>Startdatum</TableHead>
-                  {isAdmin && <TableHead>Acties</TableHead>}
+                  <TableHead>{t('team.name')}</TableHead>
+                  <TableHead>{t('team.email')}</TableHead>
+                  <TableHead>{t('team.role')}</TableHead>
+                  <TableHead>{t('team.phone')}</TableHead>
+                  <TableHead>{t('team.startDate')}</TableHead>
+                  {isAdmin && <TableHead>{t('team.actions')}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -316,7 +319,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                           size="sm"
                           onClick={() => handleDeleteTeamMember(member.id)}
                         >
-                          Verwijder
+                          {t('team.remove')}
                         </Button>
                       </TableCell>
                     )}
