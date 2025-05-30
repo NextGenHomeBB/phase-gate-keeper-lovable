@@ -24,6 +24,10 @@ const translations = {
     'navigation.team': 'Team',
     'navigation.reports': 'Rapportages',
     'navigation.settings': 'Instellingen',
+    'navigation.projectManagement': 'ProjectBeheer',
+    'navigation.navigation': 'Navigatie',
+    'navigation.projects': 'Projecten',
+    'navigation.projectInfo': 'Project Info',
     
     // Auth
     'auth.login': 'Inloggen',
@@ -32,6 +36,7 @@ const translations = {
     'project.updated': 'Project bijgewerkt',
     'project.updateSuccess': 'Het project is succesvol bijgewerkt',
     'project.updateError': 'Kon project niet bijwerken',
+    'project.loadError': 'Kon projecten niet laden',
     'project.reorderError': 'Kon project volgorde niet bijwerken',
     'project.adminOnly': 'Alleen administrators kunnen projecten toevoegen',
     'project.newProject': 'Nieuw Project',
@@ -39,6 +44,12 @@ const translations = {
     'project.added': 'Project toegevoegd',
     'project.addSuccess': 'Het nieuwe project is succesvol aangemaakt',
     'project.addError': 'Kon project niet toevoegen',
+    'project.progress': 'Voortgang',
+    'project.currentPhase': 'Huidige fase',
+    'project.startDate': 'Startdatum',
+    'project.teamMembers': 'Team leden',
+    'project.phase': 'Fase',
+    'project.phasesCompleted': 'fases voltooid',
     
     // Reports
     'reports.comingSoon': 'Rapportage functionaliteit komt binnenkort...',
@@ -54,6 +65,9 @@ const translations = {
     // Language
     'language.dutch': 'Nederlands',
     'language.english': 'Engels',
+    
+    // Loading
+    'loading.text': 'Laden...',
   },
   en: {
     // Common
@@ -66,6 +80,10 @@ const translations = {
     'navigation.team': 'Team',
     'navigation.reports': 'Reports',
     'navigation.settings': 'Settings',
+    'navigation.projectManagement': 'Project Management',
+    'navigation.navigation': 'Navigation',
+    'navigation.projects': 'Projects',
+    'navigation.projectInfo': 'Project Info',
     
     // Auth
     'auth.login': 'Login',
@@ -74,6 +92,7 @@ const translations = {
     'project.updated': 'Project updated',
     'project.updateSuccess': 'The project has been successfully updated',
     'project.updateError': 'Could not update project',
+    'project.loadError': 'Could not load projects',
     'project.reorderError': 'Could not update project order',
     'project.adminOnly': 'Only administrators can add projects',
     'project.newProject': 'New Project',
@@ -81,6 +100,12 @@ const translations = {
     'project.added': 'Project added',
     'project.addSuccess': 'The new project has been successfully created',
     'project.addError': 'Could not add project',
+    'project.progress': 'Progress',
+    'project.currentPhase': 'Current phase',
+    'project.startDate': 'Start date',
+    'project.teamMembers': 'Team members',
+    'project.phase': 'Phase',
+    'project.phasesCompleted': 'phases completed',
     
     // Reports
     'reports.comingSoon': 'Report functionality coming soon...',
@@ -96,6 +121,9 @@ const translations = {
     // Language
     'language.dutch': 'Dutch',
     'language.english': 'English',
+    
+    // Loading
+    'loading.text': 'Loading...',
   },
 };
 
