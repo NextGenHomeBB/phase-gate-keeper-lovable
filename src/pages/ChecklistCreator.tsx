@@ -199,19 +199,21 @@ const ChecklistCreator = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Checklist Creator</h1>
-              <p className="text-gray-600 mt-1">
-                Create and manage construction checklists for your projects
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Checklist Creator</h1>
+            <p className="text-gray-600 mt-1">
+              Create and manage construction checklists for your projects
+            </p>
           </div>
           <Button onClick={handleCreateNew}>
             <Plus className="w-4 h-4 mr-2" />
