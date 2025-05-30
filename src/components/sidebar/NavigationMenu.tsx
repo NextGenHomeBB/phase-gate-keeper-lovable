@@ -1,5 +1,5 @@
 
-import { Home, BarChart3, Users, Settings, ClipboardList } from "lucide-react";
+import { Home, BarChart3, Users, Settings, ClipboardList, Plus } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -45,7 +45,15 @@ export function NavigationMenu({ currentView, onViewChange, onSelectProject }: N
               onClick={() => navigate('/easy-checklist')}
             >
               <ClipboardList className="w-4 h-4" />
-              <span>Checklists</span>
+              <span>Quick Checklist</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => navigate('/checklist-creator')}
+            >
+              <Plus className="w-4 h-4" />
+              <span>Checklist Creator</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
