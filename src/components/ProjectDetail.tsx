@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye } from "lucide-react";
+import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye, Check } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
@@ -78,6 +78,33 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
     loadProjectTeamMembers();
   }, [project.id]);
+
+  const completeAllPhaseTasks = (phaseId: number) => {
+    const updatedProject = { ...project };
+    const phase = updatedProject.phases.find(p => p.id === phaseId);
+    
+    if (phase) {
+      // Mark all checklist items as completed
+      phase.checklist.forEach(item => {
+        item.completed = true;
+      });
+      
+      // Mark the phase as completed
+      phase.completed = true;
+      
+      // Update current phase if this is the current phase
+      if (phaseId === updatedProject.currentPhase) {
+        updatedProject.currentPhase = Math.min(phaseId + 1, 20);
+      }
+      
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Alle taken voltooid!",
+        description: `Alle taken in ${phase.name} zijn automatisch als voltooid gemarkeerd.`,
+      });
+    }
+  };
 
   const handlePhaseNameEditStart = (phase: Phase) => {
     setEditingPhaseName(phase.id);
@@ -526,9 +553,25 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         <CardTitle className="text-sm font-medium">
                           Fase {phase.id}
                         </CardTitle>
-                        {phase.completed && (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        )}
+                        <div className="flex items-center space-x-1">
+                          {phase.completed && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                          {!phase.completed && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-green-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                completeAllPhaseTasks(phase.id);
+                              }}
+                              title="Alle taken voltooien"
+                            >
+                              <Check className="w-4 h-4 text-green-600" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       {editingPhaseName === phase.id ? (
                         <Input
