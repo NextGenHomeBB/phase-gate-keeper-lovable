@@ -27,6 +27,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
   const [editPhaseName, setEditPhaseName] = useState("");
+  const [editingChecklistItem, setEditingChecklistItem] = useState<string | null>(null);
+  const [editChecklistDescription, setEditChecklistDescription] = useState("");
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
@@ -111,6 +113,46 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       handlePhaseNameSave(phase);
     } else if (e.key === 'Escape') {
       handlePhaseNameCancel();
+    }
+  };
+
+  const handleChecklistItemEditStart = (item: ChecklistItem) => {
+    setEditingChecklistItem(item.id);
+    setEditChecklistDescription(item.description);
+  };
+
+  const handleChecklistItemSave = (phaseId: number, item: ChecklistItem) => {
+    if (editChecklistDescription.trim() && editChecklistDescription !== item.description) {
+      const updatedProject = { ...project };
+      const phase = updatedProject.phases.find(p => p.id === phaseId);
+      
+      if (phase) {
+        const checklistItem = phase.checklist.find(ci => ci.id === item.id);
+        if (checklistItem) {
+          checklistItem.description = editChecklistDescription.trim();
+          onUpdateProject(updatedProject);
+          
+          toast({
+            title: "Checklist item bijgewerkt",
+            description: "De beschrijving is succesvol bijgewerkt",
+          });
+        }
+      }
+    }
+    setEditingChecklistItem(null);
+    setEditChecklistDescription("");
+  };
+
+  const handleChecklistItemCancel = () => {
+    setEditingChecklistItem(null);
+    setEditChecklistDescription("");
+  };
+
+  const handleChecklistItemKeyPress = (e: React.KeyboardEvent, phaseId: number, item: ChecklistItem) => {
+    if (e.key === 'Enter') {
+      handleChecklistItemSave(phaseId, item);
+    } else if (e.key === 'Escape') {
+      handleChecklistItemCancel();
     }
   };
 
@@ -589,7 +631,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  Vul alle verplichte items in om naar de volgende fase te gaan
+                  Vul alle verplichte items in om naar de volgende fase te gaan. Dubbelklik op een item om de beschrijving te bewerken.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -606,9 +648,23 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <p className={`text-sm ${item.completed ? 'line-through text-gray-500' : ''}`}>
-                              {item.description}
-                            </p>
+                            {editingChecklistItem === item.id ? (
+                              <Input
+                                value={editChecklistDescription}
+                                onChange={(e) => setEditChecklistDescription(e.target.value)}
+                                onBlur={() => handleChecklistItemSave(selectedPhase.id, item)}
+                                onKeyDown={(e) => handleChecklistItemKeyPress(e, selectedPhase.id, item)}
+                                className="text-sm flex-1 mr-2"
+                                autoFocus
+                              />
+                            ) : (
+                              <p 
+                                className={`text-sm cursor-text hover:text-gray-700 transition-colors ${item.completed ? 'line-through text-gray-500' : ''}`}
+                                onDoubleClick={() => handleChecklistItemEditStart(item)}
+                              >
+                                {item.description}
+                              </p>
+                            )}
                             <div className="flex items-center space-x-2">
                               <CameraCapture
                                 onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
@@ -662,7 +718,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken, afbeeldingen uploaden of PDF-bestanden toevoegen om je voortgang te documenteren.
+                    💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken, afbeeldingen uploaden of PDF-bestanden toevoegen om je voortgang te documenteren. Dubbelklik op een checklist item om de beschrijving te bewerken.
                   </p>
                 </div>
               </CardContent>
