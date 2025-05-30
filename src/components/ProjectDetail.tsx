@@ -178,31 +178,17 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         if (allRequiredCompleted && !phase.completed) {
           phase.completed = true;
           
-          // Unlock next phase
-          const nextPhase = updatedProject.phases.find(p => p.id === phaseId + 1);
-          if (nextPhase) {
-            nextPhase.locked = false;
-          }
-          
-          // Update current phase
+          // Update current phase if this is the current phase
           if (phaseId === updatedProject.currentPhase) {
             updatedProject.currentPhase = Math.min(phaseId + 1, 20);
           }
           
           toast({
             title: "Fase Voltooid!",
-            description: `${phase.name} is succesvol afgerond. De volgende fase is nu beschikbaar.`,
+            description: `${phase.name} is succesvol afgerond.`,
           });
         } else if (!allRequiredCompleted && phase.completed) {
           phase.completed = false;
-          
-          // Lock subsequent phases
-          updatedProject.phases.forEach(p => {
-            if (p.id > phaseId) {
-              p.locked = true;
-              p.completed = false;
-            }
-          });
         }
         
         onUpdateProject(updatedProject);
@@ -319,7 +305,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const canAccessPhase = (phase: Phase) => {
-    return !phase.locked || phase.completed;
+    return true; // All phases are now accessible
   };
 
   const handleBackClick = () => {
@@ -531,10 +517,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <Card 
                     key={phase.id} 
                     className={`cursor-pointer transition-all hover:shadow-md ${
-                      !canAccessPhase(phase) ? 'opacity-50 cursor-not-allowed' : ''
-                    } ${phase.completed ? 'border-green-500 bg-green-50' : ''}
-                    ${phase.id === project.currentPhase ? 'border-blue-500 bg-blue-50' : ''}`}
-                    onClick={() => canAccessPhase(phase) && setSelectedPhase(phase)}
+                      phase.completed ? 'border-green-500 bg-green-50' : ''
+                    } ${phase.id === project.currentPhase ? 'border-blue-500 bg-blue-50' : ''}`}
+                    onClick={() => setSelectedPhase(phase)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
@@ -543,9 +528,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         </CardTitle>
                         {phase.completed && (
                           <CheckCircle className="w-5 h-5 text-green-600" />
-                        )}
-                        {!canAccessPhase(phase) && (
-                          <Lock className="w-5 h-5 text-gray-400" />
                         )}
                       </div>
                       {editingPhaseName === phase.id ? (
@@ -576,7 +558,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           variant={phase.completed ? "default" : phase.id === project.currentPhase ? "secondary" : "outline"}
                           className={phase.completed ? "bg-green-600" : phase.id === project.currentPhase ? "bg-blue-600" : ""}
                         >
-                          {phase.completed ? "Voltooid" : phase.id === project.currentPhase ? "Actief" : phase.locked ? "Vergrendeld" : "Beschikbaar"}
+                          {phase.completed ? "Voltooid" : phase.id === project.currentPhase ? "Actief" : "Beschikbaar"}
                         </Badge>
                         <p className="text-xs text-gray-600">
                           {phase.checklist.filter(item => item.completed).length}/{phase.checklist.length} taken voltooid
