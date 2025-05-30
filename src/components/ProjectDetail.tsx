@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye, Check } from "lucide-react";
+import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye, Check, Edit3 } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { CameraCapture } from "@/components/CameraCapture";
@@ -34,6 +34,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
   const [projectTeamMembers, setProjectTeamMembers] = useState<TeamMember[]>([]);
   const [teamMembersLoading, setTeamMembersLoading] = useState(false);
+  const [editingProjectName, setEditingProjectName] = useState(false);
+  const [editProjectNameValue, setEditProjectNameValue] = useState("");
 
   // Load project files when component mounts or project changes
   useEffect(() => {
@@ -373,6 +375,38 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleProjectNameEditStart = () => {
+    setEditingProjectName(true);
+    setEditProjectNameValue(project.name);
+  };
+
+  const handleProjectNameSave = async () => {
+    if (editProjectNameValue.trim() && editProjectNameValue !== project.name) {
+      const updatedProject = { ...project, name: editProjectNameValue.trim() };
+      await onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Project naam bijgewerkt",
+        description: `Project hernoemd naar "${editProjectNameValue.trim()}"`,
+      });
+    }
+    setEditingProjectName(false);
+    setEditProjectNameValue("");
+  };
+
+  const handleProjectNameCancel = () => {
+    setEditingProjectName(false);
+    setEditProjectNameValue("");
+  };
+
+  const handleProjectNameKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleProjectNameSave();
+    } else if (e.key === 'Escape') {
+      handleProjectNameCancel();
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -388,10 +422,37 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           <>
             {/* Project Overview */}
             <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-                <p className="text-gray-600 mt-2">{project.description}</p>
+              <div className="flex items-center space-x-3">
+                {editingProjectName ? (
+                  <Input
+                    value={editProjectNameValue}
+                    onChange={(e) => setEditProjectNameValue(e.target.value)}
+                    onBlur={handleProjectNameSave}
+                    onKeyDown={handleProjectNameKeyPress}
+                    className="text-3xl font-bold text-gray-900 border-0 p-0 shadow-none focus-visible:ring-0 h-auto"
+                    autoFocus
+                  />
+                ) : (
+                  <>
+                    <h1 
+                      className="text-3xl font-bold text-gray-900 cursor-text hover:text-gray-700 transition-colors"
+                      onDoubleClick={handleProjectNameEditStart}
+                    >
+                      {project.name}
+                    </h1>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handleProjectNameEditStart}
+                      title="Project naam bewerken"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
+              <p className="text-gray-600 mt-2">{project.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
