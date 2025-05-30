@@ -1,4 +1,3 @@
-
 import { Home, FolderOpen, Settings, Users, BarChart3, CheckCircle, Clock, ClipboardList } from "lucide-react";
 import {
   Sidebar,
@@ -74,7 +73,7 @@ export function AppSidebar({
                   onClick={() => navigate('/easy-checklist')}
                 >
                   <ClipboardList className="w-4 h-4" />
-                  <span>Eenvoudige Checklist</span>
+                  <span>Checklists</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
