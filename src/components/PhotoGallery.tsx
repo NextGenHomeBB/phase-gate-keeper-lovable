@@ -271,7 +271,7 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
                 <img
                   src={photo.photo_url}
                   alt={photo.caption || "Project foto"}
-                  className="w-full h-24 object-cover rounded border hover:opacity-75 transition-opacity"
+                  className="w-full h-48 object-cover rounded border hover:opacity-75 transition-opacity"
                   onClick={() => setSelectedPhoto(photo)}
                 />
                 {photo.caption && (
