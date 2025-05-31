@@ -17,12 +17,14 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   const startCamera = async () => {
     console.log('Starting camera...');
     setIsLoading(true);
     setHasPermission(null);
     setCameraError(null);
+    setIsVideoReady(false);
     
     try {
       let mediaStream: MediaStream;
@@ -56,19 +58,55 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         
-        // Wait for the video to be ready
-        await new Promise((resolve, reject) => {
+        // Wait for the video to be ready with proper error handling
+        await new Promise<void>((resolve, reject) => {
           const video = videoRef.current!;
-          video.onloadedmetadata = () => {
-            console.log('Video metadata loaded');
+          
+          const onLoadedMetadata = () => {
+            console.log('Video metadata loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
             video.play()
               .then(() => {
                 console.log('Video playing successfully');
-                resolve(void 0);
+                setIsVideoReady(true);
+                resolve();
               })
               .catch(reject);
           };
-          video.onerror = reject;
+          
+          const onError = (error: Event) => {
+            console.error('Video error:', error);
+            reject(new Error('Video failed to load'));
+          };
+          
+          // Set up event listeners
+          video.addEventListener('loadedmetadata', onLoadedMetadata);
+          video.addEventListener('error', onError);
+          
+          // Cleanup function
+          const cleanup = () => {
+            video.removeEventListener('loadedmetadata', onLoadedMetadata);
+            video.removeEventListener('error', onError);
+          };
+          
+          // Set a timeout to avoid hanging
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Video loading timeout'));
+          }, 10000);
+          
+          // Modify resolve and reject to cleanup
+          const originalResolve = resolve;
+          const originalReject = reject;
+          resolve = (...args) => {
+            clearTimeout(timeout);
+            cleanup();
+            originalResolve(...args);
+          };
+          reject = (...args) => {
+            clearTimeout(timeout);
+            cleanup();
+            originalReject(...args);
+          };
         });
       }
     } catch (error) {
@@ -94,14 +132,17 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
     }
     setHasPermission(null);
     setCameraError(null);
+    setIsVideoReady(false);
   };
 
   const capturePhoto = () => {
     console.log('Capturing photo...');
-    if (videoRef.current && canvasRef.current) {
+    if (videoRef.current && canvasRef.current && isVideoReady) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
+
+      console.log('Video dimensions at capture:', video.videoWidth, 'x', video.videoHeight);
 
       if (context && video.videoWidth > 0 && video.videoHeight > 0) {
         // Set canvas dimensions to match video
@@ -125,11 +166,16 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
         console.error('Video not ready or invalid dimensions:', {
           videoWidth: video.videoWidth,
           videoHeight: video.videoHeight,
-          context: !!context
+          context: !!context,
+          isVideoReady
         });
       }
     } else {
-      console.error('Video or canvas ref not available');
+      console.error('Video or canvas ref not available, or video not ready:', {
+        video: !!videoRef.current,
+        canvas: !!canvasRef.current,
+        isVideoReady
+      });
     }
   };
 
@@ -138,12 +184,6 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
     stopCamera();
     setIsOpen(false);
     setIsLoading(false);
-  };
-
-  const handleOpen = () => {
-    console.log('Opening camera dialog...');
-    setIsOpen(true);
-    startCamera();
   };
 
   return (
@@ -206,7 +246,7 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
                 <Button 
                   onClick={capturePhoto} 
                   className="bg-blue-600 hover:bg-blue-700"
-                  disabled={!stream}
+                  disabled={!stream || !isVideoReady}
                 >
                   Foto maken
                 </Button>
@@ -214,6 +254,11 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
                   Annuleren
                 </Button>
               </div>
+              {!isVideoReady && (
+                <p className="text-sm text-gray-500 text-center">
+                  Video wordt geladen...
+                </p>
+              )}
             </div>
           )}
 
