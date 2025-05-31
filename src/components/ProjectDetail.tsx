@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -754,13 +755,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <p className="text-gray-600 mt-2">{selectedPhase.description}</p>
             </div>
 
-            {/* Phase Photo Gallery */}
-            <PhotoGallery 
-              projectId={project.id}
-              phaseId={selectedPhase.id}
-              title={`Foto's voor ${selectedPhase.name}`}
-            />
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -864,7 +858,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </p>
                 </div>
 
-                {/* Duplicate Back Button at Bottom */}
+                {/* Back Button between checklist and photos */}
                 <div className="mt-6 flex justify-start">
                   <Button variant="ghost" size="sm" onClick={handleBackClick}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -873,6 +867,21 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 </div>
               </CardContent>
             </Card>
+
+            {/* Phase Photo Gallery */}
+            <PhotoGallery 
+              projectId={project.id}
+              phaseId={selectedPhase.id}
+              title={`Foto's voor ${selectedPhase.name}`}
+            />
+
+            {/* Original Back Button at Bottom */}
+            <div className="flex justify-start">
+              <Button variant="ghost" size="sm" onClick={handleBackClick}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Terug naar Fases
+              </Button>
+            </div>
           </div>
         )}
       </div>
