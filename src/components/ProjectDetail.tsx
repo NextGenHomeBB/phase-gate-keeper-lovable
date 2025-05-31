@@ -18,6 +18,7 @@ import { projectFileService, ProjectFile } from "@/services/projectFileService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TeamMember } from "@/components/TeamPage";
 import { projectService } from "@/services/projectService";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectDetailProps {
   project: Project;
@@ -26,6 +27,7 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
+  const { t } = useLanguage();
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
   const [editPhaseName, setEditPhaseName] = useState("");
@@ -106,8 +108,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       onUpdateProject(updatedProject);
       
       toast({
-        title: "Alle taken voltooid!",
-        description: `Alle taken in ${phase.name} zijn automatisch als voltooid gemarkeerd.`,
+        title: t('projectDetail.allTasksCompleted'),
+        description: `${t('projectDetail.allTasksCompletedDesc')} ${phase.name} ${t('projectDetail.automaticallyMarked')}.`,
       });
     }
   };
@@ -127,8 +129,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         onUpdateProject(updatedProject);
         
         toast({
-          title: "Fase naam bijgewerkt",
-          description: `Fase hernoemd naar "${editPhaseName.trim()}"`,
+          title: t('projectDetail.phaseNameUpdated'),
+          description: `${t('projectDetail.phaseRenamed')} "${editPhaseName.trim()}"`,
         });
       }
     }
@@ -166,8 +168,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           onUpdateProject(updatedProject);
           
           toast({
-            title: "Checklist item bijgewerkt",
-            description: "De beschrijving is succesvol bijgewerkt",
+            title: t('projectDetail.checklistItemUpdated'),
+            description: t('projectDetail.descriptionUpdated'),
           });
         }
       }
@@ -217,8 +219,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           }
           
           toast({
-            title: "Fase Voltooid!",
-            description: `${phase.name} is succesvol afgerond.`,
+            title: t('projectDetail.phaseCompleted'),
+            description: `${phase.name} ${t('projectDetail.successfullyCompleted')}.`,
           });
         } else if (!allRequiredCompleted && phase.completed) {
           phase.completed = false;
@@ -247,8 +249,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           onUpdateProject(updatedProject);
           
           toast({
-            title: "Foto toegevoegd",
-            description: "De foto is succesvol toegevoegd aan het checklist item.",
+            title: t('projectDetail.photoAdded'),
+            description: t('projectDetail.photoAddedSuccess'),
           });
         }
       }
@@ -261,7 +263,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       const reader = new FileReader();
       reader.onload = async () => {
         const base64String = reader.result as string;
-        const fileName = fileBlob instanceof File ? fileBlob.name : `Project File ${projectFiles.length + 1}`;
+        const fileName = fileBlob instanceof File ? fileBlob.name : `${t('projectDetail.projectFile')} ${projectFiles.length + 1}`;
         const fileType = fileBlob.type;
         const fileSize = fileBlob.size;
 
@@ -277,14 +279,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           setProjectFiles(prev => [uploadedFile, ...prev]);
           
           toast({
-            title: "Bestand toegevoegd",
-            description: "Het bestand is succesvol toegevoegd aan het project.",
+            title: t('projectDetail.fileAdded'),
+            description: t('projectDetail.fileAddedSuccess'),
           });
         } catch (error) {
           console.error('Error uploading file:', error);
           toast({
-            title: "Fout",
-            description: "Kon bestand niet uploaden",
+            title: t('common.error'),
+            description: t('projectDetail.fileUploadError'),
             variant: "destructive",
           });
         }
@@ -293,8 +295,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     } catch (error) {
       console.error('Error processing file:', error);
       toast({
-        title: "Fout",
-        description: "Kon bestand niet verwerken",
+        title: t('common.error'),
+        description: t('projectDetail.fileProcessError'),
         variant: "destructive",
       });
     }
@@ -306,14 +308,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       setProjectFiles(prev => prev.filter(file => file.id !== fileId));
       
       toast({
-        title: "Bestand verwijderd",
-        description: "Het bestand is succesvol verwijderd.",
+        title: t('projectDetail.fileRemoved'),
+        description: t('projectDetail.fileRemovedSuccess'),
       });
     } catch (error) {
       console.error('Error deleting file:', error);
       toast({
-        title: "Fout",
-        description: "Kon bestand niet verwijderen",
+        title: t('common.error'),
+        description: t('projectDetail.fileDeleteError'),
         variant: "destructive",
       });
     }
@@ -330,8 +332,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         onUpdateProject(updatedProject);
         
         toast({
-          title: "Foto verwijderd",
-          description: "De foto is succesvol verwijderd.",
+          title: t('projectDetail.photoRemoved'),
+          description: t('projectDetail.photoRemovedSuccess'),
         });
       }
     }
@@ -390,8 +392,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       await onUpdateProject(updatedProject);
       
       toast({
-        title: "Project naam bijgewerkt",
-        description: `Project hernoemd naar "${editProjectNameValue.trim()}"`,
+        title: t('projectDetail.projectNameUpdated'),
+        description: `${t('projectDetail.projectRenamed')} "${editProjectNameValue.trim()}"`,
       });
     }
     setEditingProjectName(false);
@@ -450,7 +452,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" onClick={handleBackClick}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {selectedPhase ? "Terug naar Fases" : "Terug naar Dashboard"}
+            {selectedPhase ? t('projectDetail.backToPhases') : t('projectDetail.backToDashboard')}
           </Button>
         </div>
 
@@ -481,7 +483,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       size="sm"
                       className="h-8 w-8 p-0"
                       onClick={handleProjectNameEditStart}
-                      title="Project naam bewerken"
+                      title={t('projectDetail.editProjectName')}
                     >
                       <Edit3 className="w-4 h-4" />
                     </Button>
@@ -499,14 +501,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     className="text-gray-600 border-0 p-0 shadow-none focus-visible:ring-0 resize-none w-full"
                     rows={2}
                     autoFocus
-                    placeholder="Project beschrijving..."
+                    placeholder={t('projectDetail.projectDescriptionPlaceholder')}
                   />
                 ) : (
                   <p 
                     className="text-gray-600 cursor-text hover:text-gray-800 transition-colors"
                     onDoubleClick={handleProjectDescriptionEditStart}
                   >
-                    {project.description || "Geen beschrijving"}
+                    {project.description || t('projectDetail.noDescription')}
                   </p>
                 )}
               </div>
@@ -514,19 +516,19 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Voortgang</CardTitle>
+                    <CardTitle className="text-lg">{t('project.progress')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Voltooide fases</span>
+                        <span>{t('projectDetail.completedPhases')}</span>
                         <span className="font-semibold">
                           {project.phases.filter(p => p.completed).length}/20
                         </span>
                       </div>
                       <Progress value={getProjectProgress()} className="h-3" />
                       <p className="text-sm text-gray-600">
-                        {Math.round(getProjectProgress())}% voltooid
+                        {Math.round(getProjectProgress())}% {t('projectDetail.completed')}
                       </p>
                     </div>
                   </CardContent>
@@ -536,25 +538,25 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center">
                       <Calendar className="w-5 h-5 mr-2" />
-                      Project Info
+                      {t('navigation.projectInfo')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <span className="text-sm text-gray-600">Startdatum:</span>
+                      <span className="text-sm text-gray-600">{t('project.startDate')}:</span>
                       <p className="font-medium">
                         {new Date(project.startDate).toLocaleDateString('nl-NL')}
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-600">Huidige fase:</span>
-                      <p className="font-medium">Fase {project.currentPhase}</p>
+                      <span className="text-sm text-gray-600">{t('project.currentPhase')}:</span>
+                      <p className="font-medium">{t('project.phase')} {project.currentPhase}</p>
                     </div>
                     
                     {/* Project Files Section */}
                     <div className="border-t pt-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Bestanden:</span>
+                        <span className="text-sm text-gray-600">{t('projectDetail.files')}:</span>
                         <div className="flex items-center space-x-1">
                           <CameraCapture
                             onCapture={(blob) => addProjectInfoFile(blob)}
@@ -566,7 +568,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </div>
                       
                       {filesLoading ? (
-                        <p className="text-xs text-gray-500">Bestanden laden...</p>
+                        <p className="text-xs text-gray-500">{t('projectDetail.filesLoading')}</p>
                       ) : projectFiles.length > 0 ? (
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {projectFiles.map((file) => (
@@ -578,7 +580,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                   size="sm"
                                   className="h-6 w-6 p-0"
                                   onClick={() => handleFileClick(file)}
-                                  title={file.file_type === 'application/pdf' ? "PDF voorvertoning" : "Bestand openen"}
+                                  title={file.file_type === 'application/pdf' ? t('projectDetail.pdfPreview') : t('projectDetail.openFile')}
                                 >
                                   {file.file_type === 'application/pdf' ? <Eye className="w-4 h-4" /> : getFileIcon(file.file_name, file.file_type)}
                                 </Button>
@@ -587,7 +589,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                   size="sm"
                                   className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                                   onClick={() => removeProjectInfoFile(file.id)}
-                                  title="Bestand verwijderen"
+                                  title={t('projectDetail.removeFile')}
                                 >
                                   <X className="w-3 h-3" />
                                 </Button>
@@ -596,7 +598,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-gray-500">Nog geen bestanden toegevoegd</p>
+                        <p className="text-xs text-gray-500">{t('projectDetail.noFilesAdded')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -606,7 +608,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center">
                       <Users className="w-5 h-5 mr-2" />
-                      Team
+                      {t('navigation.team')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -618,9 +620,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       
                       {/* Current Team Members Display */}
                       <div className="border-t pt-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">Teamleden</h4>
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">{t('project.teamMembers')}</h4>
                         {teamMembersLoading ? (
-                          <p className="text-xs text-gray-500">Teamleden laden...</p>
+                          <p className="text-xs text-gray-500">{t('team.loading')}</p>
                         ) : projectTeamMembers.length > 0 ? (
                           <div className="space-y-2">
                             {projectTeamMembers.map((member) => (
@@ -638,7 +640,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-500">Geen teamleden toegewezen</p>
+                          <p className="text-xs text-gray-500">{t('projectDetail.noTeamMembers')}</p>
                         )}
                       </div>
                     </div>
@@ -649,14 +651,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               {/* Project Photo Gallery */}
               <PhotoGallery 
                 projectId={project.id}
-                title="Project Foto Galerij"
+                title={t('projectDetail.projectPhotoGallery')}
                 className="mt-6"
               />
             </div>
 
             {/* Phases Grid */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-900">Project Fases</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">{t('projectDetail.projectPhases')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {project.phases.map((phase) => (
                   <Card 
@@ -669,7 +671,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm font-medium">
-                          Fase {phase.id}
+                          {t('project.phase')} {phase.id}
                         </CardTitle>
                         <div className="flex items-center space-x-1">
                           {phase.completed && (
@@ -684,7 +686,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 e.stopPropagation();
                                 completeAllPhaseTasks(phase.id);
                               }}
-                              title="Alle taken voltooien"
+                              title={t('projectDetail.completeAllTasks')}
                             >
                               <Check className="w-4 h-4 text-green-600" />
                             </Button>
@@ -709,7 +711,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             handlePhaseNameEditStart(phase);
                           }}
                         >
-                          {phase.name.replace(`Fase ${phase.id}: `, '')}
+                          {phase.name.replace(`${t('project.phase')} ${phase.id}: `, '')}
                         </CardDescription>
                       )}
                     </CardHeader>
@@ -719,10 +721,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           variant={phase.completed ? "default" : phase.id === project.currentPhase ? "secondary" : "outline"}
                           className={phase.completed ? "bg-green-600" : phase.id === project.currentPhase ? "bg-blue-600" : ""}
                         >
-                          {phase.completed ? "Voltooid" : phase.id === project.currentPhase ? "Actief" : "Beschikbaar"}
+                          {phase.completed ? t('projectDetail.completed') : phase.id === project.currentPhase ? t('projectDetail.active') : t('projectDetail.available')}
                         </Badge>
                         <p className="text-xs text-gray-600">
-                          {phase.checklist.filter(item => item.completed).length}/{phase.checklist.length} taken voltooid
+                          {phase.checklist.filter(item => item.completed).length}/{phase.checklist.length} {t('projectDetail.tasksCompleted')}
                         </p>
                       </div>
                     </CardContent>
@@ -758,16 +760,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  Checklist
+                  {t('projectDetail.checklist')}
                   <Badge 
                     variant={selectedPhase.completed ? "default" : "outline"}
                     className={selectedPhase.completed ? "bg-green-600" : ""}
                   >
-                    {selectedPhase.completed ? "Voltooid" : "In Uitvoering"}
+                    {selectedPhase.completed ? t('projectDetail.completed') : t('projectDetail.inProgress')}
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  Vul alle verplichte items in om naar de volgende fase te gaan. Dubbelklik op een item om de beschrijving te bewerken.
+                  {t('projectDetail.checklistDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -824,7 +826,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                     variant="ghost"
                                     onClick={() => handleChecklistItemEditStart(item)}
                                     className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    title="Taak bewerken"
+                                    title={t('projectDetail.editTask')}
                                   >
                                     <Edit3 className="w-4 h-4" />
                                   </Button>
@@ -847,7 +849,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           </div>
                           {item.required && (
                             <Badge variant="outline" className="text-xs mt-1">
-                              Verplicht
+                              {t('projectDetail.required')}
                             </Badge>
                           )}
                           
@@ -858,7 +860,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 <div key={index} className="relative group">
                                   <img
                                     src={photo}
-                                    alt={`Foto ${index + 1}`}
+                                    alt={`${t('projectDetail.photo')} ${index + 1}`}
                                     className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
                                     onClick={() => window.open(photo, '_blank')}
                                   />
@@ -882,7 +884,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    💡 <strong>Tip:</strong> Alle verplichte items moeten worden voltooid voordat je naar de volgende fase kunt gaan. Je kunt foto's maken, afbeeldingen uploaden of PDF-bestanden toevoegen om je voortgang te documenteren. Dubbelklik op een checklist item om de beschrijving te bewerken.
+                    💡 <strong>{t('projectDetail.tip')}:</strong> {t('projectDetail.tipDescription')}
                   </p>
                 </div>
 
@@ -890,7 +892,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 <div className="mt-6 flex justify-start">
                   <Button variant="ghost" size="sm" onClick={handleBackClick}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Terug naar Fases
+                    {t('projectDetail.backToPhases')}
                   </Button>
                 </div>
               </CardContent>
@@ -900,14 +902,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <PhotoGallery 
               projectId={project.id}
               phaseId={selectedPhase.id}
-              title={`Foto's voor ${selectedPhase.name}`}
+              title={`${t('projectDetail.photosFor')} ${selectedPhase.name}`}
             />
 
             {/* Original Back Button at Bottom */}
             <div className="flex justify-start">
               <Button variant="ghost" size="sm" onClick={handleBackClick}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Terug naar Fases
+                {t('projectDetail.backToPhases')}
               </Button>
             </div>
           </div>
@@ -928,7 +930,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 size="sm"
                 onClick={() => previewFile && window.open(previewFile.file_data, '_blank')}
               >
-                Openen in nieuw tabblad
+                {t('projectDetail.openInNewTab')}
               </Button>
             </DialogTitle>
           </DialogHeader>
