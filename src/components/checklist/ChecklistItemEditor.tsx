@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, GripVertical, User, MessageSquare } from "lucide-react";
+import { Trash2, GripVertical, MessageSquare } from "lucide-react";
 import { ChecklistItem } from "@/pages/ChecklistCreator";
 
 interface ChecklistItemEditorProps {
@@ -32,10 +32,6 @@ export function ChecklistItemEditor({
 
   const handleTextChange = (text: string) => {
     onUpdate({ ...item, text });
-  };
-
-  const handleAssignedToChange = (assignedTo: string) => {
-    onUpdate({ ...item, assignedTo });
   };
 
   const handleNotesChange = (notes: string) => {
@@ -71,22 +67,6 @@ export function ChecklistItemEditor({
                 placeholder="Checklist item description"
                 className={item.completed ? "line-through text-gray-500" : ""}
               />
-              
-              {/* Additional Fields */}
-              <div className="grid grid-cols-1 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-600 flex items-center">
-                    <User className="w-3 h-3 mr-1" />
-                    Assigned To
-                  </label>
-                  <Input
-                    value={item.assignedTo || ""}
-                    onChange={(e) => handleAssignedToChange(e.target.value)}
-                    placeholder="Person responsible"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-600 flex items-center">
@@ -108,20 +88,12 @@ export function ChecklistItemEditor({
               </p>
               
               {/* Metadata */}
-              {(item.assignedTo || item.notes) && (
+              {item.notes && (
                 <div className="flex flex-wrap gap-2">
-                  {item.assignedTo && (
-                    <Badge variant="outline" className="text-xs">
-                      <User className="w-3 h-3 mr-1" />
-                      {item.assignedTo}
-                    </Badge>
-                  )}
-                  {item.notes && (
-                    <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => setShowDetails(!showDetails)}>
-                      <MessageSquare className="w-3 h-3 mr-1" />
-                      Notes
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => setShowDetails(!showDetails)}>
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    Notes
+                  </Badge>
                 </div>
               )}
 
