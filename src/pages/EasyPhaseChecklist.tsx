@@ -8,27 +8,71 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/hooks/use-toast";
+import { ChecklistSelector } from "@/components/checklist/ChecklistSelector";
 
 interface ChecklistItem {
   id: string;
-  description: string;
+  text: string;
   completed: boolean;
+  notes?: string;
+}
+
+interface Checklist {
+  id: string;
+  title: string;
+  description: string;
+  items: ChecklistItem[];
 }
 
 const EasyPhaseChecklist = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    { id: "1", description: "Projectdoelstellingen vaststellen", completed: false },
-    { id: "2", description: "Team samenstellen", completed: false },
-    { id: "3", description: "Budget goedkeuring verkrijgen", completed: false },
-    { id: "4", description: "Tijdlijn opstellen", completed: false },
-    { id: "5", description: "Stakeholders identificeren", completed: false },
-    { id: "6", description: "Risico's in kaart brengen", completed: false },
-    { id: "7", description: "Communicatieplan opstellen", completed: false },
-    { id: "8", description: "Eerste milestone definiëren", completed: false },
+  
+  // Sample saved checklists - in a real app, these would come from a database
+  const [savedChecklists] = useState<Checklist[]>([
+    {
+      id: "default",
+      title: "Standaard Project Start",
+      description: "Basis checklist voor project opstart",
+      items: [
+        { id: "1", text: "Projectdoelstellingen vaststellen", completed: false },
+        { id: "2", text: "Team samenstellen", completed: false },
+        { id: "3", text: "Budget goedkeuring verkrijgen", completed: false },
+        { id: "4", text: "Tijdlijn opstellen", completed: false },
+        { id: "5", text: "Stakeholders identificeren", completed: false },
+        { id: "6", text: "Risico's in kaart brengen", completed: false },
+        { id: "7", text: "Communicatieplan opstellen", completed: false },
+        { id: "8", text: "Eerste milestone definiëren", completed: false },
+      ]
+    },
+    {
+      id: "safety",
+      title: "Veiligheids Checklist",
+      description: "Veiligheidsprotocollen en controles",
+      items: [
+        { id: "s1", text: "Veiligheidsplan opstellen", completed: false },
+        { id: "s2", text: "Persoonlijke beschermingsmiddelen controleren", completed: false },
+        { id: "s3", text: "Noodprocedures bespreken", completed: false },
+        { id: "s4", text: "Werkplekbeveiliging inrichten", completed: false },
+        { id: "s5", text: "Veiligheidstraining plannen", completed: false },
+      ]
+    },
+    {
+      id: "quality",
+      title: "Kwaliteitscontrole",
+      description: "Kwaliteitsnormen en controles",
+      items: [
+        { id: "q1", text: "Kwaliteitsnormen definiëren", completed: false },
+        { id: "q2", text: "Controlepunten opstellen", completed: false },
+        { id: "q3", text: "Testprocedures voorbereiden", completed: false },
+        { id: "q4", text: "Documentatie reviewen", completed: false },
+      ]
+    }
   ]);
+
+  const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(savedChecklists[0]);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(savedChecklists[0].items);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -36,6 +80,17 @@ const EasyPhaseChecklist = () => {
       navigate('/auth');
     }
   }, [user, navigate]);
+
+  // Update checklist when selection changes
+  useEffect(() => {
+    if (selectedChecklist) {
+      setChecklist(selectedChecklist.items);
+    }
+  }, [selectedChecklist]);
+
+  const handleSelectChecklist = (checklist: Checklist) => {
+    setSelectedChecklist(checklist);
+  };
 
   const updateChecklistItem = (itemId: string, completed: boolean) => {
     setChecklist(prev => 
@@ -80,9 +135,26 @@ const EasyPhaseChecklist = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Eenvoudige Fase Checklist</h1>
             <p className="text-gray-600 mt-2">
-              Een simpele checklist om je project op te starten. Vink af wat je hebt voltooid!
+              Selecteer een checklist en vink af wat je hebt voltooid!
             </p>
           </div>
+
+          {/* Checklist Selector */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Checklist Selecteren</CardTitle>
+              <CardDescription>
+                Kies uit je opgeslagen checklists
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChecklistSelector
+                checklists={savedChecklists}
+                selectedChecklist={selectedChecklist}
+                onSelectChecklist={handleSelectChecklist}
+              />
+            </CardContent>
+          </Card>
 
           {/* Progress Card */}
           <Card>
@@ -114,9 +186,9 @@ const EasyPhaseChecklist = () => {
           {/* Checklist */}
           <Card>
             <CardHeader>
-              <CardTitle>Project Start Checklist</CardTitle>
+              <CardTitle>{selectedChecklist?.title || "Checklist"}</CardTitle>
               <CardDescription>
-                Doorloop deze stappen om je project succesvol op te starten
+                {selectedChecklist?.description || "Doorloop deze stappen om je project succesvol op te starten"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -136,7 +208,7 @@ const EasyPhaseChecklist = () => {
                           : 'text-gray-900'
                       }`}
                     >
-                      {item.description}
+                      {item.text}
                     </span>
                     {item.completed && (
                       <CheckCircle className="w-5 h-5 text-green-600" />
