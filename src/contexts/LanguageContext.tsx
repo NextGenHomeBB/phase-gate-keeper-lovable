@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'nl' | 'en';
+type Language = 'nl' | 'en' | 'pl';
 
 interface LanguageContextType {
   language: Language;
@@ -129,6 +129,7 @@ const translations = {
     // Language
     'language.dutch': 'Nederlands',
     'language.english': 'Engels',
+    'language.polish': 'Pools',
     
     // Loading
     'loading.text': 'Laden...',
@@ -249,9 +250,131 @@ const translations = {
     // Language
     'language.dutch': 'Dutch',
     'language.english': 'English',
+    'language.polish': 'Polish',
     
     // Loading
     'loading.text': 'Loading...',
+  },
+  pl: {
+    // Common
+    'common.error': 'Błąd',
+    'common.loading': 'Ładowanie...',
+    'common.noAccess': 'Brak dostępu',
+    
+    // Navigation
+    'navigation.dashboard': 'Panel główny',
+    'navigation.team': 'Zespół',
+    'navigation.reports': 'Raporty',
+    'navigation.settings': 'Ustawienia',
+    'navigation.projectManagement': 'Zarządzanie Projektami',
+    'navigation.navigation': 'Nawigacja',
+    'navigation.projects': 'Projekty',
+    'navigation.projectInfo': 'Informacje o projekcie',
+    
+    // Auth
+    'auth.login': 'Zaloguj się',
+    
+    // Projects
+    'project.updated': 'Projekt zaktualizowany',
+    'project.updateSuccess': 'Projekt został pomyślnie zaktualizowany',
+    'project.updateError': 'Nie można zaktualizować projektu',
+    'project.loadError': 'Nie można załadować projektów',
+    'project.reorderError': 'Nie można zaktualizować kolejności projektów',
+    'project.adminOnly': 'Tylko administratorzy mogą dodawać projekty',
+    'project.newProject': 'Nowy Projekt',
+    'project.newProjectDescription': 'Opis nowego projektu',
+    'project.added': 'Projekt dodany',
+    'project.addSuccess': 'Nowy projekt został pomyślnie utworzony',
+    'project.addError': 'Nie można dodać projektu',
+    'project.progress': 'Postęp',
+    'project.currentPhase': 'Aktualna faza',
+    'project.startDate': 'Data rozpoczęcia',
+    'project.teamMembers': 'Członkowie zespołu',
+    'project.phase': 'Faza',
+    'project.phasesCompleted': 'faz ukończonych',
+    
+    // Dashboard
+    'dashboard.title': 'Panel Projektów',
+    'dashboard.subtitle': 'Przegląd wszystkich aktywnych projektów',
+    'dashboard.adminRights': 'Uprawnienia administratora aktywne',
+    'dashboard.newProject': 'Nowy Projekt',
+    'dashboard.noProjects': 'Nie znaleziono projektów',
+    'dashboard.noProjectsSubtitle': 'Zacznij od dodania pierwszego projektu.',
+    'dashboard.noProjectsUser': 'Nie ma jeszcze dostępnych projektów.',
+    'dashboard.addFirstProject': 'Dodaj Pierwszy Projekt',
+    'dashboard.loading': 'Ładowanie projektów...',
+    'dashboard.projectNameUpdated': 'Nazwa projektu zaktualizowana',
+    'dashboard.projectRenamed': 'Projekt przemianowany na',
+    'dashboard.projectDescriptionUpdated': 'Opis projektu zaktualizowany',
+    'dashboard.descriptionUpdateSuccess': 'Opis został pomyślnie zaktualizowany',
+    'dashboard.projectCopied': 'Projekt skopiowany',
+    'dashboard.projectCopySuccess': 'został pomyślnie utworzony',
+    'dashboard.copyError': 'Nie można skopiować projektu',
+    'dashboard.dragStarted': 'Przeciąganie rozpoczęte',
+    'dashboard.dragInstruction': 'Przeciągnij projekt do żądanej pozycji',
+    'dashboard.projectMoved': 'Projekt przeniesiony',
+    'dashboard.projectMovedSuccess': 'został przeniesiony',
+    'dashboard.progress': 'Postęp',
+    'dashboard.start': 'Start',
+    'dashboard.teamMembers': 'członków zespołu',
+    'dashboard.currentPhase': 'AKTUALNA FAZA',
+    
+    // Team
+    'team.management': 'Zarządzanie Zespołem',
+    'team.description': 'Zarządzaj członkami zespołu i ich rolami w projektach',
+    'team.adminRights': 'Uprawnienia administratora aktywne',
+    'team.inviteUser': 'Zaproś Użytkownika',
+    'team.inviteNew': 'Zaproś nowego użytkownika',
+    'team.inviteDescription': 'Wyślij zaproszenie do utworzenia nowego konta',
+    'team.emailAddress': 'Adres email',
+    'team.cancel': 'Anuluj',
+    'team.sendInvite': 'Wyślij Zaproszenie',
+    'team.sending': 'Wysyłanie...',
+    'team.newMember': 'Nowy Członek Zespołu',
+    'team.members': 'Członkowie Zespołu',
+    'team.addMember': 'Dodaj Członka Zespołu',
+    'team.loading': 'Ładowanie członków zespołu...',
+    'team.noMembers': 'Brak członków zespołu',
+    'team.noMembersAdmin': 'Dodaj pierwszego członka zespołu, aby rozpocząć współpracę.',
+    'team.noMembersUser': 'Nie dodano jeszcze członków zespołu.',
+    'team.addFirst': 'Dodaj pierwszego członka zespołu',
+    'team.name': 'Nazwa',
+    'team.email': 'Email',
+    'team.role': 'Rola',
+    'team.phone': 'Telefon',
+    'team.startDate': 'Data rozpoczęcia',
+    'team.actions': 'Akcje',
+    'team.remove': 'Usuń',
+    'team.memberAdded': 'Członek zespołu dodany',
+    'team.memberAddedSuccess': 'został pomyślnie dodany do zespołu',
+    'team.memberAddError': 'Nie można dodać członka zespołu',
+    'team.memberRemoved': 'Członek zespołu usunięty',
+    'team.memberRemovedSuccess': 'Członek zespołu został pomyślnie usunięty',
+    'team.memberRemoveError': 'Nie można usunąć członka zespołu',
+    'team.inviteSent': 'Zaproszenie wysłane',
+    'team.inviteSentSuccess': 'Zaproszenie zostało wysłane do',
+    'team.inviteError': 'Nie można wysłać zaproszenia',
+    'team.invalidEmail': 'Wprowadź prawidłowy adres email',
+    'team.loadError': 'Nie można załadować członków zespołu',
+    
+    // Reports
+    'reports.comingSoon': 'Funkcjonalność raportów dostępna wkrótce...',
+    
+    // Settings
+    'settings.userInfo': 'Informacje o Użytkowniku',
+    'settings.email': 'Email',
+    'settings.name': 'Nazwa',
+    'settings.role': 'Rola',
+    'settings.accountCreated': 'Konto utworzone',
+    'settings.notSet': 'Nie ustawiono',
+    
+    // Language
+    'language.dutch': 'Holenderski',
+    'language.english': 'Angielski',
+    'language.polish': 'Polski',
+    
+    // Loading
+    'loading.text': 'Ładowanie...',
   },
 };
 
