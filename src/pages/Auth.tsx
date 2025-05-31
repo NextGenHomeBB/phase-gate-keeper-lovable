@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useEffect } from 'react';
 import { Shield } from 'lucide-react';
 
@@ -16,13 +19,10 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -35,42 +35,39 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       if (error) {
         toast({
-          title: "Login mislukt",
+          title: t('auth.loginFailed'),
           description: error.message,
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Succesvol ingelogd",
-          description: "Welkom terug!"
+          title: t('auth.loginSuccess'),
+          description: t('auth.welcomeBack')
         });
         navigate('/');
       }
     } catch (error) {
       toast({
-        title: "Fout",
-        description: "Er is iets misgegaan",
+        title: t('common.error'),
+        description: t('auth.somethingWentWrong'),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -81,31 +78,30 @@ const Auth = () => {
       });
       if (error) {
         toast({
-          title: "Registratie mislukt",
+          title: t('auth.signupFailed'),
           description: error.message,
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Account aangemaakt",
-          description: "Je kunt nu inloggen met je gegevens"
+          title: t('auth.accountCreated'),
+          description: t('auth.canNowLogin')
         });
       }
     } catch (error) {
       toast({
-        title: "Fout",
-        description: "Er is iets misgegaan",
+        title: t('common.error'),
+        description: t('auth.somethingWentWrong'),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
+
   const handleSocialLogin = async (provider: 'google' | 'github') => {
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: window.location.origin
@@ -113,22 +109,28 @@ const Auth = () => {
       });
       if (error) {
         toast({
-          title: "Login mislukt",
+          title: t('auth.loginFailed'),
           description: error.message,
           variant: "destructive"
         });
       }
     } catch (error) {
       toast({
-        title: "Fout",
-        description: "Er is iets misgegaan",
+        title: t('common.error'),
+        description: t('auth.somethingWentWrong'),
         variant: "destructive"
       });
     }
   };
 
-  return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Language Switcher */}
+        <div className="mb-6 flex justify-end">
+          <LanguageSwitcher />
+        </div>
+
         <div className="text-center mb-8">
           <img 
             alt="NextGen Home Logo" 
@@ -136,35 +138,49 @@ const Auth = () => {
             src="/lovable-uploads/f35211b0-8251-4c69-8ef8-939678e45d4e.jpg" 
           />
           <h1 className="text-2xl font-bold text-blue-900">Building Buddy</h1>
-          <p className="text-gray-600">Je projectmanagement tool</p>
+          <p className="text-gray-600">{t('auth.projectManagementTool')}</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Welkom</CardTitle>
+            <CardTitle>{t('auth.welcome')}</CardTitle>
             <CardDescription>
-              Log in op je account of maak een nieuw account aan
+              {t('auth.loginOrCreateAccount')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Inloggen</TabsTrigger>
-                <TabsTrigger value="signup">Registreren</TabsTrigger>
+                <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+                <TabsTrigger value="signup">{t('auth.signup')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login" className="space-y-4">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="je@email.com" required />
+                    <Label htmlFor="email">{t('auth.email')}</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      placeholder={t('auth.emailPlaceholder')} 
+                      required 
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="password">Wachtwoord</Label>
-                    <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
+                    <Label htmlFor="password">{t('auth.password')}</Label>
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      placeholder="••••••••" 
+                      required 
+                    />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Inloggen...' : 'Inloggen'}
+                    {loading ? t('auth.loggingIn') : t('auth.login')}
                   </Button>
                 </form>
               </TabsContent>
@@ -172,19 +188,41 @@ const Auth = () => {
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div>
-                    <Label htmlFor="fullName">Volledige naam</Label>
-                    <Input id="fullName" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Je volledige naam" required />
+                    <Label htmlFor="fullName">{t('auth.fullName')}</Label>
+                    <Input 
+                      id="fullName" 
+                      type="text" 
+                      value={fullName} 
+                      onChange={e => setFullName(e.target.value)} 
+                      placeholder={t('auth.fullNamePlaceholder')} 
+                      required 
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="signupEmail">Email</Label>
-                    <Input id="signupEmail" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="je@email.com" required />
+                    <Label htmlFor="signupEmail">{t('auth.email')}</Label>
+                    <Input 
+                      id="signupEmail" 
+                      type="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      placeholder={t('auth.emailPlaceholder')} 
+                      required 
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="signupPassword">Wachtwoord</Label>
-                    <Input id="signupPassword" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+                    <Label htmlFor="signupPassword">{t('auth.password')}</Label>
+                    <Input 
+                      id="signupPassword" 
+                      type="password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      placeholder="••••••••" 
+                      required 
+                      minLength={6} 
+                    />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Account aanmaken...' : 'Account aanmaken'}
+                    {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                   </Button>
                 </form>
               </TabsContent>
@@ -197,7 +235,7 @@ const Auth = () => {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Of log in met
+                    {t('auth.orLoginWith')}
                   </span>
                 </div>
               </div>
@@ -230,13 +268,14 @@ const Auth = () => {
                 onClick={() => navigate('/admin-login')}
               >
                 <Shield className="mr-2 h-4 w-4" />
-                Administrator Login
+                {t('auth.administratorLogin')}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Auth;
