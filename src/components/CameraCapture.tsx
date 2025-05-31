@@ -25,29 +25,28 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
     setCameraError(null);
     
     try {
-      // First try with back camera, then fallback to any camera
-      let constraints = {
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-
       let mediaStream: MediaStream;
       
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        // First try with back camera
+        const backCameraConstraints = {
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+        mediaStream = await navigator.mediaDevices.getUserMedia(backCameraConstraints);
       } catch (error) {
         console.log('Back camera not available, trying any camera...');
         // Fallback to any available camera
-        constraints = {
+        const fallbackConstraints = {
           video: { 
             width: { ideal: 1280 },
             height: { ideal: 720 }
           }
         };
-        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        mediaStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
       }
       
       console.log('Camera stream obtained:', mediaStream);
@@ -148,7 +147,14 @@ export function CameraCapture({ onCapture, disabled }: CameraCaptureProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        handleClose();
+      } else {
+        setIsOpen(true);
+        startCamera();
+      }
+    }}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
