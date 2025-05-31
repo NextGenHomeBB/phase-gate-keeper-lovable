@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, CheckCircle, Edit3, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -73,6 +74,8 @@ const EasyPhaseChecklist = () => {
 
   const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(savedChecklists[0]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>(savedChecklists[0].items);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -104,6 +107,42 @@ const EasyPhaseChecklist = () => {
         title: "Taak voltooid!",
         description: "Goed gedaan! Je hebt een taak afgerond.",
       });
+    }
+  };
+
+  const startEditingItem = (item: ChecklistItem) => {
+    setEditingItemId(item.id);
+    setEditingText(item.text);
+  };
+
+  const saveEditingItem = (itemId: string) => {
+    if (editingText.trim()) {
+      setChecklist(prev => 
+        prev.map(item => 
+          item.id === itemId ? { ...item, text: editingText.trim() } : item
+        )
+      );
+      
+      toast({
+        title: "Item bijgewerkt!",
+        description: "De checklist item is succesvol bijgewerkt.",
+      });
+    }
+    
+    setEditingItemId(null);
+    setEditingText("");
+  };
+
+  const cancelEditingItem = () => {
+    setEditingItemId(null);
+    setEditingText("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, itemId: string) => {
+    if (e.key === 'Enter') {
+      saveEditingItem(itemId);
+    } else if (e.key === 'Escape') {
+      cancelEditingItem();
     }
   };
 
@@ -194,25 +233,71 @@ const EasyPhaseChecklist = () => {
             <CardContent>
               <div className="space-y-4">
                 {checklist.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
+                  <div key={item.id} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors group">
                     <Checkbox
                       checked={item.completed}
                       onCheckedChange={(checked) => 
                         updateChecklistItem(item.id, checked as boolean)
                       }
                     />
-                    <span 
-                      className={`flex-1 ${
-                        item.completed 
-                          ? 'line-through text-gray-500' 
-                          : 'text-gray-900'
-                      }`}
-                    >
-                      {item.text}
-                    </span>
-                    {item.completed && (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    )}
+                    <div className="flex-1">
+                      {editingItemId === item.id ? (
+                        <Input
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onKeyDown={(e) => handleKeyPress(e, item.id)}
+                          onBlur={() => saveEditingItem(item.id)}
+                          className="text-sm"
+                          autoFocus
+                        />
+                      ) : (
+                        <span 
+                          className={`flex-1 ${
+                            item.completed 
+                              ? 'line-through text-gray-500' 
+                              : 'text-gray-900'
+                          }`}
+                        >
+                          {item.text}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {editingItemId === item.id ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => saveEditingItem(item.id)}
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={cancelEditingItem}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => startEditingItem(item)}
+                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Button>
+                      )}
+                      
+                      {item.completed && editingItemId !== item.id && (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
