@@ -773,7 +773,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <CardContent>
                 <div className="space-y-4">
                   {selectedPhase.checklist.map((item) => (
-                    <div key={item.id} className="p-3 rounded-lg border">
+                    <div key={item.id} className="p-3 rounded-lg border group">
                       <div className="flex items-start space-x-3">
                         <Checkbox
                           checked={item.completed}
@@ -785,37 +785,65 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             {editingChecklistItem === item.id ? (
-                              <Input
-                                value={editChecklistDescription}
-                                onChange={(e) => setEditChecklistDescription(e.target.value)}
-                                onBlur={() => handleChecklistItemSave(selectedPhase.id, item)}
-                                onKeyDown={(e) => handleChecklistItemKeyPress(e, selectedPhase.id, item)}
-                                className="text-sm flex-1 mr-2"
-                                autoFocus
-                              />
+                              <div className="flex items-center space-x-2 flex-1">
+                                <Input
+                                  value={editChecklistDescription}
+                                  onChange={(e) => setEditChecklistDescription(e.target.value)}
+                                  onKeyDown={(e) => handleChecklistItemKeyPress(e, selectedPhase.id, item)}
+                                  className="text-sm flex-1"
+                                  autoFocus
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleChecklistItemSave(selectedPhase.id, item)}
+                                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={handleChecklistItemCancel}
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
                             ) : (
-                              <p 
-                                className={`text-sm cursor-text hover:text-gray-700 transition-colors ${item.completed ? 'line-through text-gray-500' : ''}`}
-                                onDoubleClick={() => handleChecklistItemEditStart(item)}
-                              >
-                                {item.description}
-                              </p>
-                            )}
-                            <div className="flex items-center space-x-2">
-                              <CameraCapture
-                                onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
-                              />
-                              <FileUpload
-                                onFileUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
-                                acceptedTypes="image/*"
-                              />
-                              {item.photos && item.photos.length > 0 && (
-                                <div className="flex items-center text-sm text-gray-600">
-                                  <ImageIcon className="w-4 h-4 mr-1" />
-                                  {item.photos.length}
+                              <>
+                                <p 
+                                  className={`text-sm cursor-text hover:text-gray-700 transition-colors flex-1 ${item.completed ? 'line-through text-gray-500' : ''}`}
+                                  onDoubleClick={() => handleChecklistItemEditStart(item)}
+                                >
+                                  {item.description}
+                                </p>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleChecklistItemEditStart(item)}
+                                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Taak bewerken"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </Button>
+                                  <CameraCapture
+                                    onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                                  />
+                                  <FileUpload
+                                    onFileUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
+                                    acceptedTypes="image/*"
+                                  />
+                                  {item.photos && item.photos.length > 0 && (
+                                    <div className="flex items-center text-sm text-gray-600">
+                                      <ImageIcon className="w-4 h-4 mr-1" />
+                                      {item.photos.length}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
+                              </>
+                            )}
                           </div>
                           {item.required && (
                             <Badge variant="outline" className="text-xs mt-1">
