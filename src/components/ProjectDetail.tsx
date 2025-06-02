@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import { MaterialsCalculator } from "./MaterialsCalculator";
 import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ConstructionDrawings } from "./ConstructionDrawings";
 
 interface ProjectDetailProps {
   project: Project;
@@ -244,6 +244,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Camera className="w-4 h-4 mr-2" />
             {t('projectDetail.photos')}
           </TabsTrigger>
+          <TabsTrigger value="drawings">
+            <FileText className="w-4 h-4 mr-2" />
+            Bouwtekeningen
+          </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="w-4 h-4 mr-2" />
             Documentatie
@@ -395,10 +399,17 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           />
         </TabsContent>
 
+        <TabsContent value="drawings" className="space-y-4">
+          <ConstructionDrawings 
+            projectId={project.id.toString()}
+            title="Bouwtekeningen & Plattegronden"
+          />
+        </TabsContent>
+
         <TabsContent value="documents" className="space-y-4">
           <ProjectFiles 
             projectId={project.id.toString()}
-            title="Project Documentatie & Bouwtekeningen"
+            title="Project Documentatie"
           />
         </TabsContent>
       </Tabs>
