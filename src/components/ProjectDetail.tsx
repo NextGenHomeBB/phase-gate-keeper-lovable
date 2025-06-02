@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -55,27 +55,33 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     onUpdateProject(updatedProject);
   };
 
-  const handleAddPhotoToChecklist = (phaseId: number, itemId: string, photo: string) => {
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === phaseId) {
-        const updatedChecklist = phase.checklist.map(item => {
-          if (item.id === itemId) {
-            const updatedPhotos = item.photos ? [...item.photos, photo] : [photo];
-            return { ...item, photos: updatedPhotos };
-          }
-          return item;
-        });
-        return { ...phase, checklist: updatedChecklist };
-      }
-      return phase;
-    });
+  const handleAddPhotoToChecklist = (phaseId: number, itemId: string, photoBlob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const photoDataUrl = reader.result as string;
+      
+      const updatedPhases = project.phases.map(phase => {
+        if (phase.id === phaseId) {
+          const updatedChecklist = phase.checklist.map(item => {
+            if (item.id === itemId) {
+              const updatedPhotos = item.photos ? [...item.photos, photoDataUrl] : [photoDataUrl];
+              return { ...item, photos: updatedPhotos };
+            }
+            return item;
+          });
+          return { ...phase, checklist: updatedChecklist };
+        }
+        return phase;
+      });
 
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
-    toast({
-      title: t('projectDetail.photoAdded'),
-      description: t('projectDetail.photoAddedSuccess'),
-    });
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      toast({
+        title: t('projectDetail.photoAdded'),
+        description: t('projectDetail.photoAddedSuccess'),
+      });
+    };
+    reader.readAsDataURL(photoBlob);
   };
 
   const handleMaterialUpdate = (phaseId: number, updatedMaterials: any) => {
@@ -127,15 +133,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           <ArrowLeft className="w-5 h-5 mr-2" />
           {t('common.back')}
         </Button>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={() => setIsCameraOpen(true)}>
-            <Camera className="w-4 h-4 mr-2" />
-            {t('projectDetail.openCamera')}
-          </Button>
-        </div>
       </div>
 
-      {/* Materials Calculator - Add this before the main content */}
+      {/* Materials Calculator */}
       <MaterialsCalculator project={project} />
 
       {/* Project Overview Cards */}
@@ -310,17 +310,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             {item.description}
                           </label>
                         </div>
-                        <div>
+                        <div className="flex items-center">
                           {item.photos && item.photos.length > 0 && (
                             <Badge variant="secondary" className="mr-2">
                               <Camera className="w-3 h-3 mr-1" />
                               {item.photos.length} {t('projectDetail.photos')}
                             </Badge>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => setIsCameraOpen({ phaseId: selectedPhase.id, itemId: item.id })}>
-                            <Camera className="w-4 h-4 mr-2" />
-                            {t('projectDetail.addPhoto')}
-                          </Button>
+                          <CameraCapture
+                            onCapture={(photoBlob) => handleAddPhotoToChecklist(selectedPhase.id, item.id, photoBlob)}
+                          />
                         </div>
                       </li>
                     ))}
@@ -337,24 +336,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-4">
-          <PhotoGallery photos={capturedPhotos} />
+          <PhotoGallery 
+            projectId={project.id.toString()}
+            title="Project Foto's"
+          />
         </TabsContent>
       </Tabs>
-
-      {/* Camera Capture Modal */}
-      {isCameraOpen && (
-        <CameraCapture
-          isOpen={true}
-          onClose={() => setIsCameraOpen(false)}
-          onCapture={(photo) => {
-            setCapturedPhotos([...capturedPhotos, photo]);
-            if (typeof isCameraOpen === 'object' && isCameraOpen.phaseId && isCameraOpen.itemId) {
-              handleAddPhotoToChecklist(isCameraOpen.phaseId, isCameraOpen.itemId, photo);
-            }
-            setIsCameraOpen(false);
-          }}
-        />
-      )}
     </div>
   );
 }
