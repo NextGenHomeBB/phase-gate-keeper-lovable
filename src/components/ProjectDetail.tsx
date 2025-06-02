@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,9 +135,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const handleFindSubcontractors = () => {
-    const searchQuery = encodeURIComponent(`${project.name} ${project.description || ''}`);
-    const werkspotUrl = `https://www.werkspot.nl/professionals?q=${searchQuery}`;
-    window.open(werkspotUrl, '_blank');
+    window.open('https://www.werkspot.nl', '_blank');
   };
 
   return (
