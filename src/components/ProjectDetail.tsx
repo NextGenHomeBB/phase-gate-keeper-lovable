@@ -242,6 +242,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Camera className="w-4 h-4 mr-2" />
             {t('projectDetail.photos')}
           </TabsTrigger>
+          <TabsTrigger value="documents">
+            <FileText className="w-4 h-4 mr-2" />
+            Documentatie
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
@@ -386,6 +390,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           <PhotoGallery 
             projectId={project.id.toString()}
             title="Project Foto's"
+          />
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-4">
+          <ProjectFiles 
+            projectId={project.id.toString()}
+            title="Project Documentatie & Bouwtekeningen"
           />
         </TabsContent>
       </Tabs>
