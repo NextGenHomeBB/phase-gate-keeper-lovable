@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -22,14 +21,26 @@ export interface ChecklistItem {
   required: boolean;
   photos?: string[]; // Array of base64 encoded images
 }
+
+export interface Material {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  category: string;
+  estimatedCost?: number;
+}
+
 export interface Phase {
   id: number;
   name: string;
   description: string;
   checklist: ChecklistItem[];
+  materials: Material[];
   completed: boolean;
   locked: boolean;
 }
+
 export interface Project {
   id: string;
   name: string;
@@ -253,13 +264,97 @@ const Index = () => {
 
 // Helper functions voor sample data
 function getPhaseName(phaseNumber: number): string {
-  const phases = ["Projectinitiatie", "Requirements Analyse", "Ontwerp", "Planning", "Ontwikkeling Setup", "Frontend Ontwikkeling", "Backend Ontwikkeling", "Database Implementatie", "API Ontwikkeling", "Testing Setup", "Unit Testing", "Integratie Testing", "Performance Testing", "Security Testing", "User Acceptance Testing", "Deployment Voorbereiding", "Productie Deploy", "Monitoring Setup", "Documentatie", "Project Afsluiting"];
+  const phases = [
+    "Fundering en Grondwerk",
+    "Muren en Structuur", 
+    "Dak en Dakbedekking",
+    "Isolatie en Dampscherm",
+    "Elektrische Installatie",
+    "Loodgieterswerk en Sanitair",
+    "Vloeren en Ondervloer",
+    "Gipsplaten en Afwerking",
+    "Ramen en Deuren",
+    "Keuken Installatie",
+    "Badkamer Afwerking",
+    "Schilderwerk Binnen",
+    "Vloerbedekking en Tegels",
+    "Verlichting en Schakelaars",
+    "Buitenafwerking en Gevel",
+    "Landschapsarchitectuur",
+    "Oprit en Paden",
+    "Finale Inspectie",
+    "Schoonmaak en Oplevering",
+    "Documentatie en Garantie"
+  ];
   return phases[phaseNumber - 1] || `Fase ${phaseNumber}`;
 }
+
 function getPhaseDescription(phaseNumber: number): string {
-  const descriptions = ["Projectdoelen definiëren en stakeholders identificeren", "Gedetailleerde requirements verzamelen en documenteren", "Technische architectuur en UI/UX ontwerp maken", "Projectplanning en tijdlijnen opstellen", "Ontwikkelomgeving en tools configureren", "User interface en frontend componenten bouwen", "Server-side logica en functionaliteit implementeren", "Database schema ontwerpen en implementeren", "API endpoints ontwikkelen en documenteren", "Test frameworks en procedures opzetten", "Individuele componenten en functies testen", "Systeem integratie en data flow testen", "Prestaties en schaalbaarheid evalueren", "Beveiligingsaudit en penetratietests uitvoeren", "Eindgebruiker acceptatie tests uitvoeren", "Productieomgeving voorbereiden en configureren", "Live deployment en go-live activiteiten", "Monitoring en alerting systemen activeren", "Technische en gebruikersdocumentatie completeren", "Project evaluatie en knowledge transfer"];
+  const descriptions = [
+    "Uitgraven, fundering gieten en grondwerk voorbereiden",
+    "Muren optrekken, kolommen en balken plaatsen", 
+    "Dakconstructie, dakpannen en dakgoten installeren",
+    "Isolatiemateriaal aanbrengen en dampscherm installeren",
+    "Elektrische leidingen trekken en stopcontacten plaatsen",
+    "Waterleidingen, riolering en sanitair installeren",
+    "Ondervloer voorbereiden en vloerverwarming installeren",
+    "Gipsplaten ophangen en voegen afwerken",
+    "Ramen en deuren plaatsen en afstellen",
+    "Keukenkasten, werkblad en apparatuur installeren",
+    "Badkamertegels, sanitair en kranen afwerken",
+    "Muren en plafonds schilderen",
+    "Laminaat, tegels of andere vloerbedekking leggen",
+    "Verlichtingsarmaturen en schakelaars monteren",
+    "Gevel afwerken en buitenschilderwerk uitvoeren",
+    "Tuin aanleggen en buitenruimte inrichten",
+    "Oprit aanleggen en tuinpaden realiseren",
+    "Eindcontrole en kwaliteitsinspectie uitvoeren",
+    "Grondige schoonmaak en sleutels overdragen",
+    "Papierwerk afronden en garantiebewijzen verstrekken"
+  ];
   return descriptions[phaseNumber - 1] || `Beschrijving voor fase ${phaseNumber}`;
 }
+
+function getPhaseMaterials(phaseNumber: number): Material[] {
+  const materialsByPhase: { [key: number]: Material[] } = {
+    1: [
+      { id: "1-1", name: "Beton C20/25", quantity: 15, unit: "m³", category: "Beton" },
+      { id: "1-2", name: "Wapening staal", quantity: 800, unit: "kg", category: "Staal" },
+      { id: "1-3", name: "Bekisting planken", quantity: 50, unit: "m²", category: "Hout" },
+      { id: "1-4", name: "Grind fundering", quantity: 20, unit: "ton", category: "Granulaat" }
+    ],
+    2: [
+      { id: "2-1", name: "Kalkzandsteen", quantity: 500, unit: "stuks", category: "Metselwerk" },
+      { id: "2-2", name: "Metselmortel", quantity: 30, unit: "zakken", category: "Mortel" },
+      { id: "2-3", name: "Hoekprofielen", quantity: 20, unit: "meter", category: "Staal" },
+      { id: "2-4", name: "Latei balken", quantity: 10, unit: "stuks", category: "Beton" }
+    ],
+    3: [
+      { id: "3-1", name: "Dakpannen", quantity: 800, unit: "stuks", category: "Dakbedekking" },
+      { id: "3-2", name: "Dakgoten", quantity: 40, unit: "meter", category: "Zinwerk" },
+      { id: "3-3", name: "Hemelwaterafvoer", quantity: 4, unit: "stuks", category: "Afvoer" },
+      { id: "3-4", name: "Dakbeschot", quantity: 80, unit: "m²", category: "Hout" }
+    ],
+    4: [
+      { id: "4-1", name: "Glaswol isolatie", quantity: 120, unit: "m²", category: "Isolatie" },
+      { id: "4-2", name: "Dampscherm folie", quantity: 130, unit: "m²", category: "Folie" },
+      { id: "4-3", name: "Tape dampscherm", quantity: 10, unit: "rollen", category: "Afdichting" },
+      { id: "4-4", name: "Isolatiepluggen", quantity: 200, unit: "stuks", category: "Bevestiging" }
+    ],
+    5: [
+      { id: "5-1", name: "Elektrische kabel", quantity: 500, unit: "meter", category: "Elektra" },
+      { id: "5-2", name: "Stopcontacten", quantity: 25, unit: "stuks", category: "Elektra" },
+      { id: "5-3", name: "Schakelaars", quantity: 15, unit: "stuks", category: "Elektra" },
+      { id: "5-4", name: "Verdeelkast", quantity: 1, unit: "stuks", category: "Elektra" }
+    ]
+  };
+
+  // Return materials for the phase, or default materials if not defined
+  return materialsByPhase[phaseNumber] || [
+    { id: `${phaseNumber}-1`, name: "Standaard materiaal", quantity: 1, unit: "stuks", category: "Diversen" }
+  ];
+}
+
 function getPhaseChecklist(phaseNumber: number): ChecklistItem[] {
   // Sample checklist items - in echte app zouden dit meer specifieke items zijn
   const baseItems = ["Alle stakeholders geïnformeerd", "Documentatie bijgewerkt", "Kwaliteitscontrole uitgevoerd", "Deliverables goedgekeurd door projectleider"];
@@ -270,4 +365,5 @@ function getPhaseChecklist(phaseNumber: number): ChecklistItem[] {
     required: true
   }));
 }
+
 export default Index;

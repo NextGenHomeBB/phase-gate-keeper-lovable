@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { CameraCapture } from "@/components/CameraCapture";
 import { FileUpload } from "@/components/FileUpload";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { MaterialsList } from "@/components/MaterialsList";
 import { projectFileService, ProjectFile } from "@/services/projectFileService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TeamMember } from "@/components/TeamPage";
@@ -445,6 +445,21 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const updatePhaseMaterials = (phaseId: number, materials: any[]) => {
+    const updatedProject = { ...project };
+    const phase = updatedProject.phases.find(p => p.id === phaseId);
+    
+    if (phase) {
+      phase.materials = materials;
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Materialen bijgewerkt",
+        description: "De materiakenlijst is succesvol bijgewerkt",
+      });
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -726,6 +741,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         <p className="text-xs text-gray-600">
                           {phase.checklist.filter(item => item.completed).length}/{phase.checklist.length} {t('projectDetail.tasksCompleted')}
                         </p>
+                        <p className="text-xs text-gray-600">
+                          {phase.materials?.length || 0} materialen
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -756,6 +774,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               )}
               <p className="text-gray-600 mt-2">{selectedPhase.description}</p>
             </div>
+
+            {/* Materials Section */}
+            <MaterialsList
+              materials={selectedPhase.materials || []}
+              onUpdateMaterials={(materials) => updatePhaseMaterials(selectedPhase.id, materials)}
+            />
 
             <Card>
               <CardHeader>
