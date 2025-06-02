@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Project, Phase, ChecklistItem, Material } from "@/pages/Index";
+import { TeamMember } from "@/components/TeamPage";
 
 function getPhaseName(phaseNumber: number): string {
   const phases = [
@@ -144,7 +145,8 @@ export const projectService = {
             description: getPhaseDescription(i + 1),
             completed: i < (project.current_phase || 1) - 1,
             locked: i >= (project.current_phase || 1),
-            checklist: getPhaseChecklist(i + 1)
+            checklist: getPhaseChecklist(i + 1),
+            materials: getPhaseMaterials(i + 1)
           }))
         };
       })
@@ -248,7 +250,8 @@ export const projectService = {
         description: getPhaseDescription(i + 1),
         completed: i < (data.current_phase || 1) - 1,
         locked: i >= (data.current_phase || 1),
-        checklist: getPhaseChecklist(i + 1)
+        checklist: getPhaseChecklist(i + 1),
+        materials: getPhaseMaterials(i + 1)
       }))
     };
   },
