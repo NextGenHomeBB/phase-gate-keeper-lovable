@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -125,6 +124,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     return (completedPhases / project.phases.length) * 100;
   };
 
+  const getTotalProjectCost = () => {
+    let totalCost = 0;
+    project.phases.forEach(phase => {
+      phase.materials?.forEach(material => {
+        totalCost += (material.estimatedCost || 0) * material.quantity;
+      });
+    });
+    return totalCost;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with back button */}
@@ -139,7 +148,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       <MaterialsCalculator project={project} />
 
       {/* Project Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold">{t('projectDetail.progress')}</CardTitle>
@@ -151,6 +160,18 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 <span>{t('projectDetail.completed')}: {project.phases.filter(phase => phase.completed).length} / {project.phases.length}</span>
                 <span>{getProgressPercentage().toFixed(0)}%</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Totale Kosten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-gray-700">
+              <Euro className="w-4 h-4 mr-2 text-green-600" />
+              <span className="text-xl font-bold text-green-900">€{getTotalProjectCost().toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
