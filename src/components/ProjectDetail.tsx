@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
 import { MaterialsList } from "./MaterialsList";
 import { MaterialsCalculator } from "./MaterialsCalculator";
+import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
