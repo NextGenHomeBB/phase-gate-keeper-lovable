@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -134,6 +135,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     return totalCost;
   };
 
+  const handleFindSubcontractors = () => {
+    const searchQuery = encodeURIComponent(`${project.name} ${project.description || ''}`);
+    const werkspotUrl = `https://www.werkspot.nl/professionals?q=${searchQuery}`;
+    window.open(werkspotUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with back button */}
@@ -200,6 +207,28 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </CardContent>
         </Card>
       </div>
+
+      {/* Onderaannemers Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Hammer className="w-5 h-5 mr-2" />
+            Onderaannemers vinden
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div>
+              <h4 className="font-medium text-blue-900">Werkspot.nl</h4>
+              <p className="text-sm text-blue-700">Vind betrouwbare onderaannemers voor uw project</p>
+            </div>
+            <Button onClick={handleFindSubcontractors} className="bg-blue-600 hover:bg-blue-700">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Zoek onderaannemers
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
