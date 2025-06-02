@@ -1,7 +1,10 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Euro, Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calculator, Euro, Package, Eye } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -11,11 +14,13 @@ interface MaterialsCalculatorProps {
 
 export function MaterialsCalculator({ project }: MaterialsCalculatorProps) {
   const { t } = useLanguage();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const calculateTotalCosts = () => {
     let totalCost = 0;
     let totalItems = 0;
     const categoryTotals: { [key: string]: number } = {};
+    const categoryMaterials: { [key: string]: Array<{ name: string; quantity: number; unit: string; cost: number; phaseName: string }> } = {};
 
     project.phases.forEach(phase => {
       phase.materials?.forEach(material => {
@@ -28,30 +33,42 @@ export function MaterialsCalculator({ project }: MaterialsCalculatorProps) {
         } else {
           categoryTotals[material.category] = materialTotal;
         }
+
+        if (!categoryMaterials[material.category]) {
+          categoryMaterials[material.category] = [];
+        }
+        categoryMaterials[material.category].push({
+          name: material.name,
+          quantity: material.quantity,
+          unit: material.unit,
+          cost: material.estimatedCost || 0,
+          phaseName: phase.name
+        });
       });
     });
 
     return {
       totalCost,
       totalItems,
-      categoryTotals
+      categoryTotals,
+      categoryMaterials
     };
   };
 
-  const { totalCost, totalItems, categoryTotals } = calculateTotalCosts();
+  const { totalCost, totalItems, categoryTotals, categoryMaterials } = calculateTotalCosts();
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
-      'Beton': 'bg-gray-100 text-gray-800',
-      'Staal': 'bg-blue-100 text-blue-800',
-      'Hout': 'bg-orange-100 text-orange-800',
-      'Metselwerk': 'bg-red-100 text-red-800',
-      'Elektra': 'bg-yellow-100 text-yellow-800',
-      'Isolatie': 'bg-green-100 text-green-800',
-      'Sanitair': 'bg-cyan-100 text-cyan-800',
-      'Afwerking': 'bg-purple-100 text-purple-800'
+      'Beton': 'bg-gray-100 text-gray-800 hover:bg-gray-200',
+      'Staal': 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+      'Hout': 'bg-orange-100 text-orange-800 hover:bg-orange-200',
+      'Metselwerk': 'bg-red-100 text-red-800 hover:bg-red-200',
+      'Elektra': 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+      'Isolatie': 'bg-green-100 text-green-800 hover:bg-green-200',
+      'Sanitair': 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200',
+      'Afwerking': 'bg-purple-100 text-purple-800 hover:bg-purple-200'
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || 'bg-gray-100 text-gray-800 hover:bg-gray-200';
   };
 
   return (
@@ -100,17 +117,59 @@ export function MaterialsCalculator({ project }: MaterialsCalculatorProps) {
           {/* Category breakdown */}
           {Object.keys(categoryTotals).length > 0 && (
             <div>
-              <h4 className="font-semibold mb-3">Kosten per Categorie</h4>
+              <h4 className="font-semibold mb-3">Kosten per Categorie (klik om details te zien)</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {Object.entries(categoryTotals)
                   .sort(([,a], [,b]) => b - a)
                   .map(([category, cost]) => (
-                    <div key={category} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                      <Badge variant="outline" className={getCategoryColor(category)}>
-                        {category}
-                      </Badge>
-                      <span className="font-medium text-sm">€{cost.toFixed(2)}</span>
-                    </div>
+                    <Dialog key={category}>
+                      <DialogTrigger asChild>
+                        <div className={`flex items-center justify-between p-3 bg-white border rounded-lg cursor-pointer transition-colors hover:shadow-md ${getCategoryColor(category)}`}>
+                          <Badge variant="outline" className="pointer-events-none">
+                            {category}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium text-sm">€{cost.toFixed(2)}</span>
+                            <Eye className="w-3 h-3" />
+                          </div>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Badge className={getCategoryColor(category)}>
+                              {category}
+                            </Badge>
+                            Materialen Overzicht
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <p className="text-sm text-blue-600 font-medium">Totale kosten voor {category}</p>
+                            <p className="text-xl font-bold text-blue-900">€{cost.toFixed(2)}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {categoryMaterials[category]?.map((material, index) => (
+                              <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h5 className="font-medium">{material.name}</h5>
+                                    <p className="text-sm text-gray-600">{material.phaseName}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium">€{(material.cost * material.quantity).toFixed(2)}</p>
+                                    <p className="text-sm text-gray-600">
+                                      {material.quantity} {material.unit} × €{material.cost.toFixed(2)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   ))}
               </div>
             </div>
