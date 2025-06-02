@@ -1,974 +1,360 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CheckCircle, Lock, Users, Calendar, Image as ImageIcon, X, FileText, Eye, Check, Edit3 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
-import { toast } from "@/hooks/use-toast";
-import { CameraCapture } from "@/components/CameraCapture";
-import { FileUpload } from "@/components/FileUpload";
-import { ProjectTeamManager } from "@/components/ProjectTeamManager";
-import { PhotoGallery } from "@/components/PhotoGallery";
-import { MaterialsList } from "@/components/MaterialsList";
-import { projectFileService, ProjectFile } from "@/services/projectFileService";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TeamMember } from "@/components/TeamPage";
-import { projectService } from "@/services/projectService";
+import { CameraCapture } from "./CameraCapture";
+import { PhotoGallery } from "./PhotoGallery";
+import { MaterialsList } from "./MaterialsList";
+import { MaterialsCalculator } from "./MaterialsCalculator";
+import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectDetailProps {
   project: Project;
   onUpdateProject: (project: Project) => void;
-  onBack?: () => void;
+  onBack: () => void;
 }
 
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState("overview");
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
-  const [editingPhaseName, setEditingPhaseName] = useState<number | null>(null);
-  const [editPhaseName, setEditPhaseName] = useState("");
-  const [editingChecklistItem, setEditingChecklistItem] = useState<string | null>(null);
-  const [editChecklistDescription, setEditChecklistDescription] = useState("");
-  const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
-  const [filesLoading, setFilesLoading] = useState(false);
-  const [previewFile, setPreviewFile] = useState<ProjectFile | null>(null);
-  const [projectTeamMembers, setProjectTeamMembers] = useState<TeamMember[]>([]);
-  const [teamMembersLoading, setTeamMembersLoading] = useState(false);
-  const [editingProjectName, setEditingProjectName] = useState(false);
-  const [editProjectNameValue, setEditProjectNameValue] = useState("");
-  const [editingProjectDescription, setEditingProjectDescription] = useState(false);
-  const [editProjectDescriptionValue, setEditProjectDescriptionValue] = useState("");
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
+  const { toast } = useToast();
 
-  // Load project files when component mounts or project changes
   useEffect(() => {
-    const loadProjectFiles = async () => {
-      try {
-        setFilesLoading(true);
-        const files = await projectFileService.getProjectFiles(project.id);
-        setProjectFiles(files);
-      } catch (error) {
-        console.error('Error loading project files:', error);
-        toast({
-          title: "Fout",
-          description: "Kon projectbestanden niet laden",
-          variant: "destructive",
+    if (project.phases.length > 0) {
+      setSelectedPhase(project.phases[0]);
+    }
+  }, [project]);
+
+  const handlePhaseClick = (phase: Phase) => {
+    setSelectedPhase(phase);
+  };
+
+  const handleChecklistItemToggle = (phaseId: number, itemId: string, completed: boolean) => {
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === phaseId) {
+        const updatedChecklist = phase.checklist.map(item => {
+          if (item.id === itemId) {
+            return { ...item, completed: completed };
+          }
+          return item;
         });
-      } finally {
-        setFilesLoading(false);
+        return { ...phase, checklist: updatedChecklist };
       }
-    };
+      return phase;
+    });
 
-    loadProjectFiles();
-  }, [project.id]);
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
+  };
 
-  // Load project team members when component mounts or project changes
-  useEffect(() => {
-    const loadProjectTeamMembers = async () => {
-      try {
-        setTeamMembersLoading(true);
-        const teamMembers = await projectService.fetchProjectTeamMembers(project.id);
-        setProjectTeamMembers(teamMembers);
-      } catch (error) {
-        console.error('Error loading project team members:', error);
-        toast({
-          title: "Fout",
-          description: "Kon teamleden niet laden",
-          variant: "destructive",
+  const handleAddPhotoToChecklist = (phaseId: number, itemId: string, photo: string) => {
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === phaseId) {
+        const updatedChecklist = phase.checklist.map(item => {
+          if (item.id === itemId) {
+            const updatedPhotos = item.photos ? [...item.photos, photo] : [photo];
+            return { ...item, photos: updatedPhotos };
+          }
+          return item;
         });
-      } finally {
-        setTeamMembersLoading(false);
+        return { ...phase, checklist: updatedChecklist };
       }
-    };
+      return phase;
+    });
 
-    loadProjectTeamMembers();
-  }, [project.id]);
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
+    toast({
+      title: t('projectDetail.photoAdded'),
+      description: t('projectDetail.photoAddedSuccess'),
+    });
+  };
 
-  const completeAllPhaseTasks = (phaseId: number) => {
-    const updatedProject = { ...project };
-    const phase = updatedProject.phases.find(p => p.id === phaseId);
-    
-    if (phase) {
-      // Mark all checklist items as completed
-      phase.checklist.forEach(item => {
-        item.completed = true;
-      });
-      
-      // Mark the phase as completed
-      phase.completed = true;
-      
-      // Update current phase if this is the current phase
-      if (phaseId === updatedProject.currentPhase) {
-        updatedProject.currentPhase = Math.min(phaseId + 1, 20);
+  const handleMaterialUpdate = (phaseId: number, updatedMaterials: any) => {
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === phaseId) {
+        return { ...phase, materials: updatedMaterials };
       }
-      
-      onUpdateProject(updatedProject);
-      
-      toast({
-        title: t('projectDetail.allTasksCompleted'),
-        description: `${t('projectDetail.allTasksCompletedDesc')} ${phase.name} ${t('projectDetail.automaticallyMarked')}.`,
-      });
-    }
+      return phase;
+    });
+  
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
   };
 
-  const handlePhaseNameEditStart = (phase: Phase) => {
-    setEditingPhaseName(phase.id);
-    setEditPhaseName(phase.name);
-  };
-
-  const handlePhaseNameSave = (phase: Phase) => {
-    if (editPhaseName.trim() && editPhaseName !== phase.name) {
-      const updatedProject = { ...project };
-      const phaseToUpdate = updatedProject.phases.find(p => p.id === phase.id);
-      
-      if (phaseToUpdate) {
-        phaseToUpdate.name = editPhaseName.trim();
-        onUpdateProject(updatedProject);
-        
-        toast({
-          title: t('projectDetail.phaseNameUpdated'),
-          description: `${t('projectDetail.phaseRenamed')} "${editPhaseName.trim()}"`,
-        });
+  const handlePhaseCompletionToggle = (phaseId: number, completed: boolean) => {
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === phaseId) {
+        return { ...phase, completed: completed };
       }
-    }
-    setEditingPhaseName(null);
-    setEditPhaseName("");
+      return phase;
+    });
+
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
   };
 
-  const handlePhaseNameCancel = () => {
-    setEditingPhaseName(null);
-    setEditPhaseName("");
-  };
-
-  const handlePhaseNameKeyPress = (e: React.KeyboardEvent, phase: Phase) => {
-    if (e.key === 'Enter') {
-      handlePhaseNameSave(phase);
-    } else if (e.key === 'Escape') {
-      handlePhaseNameCancel();
-    }
-  };
-
-  const handleChecklistItemEditStart = (item: ChecklistItem) => {
-    setEditingChecklistItem(item.id);
-    setEditChecklistDescription(item.description);
-  };
-
-  const handleChecklistItemSave = (phaseId: number, item: ChecklistItem) => {
-    if (editChecklistDescription.trim() && editChecklistDescription !== item.description) {
-      const updatedProject = { ...project };
-      const phase = updatedProject.phases.find(p => p.id === phaseId);
-      
-      if (phase) {
-        const checklistItem = phase.checklist.find(ci => ci.id === item.id);
-        if (checklistItem) {
-          checklistItem.description = editChecklistDescription.trim();
-          onUpdateProject(updatedProject);
-          
-          toast({
-            title: t('projectDetail.checklistItemUpdated'),
-            description: t('projectDetail.descriptionUpdated'),
-          });
-        }
+  const handlePhaseLockToggle = (phaseId: number, locked: boolean) => {
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === phaseId) {
+        return { ...phase, locked: locked };
       }
-    }
-    setEditingChecklistItem(null);
-    setEditChecklistDescription("");
+      return phase;
+    });
+
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
   };
 
-  const handleChecklistItemCancel = () => {
-    setEditingChecklistItem(null);
-    setEditChecklistDescription("");
-  };
-
-  const handleChecklistItemKeyPress = (e: React.KeyboardEvent, phaseId: number, item: ChecklistItem) => {
-    if (e.key === 'Enter') {
-      handleChecklistItemSave(phaseId, item);
-    } else if (e.key === 'Escape') {
-      handleChecklistItemCancel();
-    }
-  };
-
-  const getProjectProgress = () => {
+  const getProgressPercentage = () => {
     const completedPhases = project.phases.filter(phase => phase.completed).length;
-    return (completedPhases / 20) * 100;
-  };
-
-  const updateChecklistItem = (phaseId: number, itemId: string, completed: boolean) => {
-    const updatedProject = { ...project };
-    const phase = updatedProject.phases.find(p => p.id === phaseId);
-    
-    if (phase) {
-      const item = phase.checklist.find(item => item.id === itemId);
-      if (item) {
-        item.completed = completed;
-        
-        // Check if all required items are completed
-        const allRequiredCompleted = phase.checklist
-          .filter(item => item.required)
-          .every(item => item.completed);
-        
-        if (allRequiredCompleted && !phase.completed) {
-          phase.completed = true;
-          
-          // Update current phase if this is the current phase
-          if (phaseId === updatedProject.currentPhase) {
-            updatedProject.currentPhase = Math.min(phaseId + 1, 20);
-          }
-          
-          toast({
-            title: t('projectDetail.phaseCompleted'),
-            description: `${phase.name} ${t('projectDetail.successfullyCompleted')}.`,
-          });
-        } else if (!allRequiredCompleted && phase.completed) {
-          phase.completed = false;
-        }
-        
-        onUpdateProject(updatedProject);
-      }
-    }
-  };
-
-  const addPhotoToChecklistItem = (phaseId: number, itemId: string, photoBlob: Blob) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      
-      const updatedProject = { ...project };
-      const phase = updatedProject.phases.find(p => p.id === phaseId);
-      
-      if (phase) {
-        const item = phase.checklist.find(item => item.id === itemId);
-        if (item) {
-          if (!item.photos) {
-            item.photos = [];
-          }
-          item.photos.push(base64String);
-          onUpdateProject(updatedProject);
-          
-          toast({
-            title: t('projectDetail.photoAdded'),
-            description: t('projectDetail.photoAddedSuccess'),
-          });
-        }
-      }
-    };
-    reader.readAsDataURL(photoBlob);
-  };
-
-  const addProjectInfoFile = async (fileBlob: Blob) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64String = reader.result as string;
-        const fileName = fileBlob instanceof File ? fileBlob.name : `${t('projectDetail.projectFile')} ${projectFiles.length + 1}`;
-        const fileType = fileBlob.type;
-        const fileSize = fileBlob.size;
-
-        try {
-          const uploadedFile = await projectFileService.uploadProjectFile(
-            project.id,
-            fileName,
-            base64String,
-            fileType,
-            fileSize
-          );
-
-          setProjectFiles(prev => [uploadedFile, ...prev]);
-          
-          toast({
-            title: t('projectDetail.fileAdded'),
-            description: t('projectDetail.fileAddedSuccess'),
-          });
-        } catch (error) {
-          console.error('Error uploading file:', error);
-          toast({
-            title: t('common.error'),
-            description: t('projectDetail.fileUploadError'),
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsDataURL(fileBlob);
-    } catch (error) {
-      console.error('Error processing file:', error);
-      toast({
-        title: t('common.error'),
-        description: t('projectDetail.fileProcessError'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const removeProjectInfoFile = async (fileId: string) => {
-    try {
-      await projectFileService.deleteProjectFile(fileId);
-      setProjectFiles(prev => prev.filter(file => file.id !== fileId));
-      
-      toast({
-        title: t('projectDetail.fileRemoved'),
-        description: t('projectDetail.fileRemovedSuccess'),
-      });
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      toast({
-        title: t('common.error'),
-        description: t('projectDetail.fileDeleteError'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const removePhotoFromChecklistItem = (phaseId: number, itemId: string, photoIndex: number) => {
-    const updatedProject = { ...project };
-    const phase = updatedProject.phases.find(p => p.id === phaseId);
-    
-    if (phase) {
-      const item = phase.checklist.find(item => item.id === itemId);
-      if (item && item.photos) {
-        item.photos.splice(photoIndex, 1);
-        onUpdateProject(updatedProject);
-        
-        toast({
-          title: t('projectDetail.photoRemoved'),
-          description: t('projectDetail.photoRemovedSuccess'),
-        });
-      }
-    }
-  };
-
-  const canAccessPhase = (phase: Phase) => {
-    return true; // All phases are now accessible
-  };
-
-  const handleBackClick = () => {
-    if (selectedPhase) {
-      setSelectedPhase(null);
-    } else if (onBack) {
-      onBack();
-    }
-  };
-
-  const handleTeamMembersChange = async () => {
-    // Reload team members when changes are made
-    try {
-      setTeamMembersLoading(true);
-      const teamMembers = await projectService.fetchProjectTeamMembers(project.id);
-      setProjectTeamMembers(teamMembers);
-    } catch (error) {
-      console.error('Error reloading team members:', error);
-    } finally {
-      setTeamMembersLoading(false);
-    }
-  };
-
-  const getFileIcon = (fileName: string, fileType: string) => {
-    if (fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf') {
-      return <FileText className="w-4 h-4" />;
-    }
-    return <ImageIcon className="w-4 h-4" />;
-  };
-
-  const handleFileClick = (file: ProjectFile) => {
-    if (file.file_name.toLowerCase().endsWith('.pdf') || file.file_type === 'application/pdf') {
-      // For PDFs, open preview dialog
-      setPreviewFile(file);
-    } else {
-      // For images, open in new tab
-      window.open(file.file_data, '_blank');
-    }
-  };
-
-  const handleProjectNameEditStart = () => {
-    setEditingProjectName(true);
-    setEditProjectNameValue(project.name);
-  };
-
-  const handleProjectNameSave = async () => {
-    if (editProjectNameValue.trim() && editProjectNameValue !== project.name) {
-      const updatedProject = { ...project, name: editProjectNameValue.trim() };
-      await onUpdateProject(updatedProject);
-      
-      toast({
-        title: t('projectDetail.projectNameUpdated'),
-        description: `${t('projectDetail.projectRenamed')} "${editProjectNameValue.trim()}"`,
-      });
-    }
-    setEditingProjectName(false);
-    setEditProjectNameValue("");
-  };
-
-  const handleProjectNameCancel = () => {
-    setEditingProjectName(false);
-    setEditProjectNameValue("");
-  };
-
-  const handleProjectNameKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleProjectNameSave();
-    } else if (e.key === 'Escape') {
-      handleProjectNameCancel();
-    }
-  };
-
-  const handleProjectDescriptionEditStart = () => {
-    setEditingProjectDescription(true);
-    setEditProjectDescriptionValue(project.description);
-  };
-
-  const handleProjectDescriptionSave = async () => {
-    if (editProjectDescriptionValue.trim() && editProjectDescriptionValue !== project.description) {
-      const updatedProject = { ...project, description: editProjectDescriptionValue.trim() };
-      await onUpdateProject(updatedProject);
-      
-      toast({
-        title: "Project beschrijving bijgewerkt",
-        description: "De beschrijving is succesvol bijgewerkt",
-      });
-    }
-    setEditingProjectDescription(false);
-    setEditProjectDescriptionValue("");
-  };
-
-  const handleProjectDescriptionCancel = () => {
-    setEditingProjectDescription(false);
-    setEditProjectDescriptionValue("");
-  };
-
-  const handleProjectDescriptionKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
-      handleProjectDescriptionSave();
-    } else if (e.key === 'Escape') {
-      handleProjectDescriptionCancel();
-    }
-  };
-
-  const updatePhaseMaterials = (phaseId: number, materials: any[]) => {
-    const updatedProject = { ...project };
-    const phase = updatedProject.phases.find(p => p.id === phaseId);
-    
-    if (phase) {
-      phase.materials = materials;
-      onUpdateProject(updatedProject);
-      
-      toast({
-        title: "Materialen bijgewerkt",
-        description: "De materiakenlijst is succesvol bijgewerkt",
-      });
-    }
+    return (completedPhases / project.phases.length) * 100;
   };
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Project Header */}
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={handleBackClick}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {selectedPhase ? t('projectDetail.backToPhases') : t('projectDetail.backToDashboard')}
+    <div className="space-y-6">
+      {/* Header with back button */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack}>
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          {t('common.back')}
+        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => setIsCameraOpen(true)}>
+            <Camera className="w-4 h-4 mr-2" />
+            {t('projectDetail.openCamera')}
           </Button>
         </div>
-
-        {!selectedPhase ? (
-          <>
-            {/* Project Overview */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                {editingProjectName ? (
-                  <Input
-                    value={editProjectNameValue}
-                    onChange={(e) => setEditProjectNameValue(e.target.value)}
-                    onBlur={handleProjectNameSave}
-                    onKeyDown={handleProjectNameKeyPress}
-                    className="text-3xl font-bold text-gray-900 border-0 p-0 shadow-none focus-visible:ring-0 h-auto"
-                    autoFocus
-                  />
-                ) : (
-                  <>
-                    <h1 
-                      className="text-3xl font-bold text-gray-900 cursor-text hover:text-gray-700 transition-colors"
-                      onDoubleClick={handleProjectNameEditStart}
-                    >
-                      {project.name}
-                    </h1>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={handleProjectNameEditStart}
-                      title={t('projectDetail.editProjectName')}
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-              
-              <div>
-                {editingProjectDescription ? (
-                  <Textarea
-                    value={editProjectDescriptionValue}
-                    onChange={(e) => setEditProjectDescriptionValue(e.target.value)}
-                    onBlur={handleProjectDescriptionSave}
-                    onKeyDown={handleProjectDescriptionKeyPress}
-                    className="text-gray-600 border-0 p-0 shadow-none focus-visible:ring-0 resize-none w-full"
-                    rows={2}
-                    autoFocus
-                    placeholder={t('projectDetail.projectDescriptionPlaceholder')}
-                  />
-                ) : (
-                  <p 
-                    className="text-gray-600 cursor-text hover:text-gray-800 transition-colors"
-                    onDoubleClick={handleProjectDescriptionEditStart}
-                  >
-                    {project.description || t('projectDetail.noDescription')}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{t('project.progress')}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>{t('projectDetail.completedPhases')}</span>
-                        <span className="font-semibold">
-                          {project.phases.filter(p => p.completed).length}/20
-                        </span>
-                      </div>
-                      <Progress value={getProjectProgress()} className="h-3" />
-                      <p className="text-sm text-gray-600">
-                        {Math.round(getProjectProgress())}% {t('projectDetail.completed')}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      {t('navigation.projectInfo')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="text-sm text-gray-600">{t('project.startDate')}:</span>
-                      <p className="font-medium">
-                        {new Date(project.startDate).toLocaleDateString('nl-NL')}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">{t('project.currentPhase')}:</span>
-                      <p className="font-medium">{t('project.phase')} {project.currentPhase}</p>
-                    </div>
-                    
-                    {/* Project Files Section */}
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">{t('projectDetail.files')}:</span>
-                        <div className="flex items-center space-x-1">
-                          <CameraCapture
-                            onCapture={(blob) => addProjectInfoFile(blob)}
-                          />
-                          <FileUpload
-                            onFileUpload={(blob) => addProjectInfoFile(blob)}
-                          />
-                        </div>
-                      </div>
-                      
-                      {filesLoading ? (
-                        <p className="text-xs text-gray-500">{t('projectDetail.filesLoading')}</p>
-                      ) : projectFiles.length > 0 ? (
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {projectFiles.map((file) => (
-                            <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                              <span className="truncate">{file.file_name}</span>
-                              <div className="flex items-center space-x-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => handleFileClick(file)}
-                                  title={file.file_type === 'application/pdf' ? t('projectDetail.pdfPreview') : t('projectDetail.openFile')}
-                                >
-                                  {file.file_type === 'application/pdf' ? <Eye className="w-4 h-4" /> : getFileIcon(file.file_name, file.file_type)}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                  onClick={() => removeProjectInfoFile(file.id)}
-                                  title={t('projectDetail.removeFile')}
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-500">{t('projectDetail.noFilesAdded')}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
-                      <Users className="w-5 h-5 mr-2" />
-                      {t('navigation.team')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <ProjectTeamManager 
-                        projectId={project.id} 
-                        onTeamMembersChange={handleTeamMembersChange}
-                      />
-                      
-                      {/* Current Team Members Display */}
-                      <div className="border-t pt-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">{t('project.teamMembers')}</h4>
-                        {teamMembersLoading ? (
-                          <p className="text-xs text-gray-500">{t('team.loading')}</p>
-                        ) : projectTeamMembers.length > 0 ? (
-                          <div className="space-y-2">
-                            {projectTeamMembers.map((member) => (
-                              <div key={member.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <span className="text-xs font-medium text-blue-600">
-                                    {member.name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
-                                  <p className="text-xs text-gray-500">{member.role}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-gray-500">{t('projectDetail.noTeamMembers')}</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Project Photo Gallery */}
-              <PhotoGallery 
-                projectId={project.id}
-                title={t('projectDetail.projectPhotoGallery')}
-                className="mt-6"
-              />
-            </div>
-
-            {/* Phases Grid */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-900">{t('projectDetail.projectPhases')}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {project.phases.map((phase) => (
-                  <Card 
-                    key={phase.id} 
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      phase.completed ? 'border-green-500 bg-green-50' : ''
-                    } ${phase.id === project.currentPhase ? 'border-blue-500 bg-blue-50' : ''}`}
-                    onClick={() => setSelectedPhase(phase)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm font-medium">
-                          {t('project.phase')} {phase.id}
-                        </CardTitle>
-                        <div className="flex items-center space-x-1">
-                          {phase.completed && (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          )}
-                          {!phase.completed && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-green-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                completeAllPhaseTasks(phase.id);
-                              }}
-                              title={t('projectDetail.completeAllTasks')}
-                            >
-                              <Check className="w-4 h-4 text-green-600" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      {editingPhaseName === phase.id ? (
-                        <Input
-                          value={editPhaseName}
-                          onChange={(e) => setEditPhaseName(e.target.value)}
-                          onBlur={() => handlePhaseNameSave(phase)}
-                          onKeyDown={(e) => handlePhaseNameKeyPress(e, phase)}
-                          className="text-xs"
-                          autoFocus
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <CardDescription 
-                          className="text-xs cursor-text hover:text-gray-800 transition-colors"
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            handlePhaseNameEditStart(phase);
-                          }}
-                        >
-                          {phase.name.replace(`${t('project.phase')} ${phase.id}: `, '')}
-                        </CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <Badge 
-                          variant={phase.completed ? "default" : phase.id === project.currentPhase ? "secondary" : "outline"}
-                          className={phase.completed ? "bg-green-600" : phase.id === project.currentPhase ? "bg-blue-600" : ""}
-                        >
-                          {phase.completed ? t('projectDetail.completed') : phase.id === project.currentPhase ? t('projectDetail.active') : t('projectDetail.available')}
-                        </Badge>
-                        <p className="text-xs text-gray-600">
-                          {phase.checklist.filter(item => item.completed).length}/{phase.checklist.length} {t('projectDetail.tasksCompleted')}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {phase.materials?.length || 0} materialen
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Phase Detail View */
-          <div className="space-y-6">
-            <div>
-              {editingPhaseName === selectedPhase.id ? (
-                <Input
-                  value={editPhaseName}
-                  onChange={(e) => setEditPhaseName(e.target.value)}
-                  onBlur={() => handlePhaseNameSave(selectedPhase)}
-                  onKeyDown={(e) => handlePhaseNameKeyPress(e, selectedPhase)}
-                  className="text-3xl font-bold text-gray-900 border-0 p-0 shadow-none focus-visible:ring-0"
-                  autoFocus
-                />
-              ) : (
-                <h1 
-                  className="text-3xl font-bold text-gray-900 cursor-text hover:text-gray-700 transition-colors"
-                  onDoubleClick={() => handlePhaseNameEditStart(selectedPhase)}
-                >
-                  {selectedPhase.name}
-                </h1>
-              )}
-              <p className="text-gray-600 mt-2">{selectedPhase.description}</p>
-            </div>
-
-            {/* Materials Section */}
-            <MaterialsList
-              materials={selectedPhase.materials || []}
-              onUpdateMaterials={(materials) => updatePhaseMaterials(selectedPhase.id, materials)}
-            />
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {t('projectDetail.checklist')}
-                  <Badge 
-                    variant={selectedPhase.completed ? "default" : "outline"}
-                    className={selectedPhase.completed ? "bg-green-600" : ""}
-                  >
-                    {selectedPhase.completed ? t('projectDetail.completed') : t('projectDetail.inProgress')}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  {t('projectDetail.checklistDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {selectedPhase.checklist.map((item) => (
-                    <div key={item.id} className="p-3 rounded-lg border group">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={item.completed}
-                          onCheckedChange={(checked) => 
-                            updateChecklistItem(selectedPhase.id, item.id, checked as boolean)
-                          }
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            {editingChecklistItem === item.id ? (
-                              <div className="flex items-center space-x-2 flex-1">
-                                <Input
-                                  value={editChecklistDescription}
-                                  onChange={(e) => setEditChecklistDescription(e.target.value)}
-                                  onKeyDown={(e) => handleChecklistItemKeyPress(e, selectedPhase.id, item)}
-                                  className="text-sm flex-1"
-                                  autoFocus
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleChecklistItemSave(selectedPhase.id, item)}
-                                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={handleChecklistItemCancel}
-                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <>
-                                <p 
-                                  className={`text-sm cursor-text hover:text-gray-700 transition-colors flex-1 ${item.completed ? 'line-through text-gray-500' : ''}`}
-                                  onDoubleClick={() => handleChecklistItemEditStart(item)}
-                                >
-                                  {item.description}
-                                </p>
-                                <div className="flex items-center space-x-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleChecklistItemEditStart(item)}
-                                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    title={t('projectDetail.editTask')}
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                  </Button>
-                                  <CameraCapture
-                                    onCapture={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
-                                  />
-                                  <FileUpload
-                                    onFileUpload={(blob) => addPhotoToChecklistItem(selectedPhase.id, item.id, blob)}
-                                    acceptedTypes="image/*"
-                                  />
-                                  {item.photos && item.photos.length > 0 && (
-                                    <div className="flex items-center text-sm text-gray-600">
-                                      <ImageIcon className="w-4 h-4 mr-1" />
-                                      {item.photos.length}
-                                    </div>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                          {item.required && (
-                            <Badge variant="outline" className="text-xs mt-1">
-                              {t('projectDetail.required')}
-                            </Badge>
-                          )}
-                          
-                          {/* Photo Gallery */}
-                          {item.photos && item.photos.length > 0 && (
-                            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
-                              {item.photos.map((photo, index) => (
-                                <div key={index} className="relative group">
-                                  <img
-                                    src={photo}
-                                    alt={`${t('projectDetail.photo')} ${index + 1}`}
-                                    className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
-                                    onClick={() => window.open(photo, '_blank')}
-                                  />
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                    onClick={() => removePhotoFromChecklistItem(selectedPhase.id, item.id, index)}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    💡 <strong>{t('projectDetail.tip')}:</strong> {t('projectDetail.tipDescription')}
-                  </p>
-                </div>
-
-                {/* Back Button between checklist and photos */}
-                <div className="mt-6 flex justify-start">
-                  <Button variant="ghost" size="sm" onClick={handleBackClick}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    {t('projectDetail.backToPhases')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Phase Photo Gallery */}
-            <PhotoGallery 
-              projectId={project.id}
-              phaseId={selectedPhase.id}
-              title={`${t('projectDetail.photosFor')} ${selectedPhase.name}`}
-            />
-
-            {/* Original Back Button at Bottom */}
-            <div className="flex justify-start">
-              <Button variant="ghost" size="sm" onClick={handleBackClick}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t('projectDetail.backToPhases')}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* PDF Preview Dialog */}
-      <Dialog open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="flex items-center justify-between">
-              <span className="flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                {previewFile?.file_name}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => previewFile && window.open(previewFile.file_data, '_blank')}
-              >
-                {t('projectDetail.openInNewTab')}
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 p-6 pt-2">
-            {previewFile && (
-              <iframe
-                src={previewFile.file_data}
-                className="w-full h-[70vh] border rounded"
-                title={previewFile.file_name}
-              />
-            )}
+      {/* Materials Calculator - Add this before the main content */}
+      <MaterialsCalculator project={project} />
+
+      {/* Project Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">{t('projectDetail.progress')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Progress value={getProgressPercentage()} className="h-2" />
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>{t('projectDetail.completed')}: {project.phases.filter(phase => phase.completed).length} / {project.phases.length}</span>
+                <span>{getProgressPercentage().toFixed(0)}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">{t('projectDetail.startDate')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-gray-700">
+              <Calendar className="w-4 h-4 mr-2 inline-block" />
+              {new Date(project.startDate).toLocaleDateString()}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">{t('projectDetail.teamMembers')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-gray-700">
+              <Users className="w-4 h-4 mr-2 inline-block" />
+              {project.teamMembers.length} {t('projectDetail.members')}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">
+            <FileText className="w-4 h-4 mr-2" />
+            {t('projectDetail.overview')}
+          </TabsTrigger>
+          <TabsTrigger value="phases">
+            <Clock className="w-4 h-4 mr-2" />
+            {t('projectDetail.phases')}
+          </TabsTrigger>
+          <TabsTrigger value="photos">
+            <Camera className="w-4 h-4 mr-2" />
+            {t('projectDetail.photos')}
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">{t('projectDetail.projectDescription')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700">{project.description}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">{t('projectDetail.teamComposition')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc pl-5 text-gray-700">
+                {project.teamMembers.map((member, index) => (
+                  <li key={index}>{member}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="phases" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {project.phases.map(phase => (
+              <Card key={phase.id} className={`cursor-pointer ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500' : ''}`} onClick={() => handlePhaseClick(phase)}>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    {phase.name}
+                    {phase.completed && (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-gray-700 line-clamp-3">{phase.description}</p>
+                  <div className="flex items-center justify-between text-sm">
+                    <Badge variant="secondary">
+                      {phase.checklist.filter(item => item.completed).length} / {phase.checklist.length} {t('projectDetail.checklistItems')}
+                    </Badge>
+                    {phase.locked ? (
+                      <Badge variant="outline">
+                        <Lock className="w-3 h-3 mr-1" />
+                        {t('projectDetail.locked')}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {t('projectDetail.open')}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+
+          {selectedPhase && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                  {selectedPhase.name}
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => handlePhaseCompletionToggle(selectedPhase.id, !selectedPhase.completed)}>
+                      {selectedPhase.completed ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2" />
+                          {t('projectDetail.markIncomplete')}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          {t('projectDetail.markComplete')}
+                        </>
+                      )}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handlePhaseLockToggle(selectedPhase.id, !selectedPhase.locked)}>
+                      {selectedPhase.locked ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2" />
+                          {t('projectDetail.unlockPhase')}
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          {t('projectDetail.lockPhase')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">{selectedPhase.description}</p>
+                
+                <div>
+                  <h4 className="text-md font-semibold">{t('projectDetail.checklist')}</h4>
+                  <ul className="list-none pl-0 mt-2">
+                    {selectedPhase.checklist.map(item => (
+                      <li key={item.id} className="flex items-center justify-between py-2 border-b border-gray-200">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={item.id}
+                            className="mr-2 h-5 w-5 rounded text-blue-600 focus:ring-blue-500"
+                            checked={item.completed}
+                            onChange={(e) => handleChecklistItemToggle(selectedPhase.id, item.id, e.target.checked)}
+                          />
+                          <label htmlFor={item.id} className={`text-gray-700 ${item.required ? 'font-medium' : ''}`}>
+                            {item.description}
+                          </label>
+                        </div>
+                        <div>
+                          {item.photos && item.photos.length > 0 && (
+                            <Badge variant="secondary" className="mr-2">
+                              <Camera className="w-3 h-3 mr-1" />
+                              {item.photos.length} {t('projectDetail.photos')}
+                            </Badge>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => setIsCameraOpen({ phaseId: selectedPhase.id, itemId: item.id })}>
+                            <Camera className="w-4 h-4 mr-2" />
+                            {t('projectDetail.addPhoto')}
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <MaterialsList 
+                  materials={selectedPhase.materials}
+                  onUpdateMaterials={(updatedMaterials) => handleMaterialUpdate(selectedPhase.id, updatedMaterials)}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="photos" className="space-y-4">
+          <PhotoGallery photos={capturedPhotos} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Camera Capture Modal */}
+      {isCameraOpen && (
+        <CameraCapture
+          isOpen={true}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={(photo) => {
+            setCapturedPhotos([...capturedPhotos, photo]);
+            if (typeof isCameraOpen === 'object' && isCameraOpen.phaseId && isCameraOpen.itemId) {
+              handleAddPhotoToChecklist(isCameraOpen.phaseId, isCameraOpen.itemId, photo);
+            }
+            setIsCameraOpen(false);
+          }}
+        />
+      )}
+    </div>
   );
 }
