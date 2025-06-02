@@ -10,6 +10,7 @@ import { Plus, Edit3, Trash2, Package, Euro, Calculator, Sparkles } from "lucide
 import { Material } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AIMaterialsCalculator } from "./AIMaterialsCalculator";
+import { WebshopPriceComparison } from "./WebshopPriceComparison";
 
 interface MaterialsListProps {
   materials: Material[];
@@ -244,6 +245,9 @@ export function MaterialsList({ materials, onUpdateMaterials, readOnly = false }
                                 </span>
                               </span>
                             )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <WebshopPriceComparison material={material} />
                           </div>
                         </div>
                         {!readOnly && (
