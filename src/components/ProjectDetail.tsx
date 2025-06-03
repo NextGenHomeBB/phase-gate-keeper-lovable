@@ -14,6 +14,7 @@ import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ConstructionDrawings } from "./ConstructionDrawings";
+import { HomeStyleAI } from "./HomeStyleAI";
 
 interface ProjectDetailProps {
   project: Project;
@@ -248,6 +249,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <FileText className="w-4 h-4 mr-2" />
             Bouwtekeningen
           </TabsTrigger>
+          <TabsTrigger value="styling">
+            <Hammer className="w-4 h-4 mr-2" />
+            Home Styling AI
+          </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="w-4 h-4 mr-2" />
             Documentatie
@@ -403,6 +408,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           <ConstructionDrawings 
             projectId={project.id.toString()}
             title="Bouwtekeningen & Plattegronden"
+          />
+        </TabsContent>
+
+        <TabsContent value="styling" className="space-y-4">
+          <HomeStyleAI 
+            projectId={project.id.toString()}
+            title="AI Interior Styling"
           />
         </TabsContent>
 
