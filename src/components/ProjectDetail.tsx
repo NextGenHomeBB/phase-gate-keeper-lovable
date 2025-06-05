@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -217,6 +217,71 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     window.open('https://www.werkspot.nl', '_blank');
   };
 
+  const handleAddPhase = () => {
+    const newPhaseId = Math.max(...project.phases.map(p => p.id)) + 1;
+    const newPhase: Phase = {
+      id: newPhaseId,
+      name: `Nieuwe Fase ${newPhaseId}`,
+      description: "Beschrijving van de nieuwe fase",
+      completed: false,
+      locked: false,
+      checklist: [
+        {
+          id: `${newPhaseId}-1`,
+          description: "Alle stakeholders geïnformeerd",
+          completed: false,
+          required: true
+        },
+        {
+          id: `${newPhaseId}-2`, 
+          description: "Documentatie bijgewerkt",
+          completed: false,
+          required: true
+        }
+      ],
+      materials: []
+    };
+
+    const updatedProject = {
+      ...project,
+      phases: [...project.phases, newPhase]
+    };
+    
+    onUpdateProject(updatedProject);
+    setSelectedPhase(newPhase);
+    
+    toast({
+      title: "Fase toegevoegd",
+      description: "Nieuwe fase is succesvol toegevoegd aan het project.",
+    });
+  };
+
+  const handleDeletePhase = (phaseId: number) => {
+    if (project.phases.length <= 1) {
+      toast({
+        title: "Kan fase niet verwijderen",
+        description: "Een project moet minimaal één fase hebben.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedPhases = project.phases.filter(phase => phase.id !== phaseId);
+    const updatedProject = { ...project, phases: updatedPhases };
+    
+    onUpdateProject(updatedProject);
+    
+    // If the deleted phase was selected, select the first remaining phase
+    if (selectedPhase?.id === phaseId) {
+      setSelectedPhase(updatedPhases.length > 0 ? updatedPhases[0] : null);
+    }
+    
+    toast({
+      title: "Fase verwijderd",
+      description: "De fase is succesvol verwijderd uit het project.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with back button */}
@@ -359,15 +424,39 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="phases" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              Projectfases
+            </h3>
+            <div className="flex gap-2">
+              <Button onClick={handleAddPhase} size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Fase toevoegen
+              </Button>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {project.phases.map(phase => (
               <Card key={phase.id} className={`cursor-pointer ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500' : ''}`} onClick={() => handlePhaseClick(phase)}>
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    {phase.name}
-                    {phase.completed && (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    )}
+                  <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {phase.name}
+                      {phase.completed && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePhase(phase.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
