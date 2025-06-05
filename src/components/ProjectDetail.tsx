@@ -12,7 +12,7 @@ import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText,
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
-import { MaterialsList } from "./MaterialsList";
+import { ProjectDetailMaterials } from "./ProjectDetailMaterials";
 import { MaterialsCalculator } from "./MaterialsCalculator";
 import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
@@ -141,18 +141,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       });
     };
     reader.readAsDataURL(photoBlob);
-  };
-
-  const handleMaterialUpdate = (phaseId: number, updatedMaterials: any) => {
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === phaseId) {
-        return { ...phase, materials: updatedMaterials };
-      }
-      return phase;
-    });
-  
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
   };
 
   const handlePhaseCompletionToggle = (phaseId: number, completed: boolean) => {
@@ -561,9 +549,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </ul>
                 </div>
 
-                <MaterialsList 
-                  materials={selectedPhase.materials}
-                  onUpdateMaterials={(updatedMaterials) => handleMaterialUpdate(selectedPhase.id, updatedMaterials)}
+                <ProjectDetailMaterials 
+                  projectId={project.id.toString()}
+                  phaseId={selectedPhase.id}
                 />
               </CardContent>
             </Card>
