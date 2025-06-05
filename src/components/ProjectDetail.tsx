@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -31,6 +33,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
   const [editingPhaseName, setEditingPhaseName] = useState<string>("");
   const [isEditingPhaseName, setIsEditingPhaseName] = useState(false);
+  const [editingChecklistItem, setEditingChecklistItem] = useState<{phaseId: number, itemId: string} | null>(null);
+  const [editingItemText, setEditingItemText] = useState("");
+  const [editingItemNotes, setEditingItemNotes] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +64,54 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
     const updatedProject = { ...project, phases: updatedPhases };
     onUpdateProject(updatedProject);
+  };
+
+  const handleEditChecklistItem = (phaseId: number, itemId: string) => {
+    const phase = project.phases.find(p => p.id === phaseId);
+    const item = phase?.checklist.find(i => i.id === itemId);
+    if (item) {
+      setEditingChecklistItem({ phaseId, itemId });
+      setEditingItemText(item.description);
+      setEditingItemNotes(item.notes || "");
+    }
+  };
+
+  const handleSaveChecklistItem = () => {
+    if (!editingChecklistItem) return;
+
+    const updatedPhases = project.phases.map(phase => {
+      if (phase.id === editingChecklistItem.phaseId) {
+        const updatedChecklist = phase.checklist.map(item => {
+          if (item.id === editingChecklistItem.itemId) {
+            return { 
+              ...item, 
+              description: editingItemText.trim(),
+              notes: editingItemNotes.trim() || undefined
+            };
+          }
+          return item;
+        });
+        return { ...phase, checklist: updatedChecklist };
+      }
+      return phase;
+    });
+
+    const updatedProject = { ...project, phases: updatedPhases };
+    onUpdateProject(updatedProject);
+    setEditingChecklistItem(null);
+    setEditingItemText("");
+    setEditingItemNotes("");
+
+    toast({
+      title: "Checklist item updated",
+      description: "The checklist item has been successfully updated.",
+    });
+  };
+
+  const handleCancelEditChecklistItem = () => {
+    setEditingChecklistItem(null);
+    setEditingItemText("");
+    setEditingItemNotes("");
   };
 
   const handleAddPhotoToChecklist = (phaseId: number, itemId: string, photoBlob: Blob) => {
@@ -429,7 +482,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <ul className="list-none pl-0 mt-2">
                     {selectedPhase.checklist.map(item => (
                       <li key={item.id} className="flex items-center justify-between py-2 border-b border-gray-200">
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-1">
                           <input
                             type="checkbox"
                             id={item.id}
@@ -437,17 +490,68 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             checked={item.completed}
                             onChange={(e) => handleChecklistItemToggle(selectedPhase.id, item.id, e.target.checked)}
                           />
-                          <label htmlFor={item.id} className={`text-gray-700 ${item.required ? 'font-medium' : ''}`}>
-                            {item.description}
-                          </label>
+                          <div className="flex-1">
+                            <label htmlFor={item.id} className={`text-gray-700 ${item.required ? 'font-medium' : ''} block`}>
+                              {item.description}
+                            </label>
+                            {item.notes && (
+                              <p className="text-sm text-gray-500 mt-1">{item.notes}</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center space-x-2">
                           {item.photos && item.photos.length > 0 && (
                             <Badge variant="secondary" className="mr-2">
                               <Camera className="w-3 h-3 mr-1" />
                               {item.photos.length} {t('projectDetail.photos')}
                             </Badge>
                           )}
+                          <Dialog open={editingChecklistItem?.phaseId === selectedPhase.id && editingChecklistItem?.itemId === item.id} onOpenChange={(open) => !open && handleCancelEditChecklistItem()}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditChecklistItem(selectedPhase.id, item.id)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Edit Checklist Item</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Description</label>
+                                  <Input
+                                    value={editingItemText}
+                                    onChange={(e) => setEditingItemText(e.target.value)}
+                                    placeholder="Enter description"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">
+                                    <MessageSquare className="w-4 h-4 inline mr-1" />
+                                    Notes
+                                  </label>
+                                  <Textarea
+                                    value={editingItemNotes}
+                                    onChange={(e) => setEditingItemNotes(e.target.value)}
+                                    placeholder="Add notes or additional information"
+                                    rows={3}
+                                  />
+                                </div>
+                                <div className="flex gap-2 justify-end">
+                                  <Button variant="outline" onClick={handleCancelEditChecklistItem}>
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={handleSaveChecklistItem}>
+                                    Save
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                           <CameraCapture
                             onCapture={(photoBlob) => handleAddPhotoToChecklist(selectedPhase.id, item.id, photoBlob)}
                           />
