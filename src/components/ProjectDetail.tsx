@@ -215,6 +215,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   return (
     <div className="space-y-6">
+      {/* Project Name Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-blue-900 tracking-wide uppercase">
+          {project.name}
+        </h1>
+      </div>
+
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onBack}>
