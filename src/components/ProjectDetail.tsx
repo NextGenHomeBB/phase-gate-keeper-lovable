@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -27,6 +29,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
+  const [editingPhaseName, setEditingPhaseName] = useState<string>("");
+  const [isEditingPhaseName, setIsEditingPhaseName] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -120,6 +124,37 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
     const updatedProject = { ...project, phases: updatedPhases };
     onUpdateProject(updatedProject);
+  };
+
+  const handlePhaseNameEdit = () => {
+    if (selectedPhase) {
+      setEditingPhaseName(selectedPhase.name);
+      setIsEditingPhaseName(true);
+    }
+  };
+
+  const handlePhaseNameSave = () => {
+    if (selectedPhase && editingPhaseName.trim()) {
+      const updatedPhases = project.phases.map(phase => {
+        if (phase.id === selectedPhase.id) {
+          return { ...phase, name: editingPhaseName.trim() };
+        }
+        return phase;
+      });
+
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      // Update selected phase to reflect the change
+      setSelectedPhase({ ...selectedPhase, name: editingPhaseName.trim() });
+      setIsEditingPhaseName(false);
+      setEditingPhaseName("");
+    }
+  };
+
+  const handlePhaseNameCancel = () => {
+    setIsEditingPhaseName(false);
+    setEditingPhaseName("");
   };
 
   const getProgressPercentage = () => {
@@ -321,7 +356,41 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg font-semibold flex items-center justify-between">
-                  {selectedPhase.name}
+                  <div className="flex items-center gap-2">
+                    {selectedPhase.name}
+                    <Popover open={isEditingPhaseName} onOpenChange={setIsEditingPhaseName}>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={handlePhaseNameEdit}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="font-medium">Edit Phase Name</h4>
+                          <Input
+                            value={editingPhaseName}
+                            onChange={(e) => setEditingPhaseName(e.target.value)}
+                            placeholder="Enter new phase name"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handlePhaseNameSave();
+                              } else if (e.key === 'Escape') {
+                                handlePhaseNameCancel();
+                              }
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={handlePhaseNameSave}>
+                              Save
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={handlePhaseNameCancel}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handlePhaseCompletionToggle(selectedPhase.id, !selectedPhase.completed)}>
                       {selectedPhase.completed ? (
