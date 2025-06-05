@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -226,7 +227,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onBack}>
           <ArrowLeft className="w-5 h-5 mr-2" />
-          {t('common.back')}
+          Ga terug
         </Button>
       </div>
 
