@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,23 +31,23 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const { toast } = useToast();
 
-  // Pastel color classes for phase cards
+  // Lighter pastel color classes for phase cards
   const pastelColors = [
-    "bg-gradient-to-br from-pink-100 via-pink-50 to-pink-200 border-pink-300 hover:border-pink-400",
-    "bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 border-blue-300 hover:border-blue-400", 
-    "bg-gradient-to-br from-green-100 via-green-50 to-green-200 border-green-300 hover:border-green-400",
-    "bg-gradient-to-br from-yellow-100 via-yellow-50 to-yellow-200 border-yellow-300 hover:border-yellow-400",
-    "bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 border-purple-300 hover:border-purple-400",
-    "bg-gradient-to-br from-indigo-100 via-indigo-50 to-indigo-200 border-indigo-300 hover:border-indigo-400",
-    "bg-gradient-to-br from-teal-100 via-teal-50 to-teal-200 border-teal-300 hover:border-teal-400",
-    "bg-gradient-to-br from-orange-100 via-orange-50 to-orange-200 border-orange-300 hover:border-orange-400",
-    "bg-gradient-to-br from-rose-100 via-rose-50 to-rose-200 border-rose-300 hover:border-rose-400",
-    "bg-gradient-to-br from-cyan-100 via-cyan-50 to-cyan-200 border-cyan-300 hover:border-cyan-400",
-    "bg-gradient-to-br from-lime-100 via-lime-50 to-lime-200 border-lime-300 hover:border-lime-400",
-    "bg-gradient-to-br from-amber-100 via-amber-50 to-amber-200 border-amber-300 hover:border-amber-400",
-    "bg-gradient-to-br from-emerald-100 via-emerald-50 to-emerald-200 border-emerald-300 hover:border-emerald-400",
-    "bg-gradient-to-br from-sky-100 via-sky-50 to-sky-200 border-sky-300 hover:border-sky-400",
-    "bg-gradient-to-br from-violet-100 via-violet-50 to-violet-200 border-violet-300 hover:border-violet-400",
+    "bg-gradient-to-br from-pink-50 via-pink-25 to-pink-100 border-pink-200 hover:border-pink-300",
+    "bg-gradient-to-br from-blue-50 via-blue-25 to-blue-100 border-blue-200 hover:border-blue-300", 
+    "bg-gradient-to-br from-green-50 via-green-25 to-green-100 border-green-200 hover:border-green-300",
+    "bg-gradient-to-br from-yellow-50 via-yellow-25 to-yellow-100 border-yellow-200 hover:border-yellow-300",
+    "bg-gradient-to-br from-purple-50 via-purple-25 to-purple-100 border-purple-200 hover:border-purple-300",
+    "bg-gradient-to-br from-indigo-50 via-indigo-25 to-indigo-100 border-indigo-200 hover:border-indigo-300",
+    "bg-gradient-to-br from-teal-50 via-teal-25 to-teal-100 border-teal-200 hover:border-teal-300",
+    "bg-gradient-to-br from-orange-50 via-orange-25 to-orange-100 border-orange-200 hover:border-orange-300",
+    "bg-gradient-to-br from-rose-50 via-rose-25 to-rose-100 border-rose-200 hover:border-rose-300",
+    "bg-gradient-to-br from-cyan-50 via-cyan-25 to-cyan-100 border-cyan-200 hover:border-cyan-300",
+    "bg-gradient-to-br from-lime-50 via-lime-25 to-lime-100 border-lime-200 hover:border-lime-300",
+    "bg-gradient-to-br from-amber-50 via-amber-25 to-amber-100 border-amber-200 hover:border-amber-300",
+    "bg-gradient-to-br from-emerald-50 via-emerald-25 to-emerald-100 border-emerald-200 hover:border-emerald-300",
+    "bg-gradient-to-br from-sky-50 via-sky-25 to-sky-100 border-sky-200 hover:border-sky-300",
+    "bg-gradient-to-br from-violet-50 via-violet-25 to-violet-100 border-violet-200 hover:border-violet-300",
   ];
 
   // Phase icons mapping
