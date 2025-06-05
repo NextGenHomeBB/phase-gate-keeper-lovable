@@ -515,16 +515,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
         <TabsContent value="phases" className="space-y-4">
           {/* Prominent Add Phase Button */}
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+          <div className="bg-gradient-to-br from-pink-100 to-pink-200 border-2 border-pink-300 rounded-lg p-6">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-bold text-blue-900 mb-2">Projectfases Beheren</h3>
-                <p className="text-blue-700">Voeg nieuwe fasen toe of verwijder bestaande fasen van uw project.</p>
+                <h3 className="text-xl font-bold text-pink-900 mb-2">Projectfases Beheren</h3>
+                <p className="text-pink-700">Voeg nieuwe fasen toe of verwijder bestaande fasen van uw project.</p>
               </div>
               <Button 
                 onClick={handleAddPhase} 
                 size="lg"
-                className="bg-gradient-to-r from-pink-200 to-purple-200 hover:from-pink-300 hover:to-purple-300 text-purple-800 border-purple-300 shadow-lg"
+                className="bg-gradient-to-br from-pink-100 to-purple-200 hover:from-pink-200 hover:to-purple-300 text-purple-800 border border-purple-300 shadow-lg transition-all hover:shadow-md"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Nieuwe Fase Toevoegen
