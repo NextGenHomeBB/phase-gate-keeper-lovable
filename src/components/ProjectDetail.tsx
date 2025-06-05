@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity } from "lucide-react";
-import { Project, Phase, ChecklistItem } from "@/pages/Index";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity } from "lucide-react";
+import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
-import { ProjectDetailMaterials } from "./ProjectDetailMaterials";
 import { MaterialsCalculator } from "./MaterialsCalculator";
 import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
@@ -29,14 +26,8 @@ interface ProjectDetailProps {
 
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
-  const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
-  const [editingPhaseName, setEditingPhaseName] = useState<string>("");
-  const [isEditingPhaseName, setIsEditingPhaseName] = useState(false);
-  const [editingChecklistItem, setEditingChecklistItem] = useState<{phaseId: number, itemId: string} | null>(null);
-  const [editingItemText, setEditingItemText] = useState("");
-  const [editingItemNotes, setEditingItemNotes] = useState("");
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const { toast } = useToast();
 
@@ -105,214 +96,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     });
   };
 
-  useEffect(() => {
-    if (project.phases.length > 0) {
-      setSelectedPhase(project.phases[0]);
-    }
-  }, [project]);
-
   const handlePhaseClick = (phase: Phase) => {
-    setSelectedPhase(phase);
-  };
-
-  const handleChecklistItemToggle = (phaseId: number, itemId: string, completed: boolean) => {
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === phaseId) {
-        const updatedChecklist = phase.checklist.map(item => {
-          if (item.id === itemId) {
-            return { ...item, completed: completed };
-          }
-          return item;
-        });
-        return { ...phase, checklist: updatedChecklist };
-      }
-      return phase;
-    });
-
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
-  };
-
-  const handleEditChecklistItem = (phaseId: number, itemId: string) => {
-    const phase = project.phases.find(p => p.id === phaseId);
-    const item = phase?.checklist.find(i => i.id === itemId);
-    if (item) {
-      setEditingChecklistItem({ phaseId, itemId });
-      setEditingItemText(item.description);
-      setEditingItemNotes(item.notes || "");
-    }
-  };
-
-  const handleSaveChecklistItem = () => {
-    if (!editingChecklistItem) return;
-
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === editingChecklistItem.phaseId) {
-        const updatedChecklist = phase.checklist.map(item => {
-          if (item.id === editingChecklistItem.itemId) {
-            return { 
-              ...item, 
-              description: editingItemText.trim(),
-              notes: editingItemNotes.trim() || undefined
-            };
-          }
-          return item;
-        });
-        return { ...phase, checklist: updatedChecklist };
-      }
-      return phase;
-    });
-
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
-    setEditingChecklistItem(null);
-    setEditingItemText("");
-    setEditingItemNotes("");
-
-    toast({
-      title: "Checklist item updated",
-      description: "The checklist item has been successfully updated.",
-    });
-  };
-
-  const handleCancelEditChecklistItem = () => {
-    setEditingChecklistItem(null);
-    setEditingItemText("");
-    setEditingItemNotes("");
-  };
-
-  const handleAddPhotoToChecklist = (phaseId: number, itemId: string, photoBlob: Blob) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const photoDataUrl = reader.result as string;
-      
-      const updatedPhases = project.phases.map(phase => {
-        if (phase.id === phaseId) {
-          const updatedChecklist = phase.checklist.map(item => {
-            if (item.id === itemId) {
-              const updatedPhotos = item.photos ? [...item.photos, photoDataUrl] : [photoDataUrl];
-              return { ...item, photos: updatedPhotos };
-            }
-            return item;
-          });
-          return { ...phase, checklist: updatedChecklist };
-        }
-        return phase;
-      });
-
-      const updatedProject = { ...project, phases: updatedPhases };
-      onUpdateProject(updatedProject);
-      toast({
-        title: t('projectDetail.photoAdded'),
-        description: t('projectDetail.photoAddedSuccess'),
-      });
-    };
-    reader.readAsDataURL(photoBlob);
-  };
-
-  const handlePhaseCompletionToggle = async (phaseId: number, completed: boolean) => {
-    try {
-      await projectService.updateProjectPhase(project.id, phaseId, { completed });
-      
-      const updatedPhases = project.phases.map(phase => {
-        if (phase.id === phaseId) {
-          return { ...phase, completed: completed };
-        }
-        return phase;
-      });
-
-      const updatedProject = { ...project, phases: updatedPhases };
-      onUpdateProject(updatedProject);
-      
-      toast({
-        title: "Fase status bijgewerkt",
-        description: `Fase is ${completed ? 'voltooid' : 'niet voltooid'} gemarkeerd.`,
-      });
-    } catch (error) {
-      console.error('Error updating phase completion:', error);
-      toast({
-        title: "Fout",
-        description: "Kon fase status niet bijwerken.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handlePhaseLockToggle = async (phaseId: number, locked: boolean) => {
-    try {
-      await projectService.updateProjectPhase(project.id, phaseId, { locked });
-      
-      const updatedPhases = project.phases.map(phase => {
-        if (phase.id === phaseId) {
-          return { ...phase, locked: locked };
-        }
-        return phase;
-      });
-
-      const updatedProject = { ...project, phases: updatedPhases };
-      onUpdateProject(updatedProject);
-      
-      toast({
-        title: "Fase vergrendeling bijgewerkt",
-        description: `Fase is ${locked ? 'vergrendeld' : 'ontgrendeld'}.`,
-      });
-    } catch (error) {
-      console.error('Error updating phase lock status:', error);
-      toast({
-        title: "Fout",
-        description: "Kon fase vergrendeling niet bijwerken.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handlePhaseNameEdit = () => {
-    if (selectedPhase) {
-      setEditingPhaseName(selectedPhase.name);
-      setIsEditingPhaseName(true);
-    }
-  };
-
-  const handlePhaseNameSave = async () => {
-    if (selectedPhase && editingPhaseName.trim()) {
-      try {
-        await projectService.updateProjectPhase(project.id, selectedPhase.id, { 
-          name: editingPhaseName.trim() 
-        });
-        
-        const updatedPhases = project.phases.map(phase => {
-          if (phase.id === selectedPhase.id) {
-            return { ...phase, name: editingPhaseName.trim() };
-          }
-          return phase;
-        });
-
-        const updatedProject = { ...project, phases: updatedPhases };
-        onUpdateProject(updatedProject);
-        
-        // Update selected phase to reflect the change
-        setSelectedPhase({ ...selectedPhase, name: editingPhaseName.trim() });
-        setIsEditingPhaseName(false);
-        setEditingPhaseName("");
-        
-        toast({
-          title: "Fase naam bijgewerkt",
-          description: "De fase naam is succesvol bijgewerkt.",
-        });
-      } catch (error) {
-        console.error('Error updating phase name:', error);
-        toast({
-          title: "Fout",
-          description: "Kon fase naam niet bijwerken.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handlePhaseNameCancel = () => {
-    setIsEditingPhaseName(false);
-    setEditingPhaseName("");
+    navigate(`/project/${project.id}/phase/${phase.id}`);
   };
 
   const getProgressPercentage = () => {
@@ -374,7 +159,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       };
       
       onUpdateProject(updatedProject);
-      setSelectedPhase(newPhaseForProject);
       
       toast({
         title: "Fase toegevoegd",
@@ -407,11 +191,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       const updatedProject = { ...project, phases: updatedPhases };
       
       onUpdateProject(updatedProject);
-      
-      // If the deleted phase was selected, select the first remaining phase
-      if (selectedPhase?.id === phaseId) {
-        setSelectedPhase(updatedPhases.length > 0 ? updatedPhases[0] : null);
-      }
       
       toast({
         title: "Fase verwijderd",
@@ -572,11 +351,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               return (
                 <Card 
                   key={phase.id} 
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform ${
-                    selectedPhase?.id === phase.id 
-                      ? 'ring-2 ring-blue-500 shadow-xl scale-105' 
-                      : 'shadow-md hover:shadow-lg'
-                  } ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
+                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
                   onClick={() => handlePhaseClick(phase)}
                 >
                   <CardHeader className="pb-3">
@@ -683,190 +458,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               );
             })}
           </div>
-
-          {/* Enhanced Selected Phase Detail */}
-          {selectedPhase && (
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg border-b">
-                <CardTitle className="text-xl font-bold flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100">
-                      {React.createElement(getPhaseIcon(project.phases.findIndex(p => p.id === selectedPhase.id)), { 
-                        className: "w-6 h-6 text-blue-700" 
-                      })}
-                    </div>
-                    <span className="text-gray-800">{selectedPhase.name}</span>
-                    <Popover open={isEditingPhaseName} onOpenChange={setIsEditingPhaseName}>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm" onClick={handlePhaseNameEdit} className="hover:bg-blue-100">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <div className="space-y-2">
-                          <h4 className="font-medium">Edit Phase Name</h4>
-                          <Input
-                            value={editingPhaseName}
-                            onChange={(e) => setEditingPhaseName(e.target.value)}
-                            placeholder="Enter new phase name"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handlePhaseNameSave();
-                              } else if (e.key === 'Escape') {
-                                handlePhaseNameCancel();
-                              }
-                            }}
-                          />
-                          <div className="flex gap-2">
-                            <Button size="sm" onClick={handlePhaseNameSave}>
-                              Save
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={handlePhaseNameCancel}>
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handlePhaseCompletionToggle(selectedPhase.id, !selectedPhase.completed)}
-                      className="hover:scale-105 transition-transform"
-                    >
-                      {selectedPhase.completed ? (
-                        <>
-                          <Clock className="w-4 h-4 mr-2" />
-                          {t('projectDetail.markIncomplete')}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          {t('projectDetail.markComplete')}
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handlePhaseLockToggle(selectedPhase.id, !selectedPhase.locked)}
-                      className="hover:scale-105 transition-transform"
-                    >
-                      {selectedPhase.locked ? (
-                        <>
-                          <Clock className="w-4 h-4 mr-2" />
-                          {t('projectDetail.unlockPhase')}
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-4 h-4 mr-2" />
-                          {t('projectDetail.lockPhase')}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <p className="text-gray-700 text-base leading-relaxed">{selectedPhase.description}</p>
-                
-                <div>
-                  <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-blue-600" />
-                    {t('projectDetail.checklist')}
-                  </h4>
-                  <ul className="list-none pl-0 space-y-3">
-                    {selectedPhase.checklist.map(item => (
-                      <li key={item.id} className="flex items-center justify-between p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center flex-1">
-                          <input
-                            type="checkbox"
-                            id={item.id}
-                            className="mr-4 h-5 w-5 rounded text-blue-600 focus:ring-blue-500 focus:ring-2"
-                            checked={item.completed}
-                            onChange={(e) => handleChecklistItemToggle(selectedPhase.id, item.id, e.target.checked)}
-                          />
-                          <div className="flex-1">
-                            <label htmlFor={item.id} className={`text-gray-700 ${item.required ? 'font-medium' : ''} block text-sm leading-relaxed`}>
-                              {item.description}
-                            </label>
-                            {item.notes && (
-                              <p className="text-sm text-gray-500 mt-1 pl-0">{item.notes}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {item.photos && item.photos.length > 0 && (
-                            <Badge variant="secondary" className="mr-2 bg-blue-50 text-blue-700">
-                              <Camera className="w-3 h-3 mr-1" />
-                              {item.photos.length} {t('projectDetail.photos')}
-                            </Badge>
-                          )}
-                          <Dialog open={editingChecklistItem?.phaseId === selectedPhase.id && editingChecklistItem?.itemId === item.id} onOpenChange={(open) => !open && handleCancelEditChecklistItem()}>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditChecklistItem(selectedPhase.id, item.id)}
-                                className="hover:bg-blue-50 hover:scale-105 transition-all"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Edit Checklist Item</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-sm font-medium mb-2">Description</label>
-                                  <Input
-                                    value={editingItemText}
-                                    onChange={(e) => setEditingItemText(e.target.value)}
-                                    placeholder="Enter description"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium mb-2">
-                                    <MessageSquare className="w-4 h-4 inline mr-1" />
-                                    Notes
-                                  </label>
-                                  <Textarea
-                                    value={editingItemNotes}
-                                    onChange={(e) => setEditingItemNotes(e.target.value)}
-                                    placeholder="Add notes or additional information"
-                                    rows={3}
-                                  />
-                                </div>
-                                <div className="flex gap-2 justify-end">
-                                  <Button variant="outline" onClick={handleCancelEditChecklistItem}>
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={handleSaveChecklistItem}>
-                                    Save
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                          <CameraCapture
-                            onCapture={(photoBlob) => handleAddPhotoToChecklist(selectedPhase.id, item.id, photoBlob)}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <ProjectDetailMaterials 
-                  projectId={project.id.toString()}
-                  phaseId={selectedPhase.id}
-                />
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-4">

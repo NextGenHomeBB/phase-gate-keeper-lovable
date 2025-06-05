@@ -14,6 +14,7 @@ import AdminAuth from "./pages/AdminAuth";
 import NotFound from "./pages/NotFound";
 import EasyPhaseChecklist from "./pages/EasyPhaseChecklist";
 import ChecklistCreator from "./pages/ChecklistCreator";
+import PhaseDetail from "./pages/PhaseDetail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <ChecklistCreator />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/project/:projectId/phase/:phaseId" 
+                  element={
+                    <ProtectedRoute>
+                      <PhaseDetail />
                     </ProtectedRoute>
                   } 
                 />
