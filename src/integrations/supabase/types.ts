@@ -130,6 +130,50 @@ export type Database = {
           },
         ]
       }
+      project_phases: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string | null
+          id: string
+          locked: boolean
+          name: string
+          phase_number: number
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          locked?: boolean
+          name: string
+          phase_number: number
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          locked?: boolean
+          name?: string
+          phase_number?: number
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_photos: {
         Row: {
           caption: string | null

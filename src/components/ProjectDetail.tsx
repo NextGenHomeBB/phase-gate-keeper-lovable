@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ConstructionDrawings } from "./ConstructionDrawings";
 import { HomeStyleAI } from "./HomeStyleAI";
+import { projectService } from "@/services/projectService";
 
 interface ProjectDetailProps {
   project: Project;
@@ -144,28 +144,60 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     reader.readAsDataURL(photoBlob);
   };
 
-  const handlePhaseCompletionToggle = (phaseId: number, completed: boolean) => {
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === phaseId) {
-        return { ...phase, completed: completed };
-      }
-      return phase;
-    });
+  const handlePhaseCompletionToggle = async (phaseId: number, completed: boolean) => {
+    try {
+      await projectService.updateProjectPhase(project.id, phaseId, { completed });
+      
+      const updatedPhases = project.phases.map(phase => {
+        if (phase.id === phaseId) {
+          return { ...phase, completed: completed };
+        }
+        return phase;
+      });
 
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Fase status bijgewerkt",
+        description: `Fase is ${completed ? 'voltooid' : 'niet voltooid'} gemarkeerd.`,
+      });
+    } catch (error) {
+      console.error('Error updating phase completion:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase status niet bijwerken.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handlePhaseLockToggle = (phaseId: number, locked: boolean) => {
-    const updatedPhases = project.phases.map(phase => {
-      if (phase.id === phaseId) {
-        return { ...phase, locked: locked };
-      }
-      return phase;
-    });
+  const handlePhaseLockToggle = async (phaseId: number, locked: boolean) => {
+    try {
+      await projectService.updateProjectPhase(project.id, phaseId, { locked });
+      
+      const updatedPhases = project.phases.map(phase => {
+        if (phase.id === phaseId) {
+          return { ...phase, locked: locked };
+        }
+        return phase;
+      });
 
-    const updatedProject = { ...project, phases: updatedPhases };
-    onUpdateProject(updatedProject);
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Fase vergrendeling bijgewerkt",
+        description: `Fase is ${locked ? 'vergrendeld' : 'ontgrendeld'}.`,
+      });
+    } catch (error) {
+      console.error('Error updating phase lock status:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase vergrendeling niet bijwerken.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePhaseNameEdit = () => {
@@ -175,22 +207,40 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
-  const handlePhaseNameSave = () => {
+  const handlePhaseNameSave = async () => {
     if (selectedPhase && editingPhaseName.trim()) {
-      const updatedPhases = project.phases.map(phase => {
-        if (phase.id === selectedPhase.id) {
-          return { ...phase, name: editingPhaseName.trim() };
-        }
-        return phase;
-      });
+      try {
+        await projectService.updateProjectPhase(project.id, selectedPhase.id, { 
+          name: editingPhaseName.trim() 
+        });
+        
+        const updatedPhases = project.phases.map(phase => {
+          if (phase.id === selectedPhase.id) {
+            return { ...phase, name: editingPhaseName.trim() };
+          }
+          return phase;
+        });
 
-      const updatedProject = { ...project, phases: updatedPhases };
-      onUpdateProject(updatedProject);
-      
-      // Update selected phase to reflect the change
-      setSelectedPhase({ ...selectedPhase, name: editingPhaseName.trim() });
-      setIsEditingPhaseName(false);
-      setEditingPhaseName("");
+        const updatedProject = { ...project, phases: updatedPhases };
+        onUpdateProject(updatedProject);
+        
+        // Update selected phase to reflect the change
+        setSelectedPhase({ ...selectedPhase, name: editingPhaseName.trim() });
+        setIsEditingPhaseName(false);
+        setEditingPhaseName("");
+        
+        toast({
+          title: "Fase naam bijgewerkt",
+          description: "De fase naam is succesvol bijgewerkt.",
+        });
+      } catch (error) {
+        console.error('Error updating phase name:', error);
+        toast({
+          title: "Fout",
+          description: "Kon fase naam niet bijwerken.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -218,46 +268,63 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     window.open('https://www.werkspot.nl', '_blank');
   };
 
-  const handleAddPhase = () => {
-    const newPhaseId = Math.max(...project.phases.map(p => p.id)) + 1;
-    const newPhase: Phase = {
-      id: newPhaseId,
-      name: `Nieuwe Fase ${newPhaseId}`,
-      description: "Beschrijving van de nieuwe fase",
-      completed: false,
-      locked: false,
-      checklist: [
-        {
-          id: `${newPhaseId}-1`,
-          description: "Alle stakeholders geïnformeerd",
-          completed: false,
-          required: true
-        },
-        {
-          id: `${newPhaseId}-2`, 
-          description: "Documentatie bijgewerkt",
-          completed: false,
-          required: true
-        }
-      ],
-      materials: []
-    };
+  const handleAddPhase = async () => {
+    try {
+      const newPhaseName = `Nieuwe Fase ${project.phases.length + 1}`;
+      const newPhaseDescription = "Beschrijving van de nieuwe fase";
+      
+      const newPhase = await projectService.addProjectPhase(
+        project.id, 
+        newPhaseName, 
+        newPhaseDescription
+      );
 
-    const updatedProject = {
-      ...project,
-      phases: [...project.phases, newPhase]
-    };
-    
-    onUpdateProject(updatedProject);
-    setSelectedPhase(newPhase);
-    
-    toast({
-      title: "Fase toegevoegd",
-      description: "Nieuwe fase is succesvol toegevoegd aan het project.",
-    });
+      const newPhaseForProject: Phase = {
+        id: newPhase.phase_number,
+        name: newPhase.name,
+        description: newPhase.description || '',
+        completed: newPhase.completed,
+        locked: newPhase.locked,
+        checklist: [
+          {
+            id: `${newPhase.phase_number}-1`,
+            description: "Alle stakeholders geïnformeerd",
+            completed: false,
+            required: true
+          },
+          {
+            id: `${newPhase.phase_number}-2`, 
+            description: "Documentatie bijgewerkt",
+            completed: false,
+            required: true
+          }
+        ],
+        materials: []
+      };
+
+      const updatedProject = {
+        ...project,
+        phases: [...project.phases, newPhaseForProject]
+      };
+      
+      onUpdateProject(updatedProject);
+      setSelectedPhase(newPhaseForProject);
+      
+      toast({
+        title: "Fase toegevoegd",
+        description: "Nieuwe fase is succesvol toegevoegd aan het project.",
+      });
+    } catch (error) {
+      console.error('Error adding phase:', error);
+      toast({
+        title: "Fout",
+        description: "Kon nieuwe fase niet toevoegen.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeletePhase = (phaseId: number) => {
+  const handleDeletePhase = async (phaseId: number) => {
     if (project.phases.length <= 1) {
       toast({
         title: "Kan fase niet verwijderen",
@@ -267,20 +334,31 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       return;
     }
 
-    const updatedPhases = project.phases.filter(phase => phase.id !== phaseId);
-    const updatedProject = { ...project, phases: updatedPhases };
-    
-    onUpdateProject(updatedProject);
-    
-    // If the deleted phase was selected, select the first remaining phase
-    if (selectedPhase?.id === phaseId) {
-      setSelectedPhase(updatedPhases.length > 0 ? updatedPhases[0] : null);
+    try {
+      await projectService.deleteProjectPhase(project.id, phaseId);
+      
+      const updatedPhases = project.phases.filter(phase => phase.id !== phaseId);
+      const updatedProject = { ...project, phases: updatedPhases };
+      
+      onUpdateProject(updatedProject);
+      
+      // If the deleted phase was selected, select the first remaining phase
+      if (selectedPhase?.id === phaseId) {
+        setSelectedPhase(updatedPhases.length > 0 ? updatedPhases[0] : null);
+      }
+      
+      toast({
+        title: "Fase verwijderd",
+        description: "De fase is succesvol verwijderd uit het project.",
+      });
+    } catch (error) {
+      console.error('Error deleting phase:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase niet verwijderen.",
+        variant: "destructive",
+      });
     }
-    
-    toast({
-      title: "Fase verwijderd",
-      description: "De fase is succesvol verwijderd uit het project.",
-    });
   };
 
   return (

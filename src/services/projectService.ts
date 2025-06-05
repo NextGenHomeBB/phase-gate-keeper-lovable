@@ -4,58 +4,6 @@ import { Project, Phase, ChecklistItem, Material } from "@/pages/Index";
 import { TeamMember } from "@/components/TeamPage";
 import { materialService } from "./materialService";
 
-function getPhaseName(phaseNumber: number): string {
-  const phases = [
-    "Fundering en Grondwerk",
-    "Muren en Structuur", 
-    "Dak en Dakbedekking",
-    "Isolatie en Dampscherm",
-    "Elektrische Installatie",
-    "Loodgieterswerk en Sanitair",
-    "Vloeren en Ondervloer",
-    "Gipsplaten en Afwerking",
-    "Ramen en Deuren",
-    "Keuken Installatie",
-    "Badkamer Afwerking",
-    "Schilderwerk Binnen",
-    "Vloerbedekking en Tegels",
-    "Verlichting en Schakelaars",
-    "Buitenafwerking en Gevel",
-    "Landschapsarchitectuur",
-    "Oprit en Paden",
-    "Finale Inspectie",
-    "Schoonmaak en Oplevering",
-    "Documentatie en Garantie"
-  ];
-  return phases[phaseNumber - 1] || `Fase ${phaseNumber}`;
-}
-
-function getPhaseDescription(phaseNumber: number): string {
-  const descriptions = [
-    "Uitgraven, fundering gieten en grondwerk voorbereiden",
-    "Muren optrekken, kolommen en balken plaatsen", 
-    "Dakconstructie, dakpannen en dakgoten installeren",
-    "Isolatiemateriaal aanbrengen en dampscherm installeren",
-    "Elektrische leidingen trekken en stopcontacten plaatsen",
-    "Waterleidingen, riolering en sanitair installeren",
-    "Ondervloer voorbereiden en vloerverwarming installeren",
-    "Gipsplaten ophangen en voegen afwerken",
-    "Ramen en deuren plaatsen en afstellen",
-    "Keukenkasten, werkblad en apparatuur installeren",
-    "Badkamertegels, sanitair en kranen afwerken",
-    "Muren en plafonds schilderen",
-    "Laminaat, tegels of andere vloerbedekking leggen",
-    "Verlichtingsarmaturen en schakelaars monteren",
-    "Gevel afwerken en buitenschilderwerk uitvoeren",
-    "Tuin aanleggen en buitenruimte inrichten",
-    "Oprit aanleggen en tuinpaden realiseren",
-    "Eindcontrole en kwaliteitsinspectie uitvoeren",
-    "Grondige schoonmaak en sleutels overdragen",
-    "Papierwerk afronden en garantiebewijzen verstrekken"
-  ];
-  return descriptions[phaseNumber - 1] || `Beschrijving voor fase ${phaseNumber}`;
-}
-
 function getPhaseChecklist(phaseNumber: number): ChecklistItem[] {
   const baseItems = ["Alle stakeholders geïnformeerd", "Documentatie bijgewerkt", "Kwaliteitscontrole uitgevoerd", "Deliverables goedgekeurd door projectleider"];
   return baseItems.map((item, index) => ({
@@ -77,6 +25,18 @@ export interface DatabaseProject {
   updated_at: string;
 }
 
+export interface DatabasePhase {
+  id: string;
+  project_id: string;
+  phase_number: number;
+  name: string;
+  description: string | null;
+  completed: boolean;
+  locked: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export const projectService = {
   async fetchProjects(): Promise<Project[]> {
     const { data, error } = await supabase
@@ -89,11 +49,12 @@ export const projectService = {
       throw error;
     }
 
-    // For each project, fetch associated team members and materials
+    // For each project, fetch associated team members, materials, and phases
     const projectsWithData = await Promise.all(
       (data || []).map(async (project) => {
         const teamMembers = await this.fetchProjectTeamMembers(project.id);
         const materialsByPhase = await materialService.fetchAllMaterialsForProject(project.id);
+        const phases = await this.fetchProjectPhases(project.id);
         
         return {
           id: project.id,
@@ -102,20 +63,105 @@ export const projectService = {
           currentPhase: project.current_phase || 1,
           startDate: project.start_date || new Date().toISOString().split('T')[0],
           teamMembers: teamMembers.map(tm => tm.name),
-          phases: Array.from({ length: 20 }, (_, i) => ({
-            id: i + 1,
-            name: `Fase ${i + 1}: ${getPhaseName(i + 1)}`,
-            description: getPhaseDescription(i + 1),
-            completed: i < (project.current_phase || 1) - 1,
-            locked: i >= (project.current_phase || 1),
-            checklist: getPhaseChecklist(i + 1),
-            materials: materialsByPhase[i + 1] || []
+          phases: phases.map(phase => ({
+            id: phase.phase_number,
+            name: phase.name,
+            description: phase.description || '',
+            completed: phase.completed,
+            locked: phase.locked,
+            checklist: getPhaseChecklist(phase.phase_number),
+            materials: materialsByPhase[phase.phase_number] || []
           }))
         };
       })
     );
 
     return projectsWithData;
+  },
+
+  async fetchProjectPhases(projectId: string): Promise<DatabasePhase[]> {
+    const { data, error } = await supabase
+      .from('project_phases')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('phase_number', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching project phases:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  async addProjectPhase(projectId: string, phaseName: string, phaseDescription: string): Promise<DatabasePhase> {
+    // Get the highest phase number for this project
+    const { data: existingPhases, error: fetchError } = await supabase
+      .from('project_phases')
+      .select('phase_number')
+      .eq('project_id', projectId)
+      .order('phase_number', { ascending: false })
+      .limit(1);
+
+    if (fetchError) {
+      console.error('Error fetching existing phases:', fetchError);
+      throw fetchError;
+    }
+
+    const nextPhaseNumber = existingPhases && existingPhases.length > 0 
+      ? existingPhases[0].phase_number + 1 
+      : 1;
+
+    const { data, error } = await supabase
+      .from('project_phases')
+      .insert({
+        project_id: projectId,
+        phase_number: nextPhaseNumber,
+        name: phaseName,
+        description: phaseDescription,
+        completed: false,
+        locked: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding project phase:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  async deleteProjectPhase(projectId: string, phaseNumber: number): Promise<void> {
+    const { error } = await supabase
+      .from('project_phases')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('phase_number', phaseNumber);
+
+    if (error) {
+      console.error('Error deleting project phase:', error);
+      throw error;
+    }
+  },
+
+  async updateProjectPhase(projectId: string, phaseNumber: number, updates: Partial<{
+    name: string;
+    description: string;
+    completed: boolean;
+    locked: boolean;
+  }>): Promise<void> {
+    const { error } = await supabase
+      .from('project_phases')
+      .update(updates)
+      .eq('project_id', projectId)
+      .eq('phase_number', phaseNumber);
+
+    if (error) {
+      console.error('Error updating project phase:', error);
+      throw error;
+    }
   },
 
   async fetchProjectTeamMembers(projectId: string): Promise<TeamMember[]> {
@@ -200,6 +246,31 @@ export const projectService = {
       throw error;
     }
 
+    // Create default phases for the new project
+    const defaultPhases = [
+      { name: 'Fase 1: Fundering en Grondwerk', description: 'Uitgraven, fundering gieten en grondwerk voorbereiden' },
+      { name: 'Fase 2: Muren en Structuur', description: 'Muren optrekken, kolommen en balken plaatsen' },
+      { name: 'Fase 3: Dak en Dakbedekking', description: 'Dakconstructie, dakpannen en dakgoten installeren' }
+    ];
+
+    const phaseInserts = defaultPhases.map((phase, index) => ({
+      project_id: data.id,
+      phase_number: index + 1,
+      name: phase.name,
+      description: phase.description,
+      completed: false,
+      locked: index > 0
+    }));
+
+    const { error: phasesError } = await supabase
+      .from('project_phases')
+      .insert(phaseInserts);
+
+    if (phasesError) {
+      console.error('Error creating default phases:', phasesError);
+      throw phasesError;
+    }
+
     return {
       id: data.id,
       name: data.name,
@@ -207,13 +278,13 @@ export const projectService = {
       currentPhase: data.current_phase || 1,
       startDate: data.start_date || new Date().toISOString().split('T')[0],
       teamMembers: [],
-      phases: Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        name: `Fase ${i + 1}: ${getPhaseName(i + 1)}`,
-        description: getPhaseDescription(i + 1),
-        completed: i < (data.current_phase || 1) - 1,
-        locked: i >= (data.current_phase || 1),
-        checklist: getPhaseChecklist(i + 1),
+      phases: defaultPhases.map((phase, index) => ({
+        id: index + 1,
+        name: phase.name,
+        description: phase.description,
+        completed: false,
+        locked: index > 0,
+        checklist: getPhaseChecklist(index + 1),
         materials: []
       }))
     };
