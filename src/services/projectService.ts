@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Project, Phase, ChecklistItem, Material } from "@/pages/Index";
 import { TeamMember } from "@/components/TeamPage";
@@ -77,6 +76,41 @@ export const projectService = {
     );
 
     return projectsWithData;
+  },
+
+  async getProject(projectId: string): Promise<Project> {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching project:', error);
+      throw error;
+    }
+
+    const teamMembers = await this.fetchProjectTeamMembers(projectId);
+    const materialsByPhase = await materialService.fetchAllMaterialsForProject(projectId);
+    const phases = await this.fetchProjectPhases(projectId);
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      currentPhase: data.current_phase || 1,
+      startDate: data.start_date || new Date().toISOString().split('T')[0],
+      teamMembers: teamMembers.map(tm => tm.name),
+      phases: phases.map(phase => ({
+        id: phase.phase_number,
+        name: phase.name,
+        description: phase.description || '',
+        completed: phase.completed,
+        locked: phase.locked,
+        checklist: getPhaseChecklist(phase.phase_number),
+        materials: materialsByPhase[phase.phase_number] || []
+      }))
+    };
   },
 
   async fetchProjectPhases(projectId: string): Promise<DatabasePhase[]> {
