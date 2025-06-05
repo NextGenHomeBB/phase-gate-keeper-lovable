@@ -7,13 +7,15 @@ interface MaterialsContentProps {
   materials: Material[];
   onEditMaterial: (materialId: string) => void;
   onDeleteMaterial: (materialId: string) => void;
+  onUpdateMaterial?: (materialId: string, updates: Partial<Material>) => void;
   readOnly?: boolean;
 }
 
 export function MaterialsContent({ 
   materials, 
   onEditMaterial, 
-  onDeleteMaterial, 
+  onDeleteMaterial,
+  onUpdateMaterial,
   readOnly = false 
 }: MaterialsContentProps) {
   if (materials.length === 0) {
@@ -36,6 +38,7 @@ export function MaterialsContent({
           material={material}
           onEdit={onEditMaterial}
           onDelete={onDeleteMaterial}
+          onUpdate={onUpdateMaterial}
           readOnly={readOnly}
         />
       ))}

@@ -145,6 +145,7 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
               materials={materials}
               onEditMaterial={setEditingMaterial}
               onDeleteMaterial={handleDeleteMaterial}
+              onUpdateMaterial={handleUpdateMaterial}
               readOnly={readOnly}
             />
           </div>
