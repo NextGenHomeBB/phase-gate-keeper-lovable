@@ -235,7 +235,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Totale Kosten</CardTitle>
+            <CardTitle className="text-lg font-semibold">Project voortgang</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-gray-700">
