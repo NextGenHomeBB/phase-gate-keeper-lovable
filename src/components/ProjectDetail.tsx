@@ -39,6 +39,20 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editingItemNotes, setEditingItemNotes] = useState("");
   const { toast } = useToast();
 
+  // Pastel color classes for phase cards
+  const pastelColors = [
+    "bg-gradient-to-br from-pink-100 to-pink-200 border-pink-300",
+    "bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300", 
+    "bg-gradient-to-br from-green-100 to-green-200 border-green-300",
+    "bg-gradient-to-br from-yellow-100 to-yellow-200 border-yellow-300",
+    "bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300",
+    "bg-gradient-to-br from-indigo-100 to-indigo-200 border-indigo-300",
+    "bg-gradient-to-br from-teal-100 to-teal-200 border-teal-300",
+    "bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300",
+    "bg-gradient-to-br from-rose-100 to-rose-200 border-rose-300",
+    "bg-gradient-to-br from-cyan-100 to-cyan-200 border-cyan-300",
+  ];
+
   useEffect(() => {
     if (project.phases.length > 0) {
       setSelectedPhase(project.phases[0]);
@@ -497,8 +511,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {project.phases.map(phase => (
-              <Card key={phase.id} className={`cursor-pointer transition-all hover:shadow-md ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500 shadow-lg' : 'border border-gray-200'}`} onClick={() => handlePhaseClick(phase)}>
+            {project.phases.map((phase, index) => (
+              <Card 
+                key={phase.id} 
+                className={`cursor-pointer transition-all hover:shadow-md ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500 shadow-lg' : 'border'} ${pastelColors[index % pastelColors.length]}`} 
+                onClick={() => handlePhaseClick(phase)}
+              >
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold flex items-center justify-between">
                     <div className="flex items-center gap-2">
