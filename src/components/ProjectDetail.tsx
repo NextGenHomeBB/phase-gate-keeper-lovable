@@ -524,7 +524,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <Button 
                 onClick={handleAddPhase} 
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                className="bg-gradient-to-r from-pink-200 to-purple-200 hover:from-pink-300 hover:to-purple-300 text-purple-800 border-purple-300 shadow-lg"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Nieuwe Fase Toevoegen
