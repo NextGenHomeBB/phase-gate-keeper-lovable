@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -235,7 +234,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Project Informatie</CardTitle>
+            <CardTitle className="text-lg font-semibold">Project planning</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
