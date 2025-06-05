@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Edit, MessageSquare, Plus, Trash2, Palette } from "lucide-react";
 import { Project, Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -37,6 +37,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editingChecklistItem, setEditingChecklistItem] = useState<{phaseId: number, itemId: string} | null>(null);
   const [editingItemText, setEditingItemText] = useState("");
   const [editingItemNotes, setEditingItemNotes] = useState("");
+  const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const { toast } = useToast();
 
   // Pastel color classes for phase cards
@@ -51,7 +52,28 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     "bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300",
     "bg-gradient-to-br from-rose-100 to-rose-200 border-rose-300",
     "bg-gradient-to-br from-cyan-100 to-cyan-200 border-cyan-300",
+    "bg-gradient-to-br from-lime-100 to-lime-200 border-lime-300",
+    "bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300",
+    "bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-300",
+    "bg-gradient-to-br from-sky-100 to-sky-200 border-sky-300",
+    "bg-gradient-to-br from-violet-100 to-violet-200 border-violet-300",
   ];
+
+  const getPhaseColor = (phase: Phase, index: number) => {
+    const colorIndex = customColors[phase.id] !== undefined ? customColors[phase.id] : index % pastelColors.length;
+    return pastelColors[colorIndex];
+  };
+
+  const handleColorChange = (phaseId: number, colorIndex: number) => {
+    setCustomColors(prev => ({
+      ...prev,
+      [phaseId]: colorIndex
+    }));
+    toast({
+      title: "Kleur bijgewerkt",
+      description: "De fase kleur is succesvol gewijzigd.",
+    });
+  };
 
   useEffect(() => {
     if (project.phases.length > 0) {
@@ -514,7 +536,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             {project.phases.map((phase, index) => (
               <Card 
                 key={phase.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500 shadow-lg' : 'border'} ${pastelColors[index % pastelColors.length]}`} 
+                className={`cursor-pointer transition-all hover:shadow-md ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500 shadow-lg' : 'border'} ${getPhaseColor(phase, index)}`} 
                 onClick={() => handlePhaseClick(phase)}
               >
                 <CardHeader>
@@ -525,17 +547,47 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         <CheckCircle className="w-4 h-4 text-green-500" />
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeletePhase(phase.id);
-                      }}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-white/50 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Palette className="w-4 h-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-3">
+                            <h4 className="font-medium">Kies een kleur</h4>
+                            <div className="grid grid-cols-5 gap-2">
+                              {pastelColors.map((colorClass, colorIndex) => (
+                                <Button
+                                  key={colorIndex}
+                                  variant="outline"
+                                  size="sm"
+                                  className={`h-8 w-8 p-0 ${colorClass} hover:scale-110 transition-transform`}
+                                  onClick={() => handleColorChange(phase.id, colorIndex)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePhase(phase.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
