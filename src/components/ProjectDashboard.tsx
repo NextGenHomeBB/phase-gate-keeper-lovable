@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -241,6 +242,7 @@ export function ProjectDashboard({
   };
 
   const handleProjectClick = (project: Project, e: React.MouseEvent) => {
+    // Prevent opening project if we're currently editing or dragging
     if (editingProject === project.id || editingDescription === project.id || dragState.isDragging) {
       e.stopPropagation();
       return;
