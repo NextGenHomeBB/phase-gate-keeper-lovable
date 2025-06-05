@@ -1,9 +1,8 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, Plus, Edit3, Shield, Copy, GripVertical } from "lucide-react";
+import { Calendar, Users, Plus, Edit3, Shield, Copy, GripVertical, TrendingUp } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -255,6 +254,13 @@ export function ProjectDashboard({
     return (completedPhases / project.phases.length) * 100;
   };
 
+  // Sort projects by completion percentage (highest first)
+  const sortedProjects = [...projects].sort((a, b) => {
+    const progressA = getProgressPercentage(a);
+    const progressB = getProgressPercentage(b);
+    return progressB - progressA;
+  });
+
   const getCurrentPhaseName = (project: Project) => {
     const currentPhase = project.phases.find(phase => phase.id === project.currentPhase);
     return currentPhase ? currentPhase.name : `Fase ${project.currentPhase}`;
@@ -281,8 +287,12 @@ export function ProjectDashboard({
         <div>
           <h1 className="text-3xl font-bold text-blue-900">{t('dashboard.title')}</h1>
           <p className="text-gray-600 mt-2">{t('dashboard.subtitle')}</p>
+          <div className="flex items-center mt-2 text-sm text-gray-500">
+            <TrendingUp className="w-4 h-4 mr-1" />
+            Sorted by completion percentage
+          </div>
           {isAdmin && (
-            <div className="flex items-center mt-2 text-sm text-blue-600">
+            <div className="flex items-center mt-1 text-sm text-blue-600">
               <Shield className="w-4 h-4 mr-1" />
               {t('dashboard.adminRights')}
             </div>
@@ -317,7 +327,7 @@ export function ProjectDashboard({
         </div>
       ) : (
         <div className="space-y-4" ref={dragRef}>
-          {projects.map((project, index) => (
+          {sortedProjects.map((project, index) => (
             <Card 
               key={project.id} 
               className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
