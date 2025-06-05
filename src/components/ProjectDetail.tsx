@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -260,7 +259,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">{t('projectDetail.teamMembers')}</CardTitle>
+            <CardTitle className="text-lg font-semibold">Team Members</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-gray-700">
