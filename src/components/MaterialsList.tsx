@@ -7,14 +7,16 @@ import { AIMaterialsCalculator } from "./AIMaterialsCalculator";
 import { MaterialsHeader } from "./materials/MaterialsHeader";
 import { MaterialsContent } from "./materials/MaterialsContent";
 import { MaterialForm } from "./materials/MaterialForm";
+import { useMaterials } from "@/hooks/useMaterials";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MaterialsListProps {
-  materials: Material[];
-  onUpdateMaterials: (materials: Material[]) => void;
+  projectId: string;
+  phaseId: number;
   readOnly?: boolean;
 }
 
-export function MaterialsList({ materials, onUpdateMaterials, readOnly = false }: MaterialsListProps) {
+export function MaterialsList({ projectId, phaseId, readOnly = false }: MaterialsListProps) {
   const { t } = useLanguage();
   const [editingMaterial, setEditingMaterial] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -26,40 +28,61 @@ export function MaterialsList({ materials, onUpdateMaterials, readOnly = false }
     estimatedCost: 0
   });
 
-  const handleAddMaterial = () => {
+  const {
+    materials,
+    loading,
+    addMaterial,
+    updateMaterial,
+    deleteMaterial,
+    addBulkMaterials
+  } = useMaterials(projectId, phaseId);
+
+  const handleAddMaterial = async () => {
     if (newMaterial.name.trim()) {
-      const material: Material = {
-        ...newMaterial,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: newMaterial.name.trim()
-      };
-      onUpdateMaterials([...materials, material]);
-      setNewMaterial({
-        name: '',
-        quantity: 1,
-        unit: 'stuks',
-        category: 'Diversen',
-        estimatedCost: 0
-      });
-      setIsAdding(false);
+      try {
+        await addMaterial({
+          ...newMaterial,
+          name: newMaterial.name.trim()
+        });
+        
+        setNewMaterial({
+          name: '',
+          quantity: 1,
+          unit: 'stuks',
+          category: 'Diversen',
+          estimatedCost: 0
+        });
+        setIsAdding(false);
+      } catch (error) {
+        console.error('Failed to add material:', error);
+      }
     }
   };
 
-  const handleAddAIMaterials = (aiMaterials: Material[]) => {
-    onUpdateMaterials([...materials, ...aiMaterials]);
+  const handleAddAIMaterials = async (aiMaterials: Material[]) => {
+    try {
+      const materialsToAdd = aiMaterials.map(({ id, ...material }) => material);
+      await addBulkMaterials(materialsToAdd);
+    } catch (error) {
+      console.error('Failed to add AI materials:', error);
+    }
   };
 
-  const handleUpdateMaterial = (materialId: string, updatedMaterial: Partial<Material>) => {
-    const updatedMaterials = materials.map(material =>
-      material.id === materialId ? { ...material, ...updatedMaterial } : material
-    );
-    onUpdateMaterials(updatedMaterials);
-    setEditingMaterial(null);
+  const handleUpdateMaterial = async (materialId: string, updatedMaterial: Partial<Material>) => {
+    try {
+      await updateMaterial(materialId, updatedMaterial);
+      setEditingMaterial(null);
+    } catch (error) {
+      console.error('Failed to update material:', error);
+    }
   };
 
-  const handleDeleteMaterial = (materialId: string) => {
-    const updatedMaterials = materials.filter(material => material.id !== materialId);
-    onUpdateMaterials(updatedMaterials);
+  const handleDeleteMaterial = async (materialId: string) => {
+    try {
+      await deleteMaterial(materialId);
+    } catch (error) {
+      console.error('Failed to delete material:', error);
+    }
   };
 
   const getTotalEstimatedCost = () => {
@@ -67,6 +90,26 @@ export function MaterialsList({ materials, onUpdateMaterials, readOnly = false }
       return total + (material.estimatedCost || 0) * material.quantity;
     }, 0);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

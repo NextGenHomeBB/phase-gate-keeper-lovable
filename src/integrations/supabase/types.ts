@@ -80,6 +80,56 @@ export type Database = {
           },
         ]
       }
+      project_materials: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          estimated_cost: number | null
+          id: string
+          name: string
+          phase_id: number
+          project_id: string
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          estimated_cost?: number | null
+          id?: string
+          name: string
+          phase_id: number
+          project_id: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          estimated_cost?: number | null
+          id?: string
+          name?: string
+          phase_id?: number
+          project_id?: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_materials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_photos: {
         Row: {
           caption: string | null

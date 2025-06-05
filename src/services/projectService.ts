@@ -1,6 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Project, Phase, ChecklistItem, Material } from "@/pages/Index";
 import { TeamMember } from "@/components/TeamPage";
+import { materialService } from "./materialService";
 
 function getPhaseName(phaseNumber: number): string {
   const phases = [
@@ -54,46 +56,6 @@ function getPhaseDescription(phaseNumber: number): string {
   return descriptions[phaseNumber - 1] || `Beschrijving voor fase ${phaseNumber}`;
 }
 
-function getPhaseMaterials(phaseNumber: number): Material[] {
-  const materialsByPhase: { [key: number]: Material[] } = {
-    1: [
-      { id: "1-1", name: "Beton C20/25", quantity: 15, unit: "m³", category: "Beton", estimatedCost: 85.00 },
-      { id: "1-2", name: "Wapening staal", quantity: 800, unit: "kg", category: "Staal", estimatedCost: 1.20 },
-      { id: "1-3", name: "Bekisting planken", quantity: 50, unit: "m²", category: "Hout", estimatedCost: 25.00 },
-      { id: "1-4", name: "Grind fundering", quantity: 20, unit: "ton", category: "Granulaat", estimatedCost: 30.00 }
-    ],
-    2: [
-      { id: "2-1", name: "Kalkzandsteen", quantity: 500, unit: "stuks", category: "Metselwerk", estimatedCost: 2.50 },
-      { id: "2-2", name: "Metselmortel", quantity: 30, unit: "zakken", category: "Mortel", estimatedCost: 8.50 },
-      { id: "2-3", name: "Hoekprofielen", quantity: 20, unit: "meter", category: "Staal", estimatedCost: 15.00 },
-      { id: "2-4", name: "Latei balken", quantity: 10, unit: "stuks", category: "Beton", estimatedCost: 45.00 }
-    ],
-    3: [
-      { id: "3-1", name: "Dakpannen", quantity: 800, unit: "stuks", category: "Dakbedekking", estimatedCost: 1.80 },
-      { id: "3-2", name: "Dakgoten", quantity: 40, unit: "meter", category: "Zinwerk", estimatedCost: 25.00 },
-      { id: "3-3", name: "Hemelwaterafvoer", quantity: 4, unit: "stuks", category: "Afvoer", estimatedCost: 85.00 },
-      { id: "3-4", name: "Dakbeschot", quantity: 80, unit: "m²", category: "Hout", estimatedCost: 18.00 }
-    ],
-    4: [
-      { id: "4-1", name: "Glaswol isolatie", quantity: 120, unit: "m²", category: "Isolatie", estimatedCost: 12.00 },
-      { id: "4-2", name: "Dampscherm folie", quantity: 130, unit: "m²", category: "Folie", estimatedCost: 3.50 },
-      { id: "4-3", name: "Tape dampscherm", quantity: 10, unit: "rollen", category: "Afdichting", estimatedCost: 15.00 },
-      { id: "4-4", name: "Isolatiepluggen", quantity: 200, unit: "stuks", category: "Bevestiging", estimatedCost: 0.25 }
-    ],
-    5: [
-      { id: "5-1", name: "Elektrische kabel", quantity: 500, unit: "meter", category: "Elektra", estimatedCost: 2.80 },
-      { id: "5-2", name: "Stopcontacten", quantity: 25, unit: "stuks", category: "Elektra", estimatedCost: 12.00 },
-      { id: "5-3", name: "Schakelaars", quantity: 15, unit: "stuks", category: "Elektra", estimatedCost: 8.50 },
-      { id: "5-4", name: "Verdeelkast", quantity: 1, unit: "stuks", category: "Elektra", estimatedCost: 350.00 }
-    ]
-  };
-
-  // Return materials for the phase, or default materials if not defined
-  return materialsByPhase[phaseNumber] || [
-    { id: `${phaseNumber}-1`, name: "Standaard materiaal", quantity: 1, unit: "stuks", category: "Diversen", estimatedCost: 0 }
-  ];
-}
-
 function getPhaseChecklist(phaseNumber: number): ChecklistItem[] {
   const baseItems = ["Alle stakeholders geïnformeerd", "Documentatie bijgewerkt", "Kwaliteitscontrole uitgevoerd", "Deliverables goedgekeurd door projectleider"];
   return baseItems.map((item, index) => ({
@@ -127,10 +89,11 @@ export const projectService = {
       throw error;
     }
 
-    // For each project, fetch associated team members
-    const projectsWithTeamMembers = await Promise.all(
+    // For each project, fetch associated team members and materials
+    const projectsWithData = await Promise.all(
       (data || []).map(async (project) => {
         const teamMembers = await this.fetchProjectTeamMembers(project.id);
+        const materialsByPhase = await materialService.fetchAllMaterialsForProject(project.id);
         
         return {
           id: project.id,
@@ -146,13 +109,13 @@ export const projectService = {
             completed: i < (project.current_phase || 1) - 1,
             locked: i >= (project.current_phase || 1),
             checklist: getPhaseChecklist(i + 1),
-            materials: getPhaseMaterials(i + 1)
+            materials: materialsByPhase[i + 1] || []
           }))
         };
       })
     );
 
-    return projectsWithTeamMembers;
+    return projectsWithData;
   },
 
   async fetchProjectTeamMembers(projectId: string): Promise<TeamMember[]> {
@@ -251,7 +214,7 @@ export const projectService = {
         completed: i < (data.current_phase || 1) - 1,
         locked: i >= (data.current_phase || 1),
         checklist: getPhaseChecklist(i + 1),
-        materials: getPhaseMaterials(i + 1)
+        materials: []
       }))
     };
   },
