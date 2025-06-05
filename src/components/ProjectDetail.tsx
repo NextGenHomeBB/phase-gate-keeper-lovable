@@ -6,7 +6,8 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -29,6 +30,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("phases");
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
+  const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
+  const [editingPhaseName, setEditingPhaseName] = useState("");
   const { toast } = useToast();
 
   // Lighter pastel color classes for phase cards
@@ -213,6 +216,65 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleEditPhaseName = (phase: Phase) => {
+    setEditingPhaseId(phase.id);
+    setEditingPhaseName(phase.name);
+  };
+
+  const handleSavePhaseName = async (phaseId: number) => {
+    if (!editingPhaseName.trim()) {
+      toast({
+        title: "Fout",
+        description: "Fase naam mag niet leeg zijn.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await projectService.updateProjectPhase(project.id, phaseId, {
+        name: editingPhaseName.trim()
+      });
+
+      const updatedPhases = project.phases.map(phase => 
+        phase.id === phaseId 
+          ? { ...phase, name: editingPhaseName.trim() }
+          : phase
+      );
+      
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      setEditingPhaseId(null);
+      setEditingPhaseName("");
+      
+      toast({
+        title: "Fase naam bijgewerkt",
+        description: "De fase naam is succesvol gewijzigd.",
+      });
+    } catch (error) {
+      console.error('Error updating phase name:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase naam niet bijwerken.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEditPhaseName = () => {
+    setEditingPhaseId(null);
+    setEditingPhaseName("");
+  };
+
+  const handlePhaseNameKeyDown = (e: React.KeyboardEvent, phaseId: number) => {
+    if (e.key === 'Enter') {
+      handleSavePhaseName(phaseId);
+    } else if (e.key === 'Escape') {
+      handleCancelEditPhaseName();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Name Header */}
@@ -370,12 +432,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               const PhaseIcon = getPhaseIcon(index);
               const progress = getPhaseProgress(phase);
               const progressColor = getPhaseProgressColor(progress);
+              const isEditing = editingPhaseId === phase.id;
               
               return (
                 <Card 
                   key={phase.id} 
                   className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
-                  onClick={() => handlePhaseClick(phase)}
+                  onClick={() => !isEditing && handlePhaseClick(phase)}
                 >
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base font-bold flex items-center justify-between">
@@ -384,7 +447,19 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           <PhaseIcon className="w-5 h-5 text-gray-700" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-gray-800 leading-tight">{phase.name}</span>
+                          {isEditing ? (
+                            <Input
+                              value={editingPhaseName}
+                              onChange={(e) => setEditingPhaseName(e.target.value)}
+                              onKeyDown={(e) => handlePhaseNameKeyDown(e, phase.id)}
+                              onBlur={() => handleSavePhaseName(phase.id)}
+                              className="text-sm font-bold bg-white/80 border-blue-300 focus:border-blue-500"
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <span className="text-gray-800 leading-tight">{phase.name}</span>
+                          )}
                           {phase.completed && (
                             <div className="flex items-center gap-1 mt-1">
                               <CheckCircle className="w-3 h-3 text-green-600" />
@@ -394,6 +469,17 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPhaseName(phase);
+                          }}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
