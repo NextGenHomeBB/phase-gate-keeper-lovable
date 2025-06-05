@@ -371,9 +371,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </Button>
       </div>
 
-      {/* Materials Calculator */}
-      <MaterialsCalculator project={project} />
-
       {/* Project Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -761,6 +758,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           />
         </TabsContent>
       </Tabs>
+
+      {/* Materials Calculator moved to the bottom */}
+      <MaterialsCalculator project={project} />
     </div>
   );
 }
