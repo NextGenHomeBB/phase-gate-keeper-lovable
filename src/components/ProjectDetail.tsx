@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -424,21 +425,27 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="phases" className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              Projectfases
-            </h3>
-            <div className="flex gap-2">
-              <Button onClick={handleAddPhase} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Fase toevoegen
+          {/* Prominent Add Phase Button */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold text-blue-900 mb-2">Projectfases Beheren</h3>
+                <p className="text-blue-700">Voeg nieuwe fasen toe of verwijder bestaande fasen van uw project.</p>
+              </div>
+              <Button 
+                onClick={handleAddPhase} 
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nieuwe Fase Toevoegen
               </Button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {project.phases.map(phase => (
-              <Card key={phase.id} className={`cursor-pointer ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500' : ''}`} onClick={() => handlePhaseClick(phase)}>
+              <Card key={phase.id} className={`cursor-pointer transition-all hover:shadow-md ${selectedPhase?.id === phase.id ? 'border-2 border-blue-500 shadow-lg' : 'border border-gray-200'}`} onClick={() => handlePhaseClick(phase)}>
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -450,12 +457,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeletePhase(phase.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Trash2 className="w-5 h-5" />
                     </Button>
                   </CardTitle>
                 </CardHeader>
