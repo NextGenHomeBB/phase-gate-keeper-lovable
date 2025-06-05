@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -117,6 +117,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   const handleFindSubcontractors = () => {
     window.open('https://www.werkspot.nl', '_blank');
+  };
+
+  const scrollToMaterialsCalculator = () => {
+    const element = document.getElementById('materials-calculator');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleAddPhase = async () => {
@@ -233,15 +240,24 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 group"
+          onClick={scrollToMaterialsCalculator}
+        >
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Totale Kosten</CardTitle>
+            <CardTitle className="text-lg font-semibold flex items-center justify-between">
+              Totale Kosten
+              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-gray-700">
               <Euro className="w-4 h-4 mr-2 text-green-600" />
               <span className="text-xl font-bold text-green-900">€{getTotalProjectCost().toFixed(2)}</span>
             </div>
+            <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-700 transition-colors">
+              Klik voor gedetailleerde kostenberekening
+            </p>
           </CardContent>
         </Card>
 

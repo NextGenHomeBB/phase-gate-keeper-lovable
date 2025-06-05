@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +71,7 @@ export function MaterialsCalculator({ project }: MaterialsCalculatorProps) {
   };
 
   return (
-    <Card className="mb-6">
+    <Card className="mb-6" id="materials-calculator">
       <CardHeader>
         <CardTitle className="flex items-center">
           <Calculator className="w-5 h-5 mr-2" />
