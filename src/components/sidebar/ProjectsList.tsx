@@ -35,12 +35,19 @@ export function ProjectsList({ projects, selectedProject, onSelectProject, onVie
     return (completedPhases / 20) * 100;
   };
 
+  // Sort projects by completion percentage (highest first)
+  const sortedProjects = [...projects].sort((a, b) => {
+    const progressA = getProjectProgress(a);
+    const progressB = getProjectProgress(b);
+    return progressB - progressA;
+  });
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('navigation.projects')}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {projects.map((project) => (
+          {sortedProjects.map((project) => (
             <SidebarMenuItem key={project.id}>
               <SidebarMenuButton 
                 onClick={() => {
