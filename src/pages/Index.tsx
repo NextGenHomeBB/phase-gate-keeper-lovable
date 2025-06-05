@@ -18,8 +18,9 @@ export interface ChecklistItem {
   id: string;
   description: string;
   completed: boolean;
-  required: boolean;
+  required?: boolean;
   photos?: string[]; // Array of base64 encoded images
+  notes?: string;
 }
 
 export interface Material {
