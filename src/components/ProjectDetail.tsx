@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ interface ProjectDetailProps {
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("phases");
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const { toast } = useToast();
 
