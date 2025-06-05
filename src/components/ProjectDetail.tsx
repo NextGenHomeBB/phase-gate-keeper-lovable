@@ -220,7 +220,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Project Voortgang</CardTitle>
+            <CardTitle className="text-lg font-semibold">Project Informatie</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
