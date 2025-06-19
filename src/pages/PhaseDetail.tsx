@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -323,7 +324,7 @@ export default function PhaseDetail() {
   if (!project || !phase) {
     return (
       <div className="space-y-6 p-6">
-        <Button variant="ghost" onClick={handleBack}>
+        <Button variant="ghost" onClick={() => navigate(`/project/${projectId}`)}>
           <ArrowLeft className="w-5 h-5 mr-2" />
           {t('common.back')}
         </Button>
@@ -340,7 +341,7 @@ export default function PhaseDetail() {
     <div className="space-y-6 p-6">
       {/* Header with back button */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={handleBack}>
+        <Button variant="ghost" onClick={() => navigate(`/project/${projectId}`)}>
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to {project.name}
         </Button>
@@ -359,6 +360,7 @@ export default function PhaseDetail() {
         <CardContent className="space-y-6 p-6">
           <PhaseChecklist
             phase={phase}
+            projectId={projectId!}
             onChecklistItemToggle={handleChecklistItemToggle}
             onEditChecklistItem={handleEditChecklistItem}
             onAddPhotoToChecklist={handleAddPhotoToChecklist}

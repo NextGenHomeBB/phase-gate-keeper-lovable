@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Material } from '@/pages/Index';
 
@@ -14,6 +13,7 @@ export interface DatabaseMaterial {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  checklist_item_id: string | null;
 }
 
 export const materialService = {
@@ -27,6 +27,23 @@ export const materialService = {
 
     if (error) {
       console.error('Error fetching materials:', error);
+      throw error;
+    }
+
+    return (data || []).map(this.mapDatabaseToMaterial);
+  },
+
+  async fetchMaterialsForChecklistItem(projectId: string, phaseId: number, checklistItemId: string): Promise<Material[]> {
+    const { data, error } = await supabase
+      .from('project_materials')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('phase_id', phaseId)
+      .eq('checklist_item_id', checklistItemId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching checklist item materials:', error);
       throw error;
     }
 
@@ -59,7 +76,7 @@ export const materialService = {
     return materialsByPhase;
   },
 
-  async addMaterial(projectId: string, phaseId: number, material: Omit<Material, 'id'>): Promise<Material> {
+  async addMaterial(projectId: string, phaseId: number, material: Omit<Material, 'id'>, checklistItemId?: string): Promise<Material> {
     const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
@@ -72,7 +89,8 @@ export const materialService = {
         unit: material.unit,
         category: material.category,
         estimated_cost: material.estimatedCost || 0,
-        created_by: user?.id || null
+        created_by: user?.id || null,
+        checklist_item_id: checklistItemId || null
       })
       .select()
       .single();
@@ -83,6 +101,34 @@ export const materialService = {
     }
 
     return this.mapDatabaseToMaterial(data);
+  },
+
+  async addMaterialsForChecklistItem(projectId: string, phaseId: number, checklistItemId: string, materials: Omit<Material, 'id'>[]): Promise<Material[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const insertData = materials.map(material => ({
+      project_id: projectId,
+      phase_id: phaseId,
+      name: material.name,
+      quantity: material.quantity,
+      unit: material.unit,
+      category: material.category,
+      estimated_cost: material.estimatedCost || 0,
+      created_by: user?.id || null,
+      checklist_item_id: checklistItemId
+    }));
+
+    const { data, error } = await supabase
+      .from('project_materials')
+      .insert(insertData)
+      .select();
+
+    if (error) {
+      console.error('Error adding checklist item materials:', error);
+      throw error;
+    }
+
+    return (data || []).map(this.mapDatabaseToMaterial);
   },
 
   async updateMaterial(materialId: string, updates: Partial<Material>): Promise<Material> {

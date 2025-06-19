@@ -154,6 +154,7 @@ export type Database = {
       project_materials: {
         Row: {
           category: string
+          checklist_item_id: string | null
           created_at: string
           created_by: string | null
           estimated_cost: number | null
@@ -167,6 +168,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          checklist_item_id?: string | null
           created_at?: string
           created_by?: string | null
           estimated_cost?: number | null
@@ -180,6 +182,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          checklist_item_id?: string | null
           created_at?: string
           created_by?: string | null
           estimated_cost?: number | null
