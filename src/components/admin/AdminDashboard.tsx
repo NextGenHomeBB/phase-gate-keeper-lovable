@@ -3,18 +3,24 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, Users, ClipboardList } from 'lucide-react';
+import { UserPlus, Users, ClipboardList, ArrowLeft } from 'lucide-react';
 import { CreateWorkerDialog } from './CreateWorkerDialog';
 import { WorkersList } from './WorkersList';
 import { useRoleBasedAccess } from '@/hooks/useRoleBasedAccess';
+import { useNavigate } from 'react-router-dom';
 
 export function AdminDashboard() {
   const [createWorkerOpen, setCreateWorkerOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { canCreateWorkers } = useRoleBasedAccess();
+  const navigate = useNavigate();
 
   const handleWorkerCreated = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleBackClick = () => {
+    navigate('/');
   };
 
   if (!canCreateWorkers()) {
@@ -28,7 +34,18 @@ export function AdminDashboard() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleBackClick}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </Button>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        </div>
       </div>
 
       <Tabs defaultValue="workers" className="space-y-6">
