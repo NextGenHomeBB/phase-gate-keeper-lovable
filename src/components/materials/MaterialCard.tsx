@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Material } from "@/pages/Index";
-import { WebshopPriceComparison } from "../WebshopPriceComparison";
 import { useState } from "react";
 
 interface MaterialCardProps {
@@ -154,9 +153,6 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
                   </span>
                 </span>
               )}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <WebshopPriceComparison material={material} />
             </div>
           </div>
           {!readOnly && (
