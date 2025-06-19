@@ -605,31 +605,56 @@ const translations = {
   },
 };
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('language');
-    return (saved as Language) || 'nl';
-  });
+const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Get initial language from localStorage, default to 'nl'
+  const getInitialLanguage = (): Language => {
+    try {
+      const saved = localStorage.getItem('language');
+      return (saved as Language) || 'nl';
+    } catch (error) {
+      console.error('Error reading language from localStorage:', error);
+      return 'nl';
+    }
+  };
+
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
 
   useEffect(() => {
-    localStorage.setItem('language', language);
+    try {
+      localStorage.setItem('language', language);
+    } catch (error) {
+      console.error('Error saving language to localStorage:', error);
+    }
   }, [language]);
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    try {
+      return translations[language]?.[key] || key;
+    } catch (error) {
+      console.error('Error getting translation:', error, { key, language });
+      return key;
+    }
+  };
+
+  const contextValue: LanguageContextType = {
+    language,
+    setLanguage,
+    t
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
-export const useLanguage = () => {
+const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 };
+
+export { LanguageProvider, useLanguage };
