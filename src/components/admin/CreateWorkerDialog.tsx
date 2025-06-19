@@ -52,8 +52,9 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
 
       console.log('Function response:', { data, error });
 
+      // Handle function invocation error (network/system errors)
       if (error) {
-        console.error('Function error:', error);
+        console.error('Function invocation error:', error);
         toast({
           title: "Error",
           description: error.message || "Failed to create worker",
@@ -62,7 +63,11 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
         return;
       }
 
-      if (data.error) {
+      // Handle application errors returned by the function
+      if (data && data.error) {
+        console.error('Application error:', data.error);
+        
+        // Show specific error message from the function
         toast({
           title: "Error",
           description: data.error,
@@ -71,25 +76,36 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
         return;
       }
 
-      if (data.tempPassword) {
-        toast({
-          title: "Success",
-          description: `${data.message}. Temporary password: ${data.tempPassword}`,
-        });
+      // Success case
+      if (data && data.success) {
+        if (data.tempPassword) {
+          toast({
+            title: "Success",
+            description: `${data.message}. Temporary password: ${data.tempPassword}`,
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: data.message,
+          });
+        }
+
+        // Reset form
+        setEmail('');
+        setFullName('');
+        setPhone('');
+        setRoleTitle('');
+        onWorkerCreated();
+        onClose();
       } else {
+        // Fallback for unexpected response format
+        console.error('Unexpected response format:', data);
         toast({
-          title: "Success",
-          description: data.message,
+          title: "Error",
+          description: "Unexpected response from server",
+          variant: "destructive",
         });
       }
-
-      // Reset form
-      setEmail('');
-      setFullName('');
-      setPhone('');
-      setRoleTitle('');
-      onWorkerCreated();
-      onClose();
 
     } catch (error) {
       console.error('Unexpected error:', error);
