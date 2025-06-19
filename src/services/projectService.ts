@@ -36,6 +36,19 @@ export interface DatabasePhase {
   updated_at: string;
 }
 
+export interface DatabaseChecklistItem {
+  id: string;
+  project_id: string;
+  phase_id: number;
+  item_id: string;
+  description: string;
+  completed: boolean;
+  required: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const projectService = {
   async fetchProjects(): Promise<Project[]> {
     const { data, error } = await supabase
@@ -62,14 +75,17 @@ export const projectService = {
           currentPhase: project.current_phase || 1,
           startDate: project.start_date || new Date().toISOString().split('T')[0],
           teamMembers: teamMembers.map(tm => tm.name),
-          phases: phases.map(phase => ({
-            id: phase.phase_number,
-            name: phase.name,
-            description: phase.description || '',
-            completed: phase.completed,
-            locked: phase.locked,
-            checklist: getPhaseChecklist(phase.phase_number),
-            materials: materialsByPhase[phase.phase_number] || []
+          phases: await Promise.all(phases.map(async (phase) => {
+            const checklist = await this.fetchPhaseChecklist(project.id, phase.phase_number);
+            return {
+              id: phase.phase_number,
+              name: phase.name,
+              description: phase.description || '',
+              completed: phase.completed,
+              locked: phase.locked,
+              checklist: checklist,
+              materials: materialsByPhase[phase.phase_number] || []
+            };
           }))
         };
       })
@@ -101,16 +117,121 @@ export const projectService = {
       currentPhase: data.current_phase || 1,
       startDate: data.start_date || new Date().toISOString().split('T')[0],
       teamMembers: teamMembers.map(tm => tm.name),
-      phases: phases.map(phase => ({
-        id: phase.phase_number,
-        name: phase.name,
-        description: phase.description || '',
-        completed: phase.completed,
-        locked: phase.locked,
-        checklist: getPhaseChecklist(phase.phase_number),
-        materials: materialsByPhase[phase.phase_number] || []
+      phases: await Promise.all(phases.map(async (phase) => {
+        const checklist = await this.fetchPhaseChecklist(projectId, phase.phase_number);
+        return {
+          id: phase.phase_number,
+          name: phase.name,
+          description: phase.description || '',
+          completed: phase.completed,
+          locked: phase.locked,
+          checklist: checklist,
+          materials: materialsByPhase[phase.phase_number] || []
+        };
       }))
     };
+  },
+
+  async fetchPhaseChecklist(projectId: string, phaseId: number): Promise<ChecklistItem[]> {
+    const { data, error } = await supabase
+      .from('project_checklist_items')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('phase_id', phaseId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching checklist items:', error);
+      throw error;
+    }
+
+    // If no checklist items exist, create default ones
+    if (!data || data.length === 0) {
+      const defaultItems = getPhaseChecklist(phaseId);
+      await this.createDefaultChecklistItems(projectId, phaseId, defaultItems);
+      return defaultItems;
+    }
+
+    return data.map(item => ({
+      id: item.item_id,
+      description: item.description,
+      completed: item.completed,
+      required: item.required,
+      notes: item.notes || undefined
+    }));
+  },
+
+  async createDefaultChecklistItems(projectId: string, phaseId: number, items: ChecklistItem[]): Promise<void> {
+    const insertData = items.map(item => ({
+      project_id: projectId,
+      phase_id: phaseId,
+      item_id: item.id,
+      description: item.description,
+      completed: item.completed,
+      required: item.required,
+      notes: item.notes || null
+    }));
+
+    const { error } = await supabase
+      .from('project_checklist_items')
+      .insert(insertData);
+
+    if (error) {
+      console.error('Error creating default checklist items:', error);
+      throw error;
+    }
+  },
+
+  async updateChecklistItem(projectId: string, phaseId: number, itemId: string, updates: Partial<{
+    description: string;
+    completed: boolean;
+    required: boolean;
+    notes: string;
+  }>): Promise<void> {
+    const { error } = await supabase
+      .from('project_checklist_items')
+      .update(updates)
+      .eq('project_id', projectId)
+      .eq('phase_id', phaseId)
+      .eq('item_id', itemId);
+
+    if (error) {
+      console.error('Error updating checklist item:', error);
+      throw error;
+    }
+  },
+
+  async addChecklistItem(projectId: string, phaseId: number, item: ChecklistItem): Promise<void> {
+    const { error } = await supabase
+      .from('project_checklist_items')
+      .insert({
+        project_id: projectId,
+        phase_id: phaseId,
+        item_id: item.id,
+        description: item.description,
+        completed: item.completed,
+        required: item.required,
+        notes: item.notes || null
+      });
+
+    if (error) {
+      console.error('Error adding checklist item:', error);
+      throw error;
+    }
+  },
+
+  async deleteChecklistItem(projectId: string, phaseId: number, itemId: string): Promise<void> {
+    const { error } = await supabase
+      .from('project_checklist_items')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('phase_id', phaseId)
+      .eq('item_id', itemId);
+
+    if (error) {
+      console.error('Error deleting checklist item:', error);
+      throw error;
+    }
   },
 
   async fetchProjectPhases(projectId: string): Promise<DatabasePhase[]> {

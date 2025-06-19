@@ -36,6 +36,53 @@ export type Database = {
         }
         Relationships: []
       }
+      project_checklist_items: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string
+          id: string
+          item_id: string
+          notes: string | null
+          phase_id: number
+          project_id: string
+          required: boolean
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          phase_id: number
+          project_id: string
+          required?: boolean
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          phase_id?: number
+          project_id?: string
+          required?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_project_checklist_items_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_files: {
         Row: {
           file_data: string

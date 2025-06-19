@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -61,25 +60,36 @@ export default function PhaseDetail() {
   const handleChecklistItemToggle = async (phaseId: number, itemId: string, completed: boolean) => {
     if (!project) return;
 
-    const updatedPhases = project.phases.map(p => {
-      if (p.id === phaseId) {
-        const updatedChecklist = p.checklist.map(item => {
-          if (item.id === itemId) {
-            return { ...item, completed: completed };
-          }
-          return item;
-        });
-        return { ...p, checklist: updatedChecklist };
-      }
-      return p;
-    });
+    try {
+      await projectService.updateChecklistItem(project.id, phaseId, itemId, { completed });
 
-    const updatedProject = { ...project, phases: updatedPhases };
-    setProject(updatedProject);
-    
-    // Update the current phase state
-    const updatedPhase = updatedPhases.find(p => p.id === phaseId);
-    setPhase(updatedPhase || null);
+      const updatedPhases = project.phases.map(p => {
+        if (p.id === phaseId) {
+          const updatedChecklist = p.checklist.map(item => {
+            if (item.id === itemId) {
+              return { ...item, completed: completed };
+            }
+            return item;
+          });
+          return { ...p, checklist: updatedChecklist };
+        }
+        return p;
+      });
+
+      const updatedProject = { ...project, phases: updatedPhases };
+      setProject(updatedProject);
+      
+      // Update the current phase state
+      const updatedPhase = updatedPhases.find(p => p.id === phaseId);
+      setPhase(updatedPhase || null);
+    } catch (error) {
+      console.error('Error updating checklist item:', error);
+      toast({
+        title: "Fout",
+        description: "Kon checklist item niet bijwerken.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditChecklistItem = (phaseId: number, itemId: string) => {
@@ -94,38 +104,57 @@ export default function PhaseDetail() {
   const handleSaveChecklistItem = async () => {
     if (!editingChecklistItem || !project) return;
 
-    const updatedPhases = project.phases.map(p => {
-      if (p.id === editingChecklistItem.phaseId) {
-        const updatedChecklist = p.checklist.map(item => {
-          if (item.id === editingChecklistItem.itemId) {
-            return { 
-              ...item, 
-              description: editingItemText.trim(),
-              notes: editingItemNotes.trim() || undefined
-            };
-          }
-          return item;
-        });
-        return { ...p, checklist: updatedChecklist };
-      }
-      return p;
-    });
+    try {
+      await projectService.updateChecklistItem(
+        project.id, 
+        editingChecklistItem.phaseId, 
+        editingChecklistItem.itemId, 
+        { 
+          description: editingItemText.trim(),
+          notes: editingItemNotes.trim() || undefined
+        }
+      );
 
-    const updatedProject = { ...project, phases: updatedPhases };
-    setProject(updatedProject);
-    
-    // Update the current phase state
-    const updatedPhase = updatedPhases.find(p => p.id === editingChecklistItem.phaseId);
-    setPhase(updatedPhase || null);
-    
-    setEditingChecklistItem(null);
-    setEditingItemText("");
-    setEditingItemNotes("");
+      const updatedPhases = project.phases.map(p => {
+        if (p.id === editingChecklistItem.phaseId) {
+          const updatedChecklist = p.checklist.map(item => {
+            if (item.id === editingChecklistItem.itemId) {
+              return { 
+                ...item, 
+                description: editingItemText.trim(),
+                notes: editingItemNotes.trim() || undefined
+              };
+            }
+            return item;
+          });
+          return { ...p, checklist: updatedChecklist };
+        }
+        return p;
+      });
 
-    toast({
-      title: "Checklist item updated",
-      description: "The checklist item has been successfully updated.",
-    });
+      const updatedProject = { ...project, phases: updatedPhases };
+      setProject(updatedProject);
+      
+      // Update the current phase state
+      const updatedPhase = updatedPhases.find(p => p.id === editingChecklistItem.phaseId);
+      setPhase(updatedPhase || null);
+      
+      setEditingChecklistItem(null);
+      setEditingItemText("");
+      setEditingItemNotes("");
+
+      toast({
+        title: "Checklist item updated",
+        description: "The checklist item has been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Error saving checklist item:', error);
+      toast({
+        title: "Fout",
+        description: "Kon checklist item niet opslaan.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelEditChecklistItem = () => {
