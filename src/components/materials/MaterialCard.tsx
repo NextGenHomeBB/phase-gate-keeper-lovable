@@ -49,7 +49,12 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
 
   const handleSave = () => {
     if (onUpdate) {
-      onUpdate(material.id, editedMaterial);
+      // Ensure quantity is at least 1 when saving
+      const validatedMaterial = {
+        ...editedMaterial,
+        quantity: editedMaterial.quantity < 1 ? 1 : editedMaterial.quantity
+      };
+      onUpdate(material.id, validatedMaterial);
     }
     setIsEditing(false);
   };
@@ -74,8 +79,9 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
                 type="number"
                 placeholder="Aantal"
                 value={editedMaterial.quantity}
-                onChange={(e) => setEditedMaterial({ ...editedMaterial, quantity: parseInt(e.target.value) || 1 })}
+                onChange={(e) => setEditedMaterial({ ...editedMaterial, quantity: parseInt(e.target.value) || 0 })}
                 className="w-20"
+                min="0"
               />
               <Select value={editedMaterial.unit} onValueChange={(value) => setEditedMaterial({ ...editedMaterial, unit: value })}>
                 <SelectTrigger className="w-24">
@@ -108,6 +114,7 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
                 placeholder="Kosten per eenheid"
                 value={editedMaterial.estimatedCost || ''}
                 onChange={(e) => setEditedMaterial({ ...editedMaterial, estimatedCost: parseFloat(e.target.value) || 0 })}
+                min="0"
               />
             </div>
           </div>

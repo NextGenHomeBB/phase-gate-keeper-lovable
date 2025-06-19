@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,6 +27,14 @@ export function MaterialForm({
 
   const units = ['stuks', 'm²', 'm³', 'meter', 'kg', 'ton', 'zakken', 'rollen', 'liter'];
 
+  const handleSave = () => {
+    // Ensure quantity is at least 1 when saving
+    if (material.quantity < 1) {
+      onMaterialChange({ ...material, quantity: 1 });
+    }
+    onSave();
+  };
+
   return (
     <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -41,8 +48,9 @@ export function MaterialForm({
             type="number"
             placeholder="Aantal"
             value={material.quantity}
-            onChange={(e) => onMaterialChange({ ...material, quantity: parseInt(e.target.value) || 1 })}
+            onChange={(e) => onMaterialChange({ ...material, quantity: parseInt(e.target.value) || 0 })}
             className="w-20"
+            min="0"
           />
           <Select value={material.unit} onValueChange={(value) => onMaterialChange({ ...material, unit: value })}>
             <SelectTrigger className="w-24">
@@ -75,11 +83,12 @@ export function MaterialForm({
             placeholder="Kosten per eenheid"
             value={material.estimatedCost || ''}
             onChange={(e) => onMaterialChange({ ...material, estimatedCost: parseFloat(e.target.value) || 0 })}
+            min="0"
           />
         </div>
       </div>
       <div className="flex gap-2">
-        <Button size="sm" onClick={onSave}>
+        <Button size="sm" onClick={handleSave}>
           {saveLabel}
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>

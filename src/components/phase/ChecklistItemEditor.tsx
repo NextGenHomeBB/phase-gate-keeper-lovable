@@ -61,7 +61,13 @@ export function ChecklistItemEditor({
   };
 
   const handleSave = () => {
-    const validMaterials = materials.filter(material => material.name.trim() !== '');
+    // Validate materials before saving
+    const validMaterials = materials
+      .filter(material => material.name.trim() !== '')
+      .map(material => ({
+        ...material,
+        quantity: material.quantity < 1 ? 1 : material.quantity
+      }));
     onSave(validMaterials);
     setMaterials([]);
   };
@@ -131,8 +137,9 @@ export function ChecklistItemEditor({
                         type="number"
                         placeholder="Quantity"
                         value={material.quantity}
-                        onChange={(e) => handleUpdateMaterial(index, { quantity: parseInt(e.target.value) || 1 })}
+                        onChange={(e) => handleUpdateMaterial(index, { quantity: parseInt(e.target.value) || 0 })}
                         className="w-20"
+                        min="0"
                       />
                       <Select 
                         value={material.unit} 
@@ -173,6 +180,7 @@ export function ChecklistItemEditor({
                         placeholder="Cost per unit"
                         value={material.estimatedCost || ''}
                         onChange={(e) => handleUpdateMaterial(index, { estimatedCost: parseFloat(e.target.value) || 0 })}
+                        min="0"
                       />
                       <Button
                         type="button"
