@@ -13,14 +13,17 @@ export function useTasks(refreshTrigger: number) {
     try {
       setLoading(true);
       
-      // First, fetch all tasks
-      const { data: tasksData, error: tasksError } = await supabase
+      // Use Supabase join with the foreign key constraint now in place
+      const { data, error } = await supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          *,
+          profiles:assignee_id(full_name, email)
+        `)
         .order('created_at', { ascending: false });
 
-      if (tasksError) {
-        console.error('Error fetching tasks:', tasksError);
+      if (error) {
+        console.error('Error fetching tasks:', error);
         toast({
           title: "Error",
           description: "Failed to fetch tasks",
@@ -29,44 +32,21 @@ export function useTasks(refreshTrigger: number) {
         return;
       }
 
-      // Then, fetch user profiles for assignees if we have any tasks with assignee_id
-      const assigneeIds = tasksData?.filter(task => task.assignee_id).map(task => task.assignee_id) || [];
-      let profilesData: any[] = [];
-      
-      if (assigneeIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .in('id', assigneeIds);
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-        } else {
-          profilesData = profiles || [];
-        }
-      }
-
       // Transform the data to match our Task interface
-      const typedTasks = (tasksData || []).map(task => {
-        const assignedProfile = task.assignee_id 
-          ? profilesData.find(profile => profile.id === task.assignee_id)
-          : null;
-
-        return {
-          id: task.id,
-          title: task.title,
-          description: task.description || '',
-          priority: task.priority as 'low' | 'medium' | 'high',
-          status: task.status as 'pending' | 'in_progress' | 'completed',
-          assignee_id: task.assignee_id,
-          created_at: task.created_at,
-          due_date: task.due_date,
-          assigned_user: assignedProfile ? {
-            full_name: assignedProfile.full_name || '',
-            email: assignedProfile.email || ''
-          } : undefined
-        };
-      });
+      const typedTasks = (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        priority: task.priority as 'low' | 'medium' | 'high',
+        status: task.status as 'pending' | 'in_progress' | 'completed',
+        assignee_id: task.assignee_id,
+        created_at: task.created_at,
+        due_date: task.due_date,
+        assigned_user: task.profiles ? {
+          full_name: task.profiles.full_name || '',
+          email: task.profiles.email || ''
+        } : undefined
+      }));
 
       setTasks(typedTasks);
     } catch (error) {

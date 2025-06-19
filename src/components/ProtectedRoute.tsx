@@ -4,11 +4,11 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRoleBasedAccess } from '@/hooks/useRoleBasedAccess';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireRole?: 'admin' | 'manager' | 'user';
+  requireRole?: 'admin' | 'manager' | 'user' | 'worker';
   fallbackPath?: string;
 }
 
@@ -24,7 +24,10 @@ export function ProtectedRoute({
   if (authLoading || (requireRole && roleLoading)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -39,6 +42,7 @@ export function ProtectedRoute({
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             You don't have permission to access this page. Required role: {requireRole}
           </AlertDescription>
