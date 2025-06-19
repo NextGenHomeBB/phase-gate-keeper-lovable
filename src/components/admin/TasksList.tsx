@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +60,14 @@ export function TasksList({ refreshTrigger }: TasksListProps) {
         return;
       }
 
-      setTasks(data || []);
+      // Type cast the data to match our Task interface
+      const typedTasks = (data || []).map(task => ({
+        ...task,
+        priority: task.priority as 'low' | 'medium' | 'high',
+        status: task.status as 'pending' | 'in_progress' | 'completed'
+      }));
+
+      setTasks(typedTasks);
     } catch (error) {
       console.error('Unexpected error fetching tasks:', error);
       toast({
