@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Material } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
-import AIMaterialsCalculator from "./AIMaterialsCalculator";
 import { MaterialsHeader } from "./materials/MaterialsHeader";
 import { MaterialsContent } from "./materials/MaterialsContent";
 import { MaterialForm } from "./materials/MaterialForm";
@@ -59,15 +58,6 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
     }
   };
 
-  const handleAddAIMaterials = async (aiMaterials: Material[]) => {
-    try {
-      const materialsToAdd = aiMaterials.map(({ id, ...material }) => material);
-      await addBulkMaterials(materialsToAdd);
-    } catch (error) {
-      console.error('Failed to add AI materials:', error);
-    }
-  };
-
   const handleUpdateMaterial = async (materialId: string, updatedMaterial: Partial<Material>) => {
     try {
       await updateMaterial(materialId, updatedMaterial);
@@ -113,11 +103,6 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
 
   return (
     <div className="space-y-6">
-      {/* AI Calculator - only show when not readonly */}
-      {!readOnly && (
-        <AIMaterialsCalculator onAddMaterials={handleAddAIMaterials} />
-      )}
-
       <Card>
         <CardHeader>
           <MaterialsHeader
