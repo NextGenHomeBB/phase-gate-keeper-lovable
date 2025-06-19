@@ -18,6 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ConstructionDrawings } from "./ConstructionDrawings";
 import { HomeStyleAI } from "./HomeStyleAI";
 import { projectService } from "@/services/projectService";
+import { ProjectMaterialsList } from "./materials/ProjectMaterialsList";
 
 interface ProjectDetailProps {
   project: Project;
@@ -619,6 +620,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </div>
         </CardContent>
       </Card>
+
+      {/* Project Materials List - New comprehensive materials overview */}
+      <ProjectMaterialsList 
+        projectId={project.id.toString()} 
+        phases={project.phases.map(phase => ({ id: phase.id, name: phase.name }))}
+      />
 
       {/* Materials Calculator moved to the bottom */}
       <MaterialsCalculator project={project} />
