@@ -21,7 +21,7 @@ interface Task {
   description: string;
   priority: 'low' | 'medium' | 'high';
   status: 'pending' | 'in_progress' | 'completed';
-  assigned_to: string;
+  assignee_id: string;
   created_at: string;
   due_date: string;
   assigned_user?: {
@@ -47,7 +47,7 @@ export function TasksList({ refreshTrigger }: TasksListProps) {
         .from('tasks')
         .select(`
           *,
-          assigned_user:profiles(full_name, email)
+          assigned_user:profiles!tasks_assignee_id_fkey(full_name, email)
         `)
         .order('created_at', { ascending: false });
 

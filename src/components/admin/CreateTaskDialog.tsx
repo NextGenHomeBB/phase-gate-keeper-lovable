@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function CreateTaskDialog({ isOpen, onClose, onTaskCreated }: CreateTaskD
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -67,6 +69,15 @@ export function CreateTaskDialog({ isOpen, onClose, onTaskCreated }: CreateTaskD
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create tasks",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -75,8 +86,9 @@ export function CreateTaskDialog({ isOpen, onClose, onTaskCreated }: CreateTaskD
           title: title.trim(),
           description: description.trim(),
           priority,
-          assigned_to: assignedTo,
+          assignee_id: assignedTo,
           due_date: dueDate,
+          created_by: user.id,
           status: 'pending'
         });
 
