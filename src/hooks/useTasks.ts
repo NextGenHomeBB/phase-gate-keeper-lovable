@@ -17,7 +17,7 @@ export function useTasks(refreshTrigger: number) {
         .from('tasks')
         .select(`
           *,
-          profiles!inner(full_name, email)
+          profiles:assignee_id(full_name, email)
         `)
         .order('created_at', { ascending: false });
 
