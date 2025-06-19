@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Material } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AIMaterialsCalculator } from "./AIMaterialsCalculator";
+import AIMaterialsCalculator from "./AIMaterialsCalculator";
 import { MaterialsHeader } from "./materials/MaterialsHeader";
 import { MaterialsContent } from "./materials/MaterialsContent";
 import { MaterialForm } from "./materials/MaterialForm";
