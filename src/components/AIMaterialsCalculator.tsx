@@ -5,14 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, Calculator, Lightbulb } from "lucide-react";
+import { Brain, Calculator, Lightbulb, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Material } from "@/pages/Index";
 
-const AIMaterialsCalculator = () => {
+interface AIMaterialsCalculatorProps {
+  onAddMaterials: (materials: Material[]) => Promise<void>;
+}
+
+const AIMaterialsCalculator = ({ onAddMaterials }: AIMaterialsCalculatorProps) => {
   const [projectDescription, setProjectDescription] = useState("");
   const [roomDimensions, setRoomDimensions] = useState("");
   const [additionalRequirements, setAdditionalRequirements] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Material[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -30,15 +35,47 @@ const AIMaterialsCalculator = () => {
     
     // Simulate AI processing
     setTimeout(() => {
-      const mockSuggestions = [
-        "Cement: 25 zakken (25kg per zak) voor fundering en vloer",
-        "Baksteen: 2000 stuks rood metselwerk",
-        "Isolatiemateriaal: 50m² glaswol isolatie (10cm dik)",
-        "Dakpannen: 150 stuks betonnen dakpannen",
-        "Houten balken: 20 stuks 2x8 inch behandeld hout",
-        "Gipsplaten: 30 stuks 120x250cm voor binnenwanden",
-        "Elektrische bekabeling: 200m NYM-kabel 3x2.5mm²",
-        "Sanitair: Basis toilet, wasbak en douche set"
+      const mockSuggestions: Material[] = [
+        {
+          id: "ai-1",
+          name: "Cement",
+          quantity: 25,
+          unit: "zakken",
+          category: "Bouwmaterialen",
+          estimatedCost: 12.50
+        },
+        {
+          id: "ai-2",
+          name: "Baksteen rood",
+          quantity: 2000,
+          unit: "stuks",
+          category: "Metselwerk",
+          estimatedCost: 0.35
+        },
+        {
+          id: "ai-3",
+          name: "Glaswol isolatie",
+          quantity: 50,
+          unit: "m²",
+          category: "Isolatie",
+          estimatedCost: 8.75
+        },
+        {
+          id: "ai-4",
+          name: "Dakpannen beton",
+          quantity: 150,
+          unit: "stuks",
+          category: "Dakbedekking",
+          estimatedCost: 2.20
+        },
+        {
+          id: "ai-5",
+          name: "Houten balken behandeld",
+          quantity: 20,
+          unit: "stuks",
+          category: "Houtwerk",
+          estimatedCost: 25.00
+        }
       ];
       
       setSuggestions(mockSuggestions);
@@ -49,6 +86,26 @@ const AIMaterialsCalculator = () => {
         description: "AI suggesties gegenereerd!",
       });
     }, 2000);
+  };
+
+  const handleAddAllMaterials = async () => {
+    if (suggestions.length === 0) return;
+    
+    try {
+      await onAddMaterials(suggestions);
+      setSuggestions([]);
+      toast({
+        title: "Succes",
+        description: `${suggestions.length} materialen toegevoegd!`,
+      });
+    } catch (error) {
+      console.error('Failed to add AI materials:', error);
+      toast({
+        title: "Fout",
+        description: "Kon materialen niet toevoegen",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -106,21 +163,41 @@ const AIMaterialsCalculator = () => {
 
       {suggestions.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-yellow-600" />
               AI Materiaal Suggesties
             </CardTitle>
+            <Button onClick={handleAddAllMaterials} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Voeg alle toe
+            </Button>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
-              {suggestions.map((suggestion, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-sm">{suggestion}</span>
-                </li>
+            <div className="space-y-3">
+              {suggestions.map((material) => (
+                <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{material.name}</div>
+                    <div className="text-sm text-gray-600">
+                      {material.quantity} {material.unit} • €{material.estimatedCost?.toFixed(2)} per {material.unit}
+                    </div>
+                    <div className="text-xs text-gray-500">{material.category}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">
+                      €{((material.estimatedCost || 0) * material.quantity).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex justify-between items-center font-medium">
+                <span>Totaal geschatte kosten:</span>
+                <span>€{suggestions.reduce((total, material) => total + (material.estimatedCost || 0) * material.quantity, 0).toFixed(2)}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
