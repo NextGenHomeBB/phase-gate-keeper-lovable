@@ -4,10 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateWorkerDialogProps {
   isOpen: boolean;
@@ -22,109 +20,56 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
   const [roleTitle, setRoleTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
 
     setLoading(true);
     try {
-      // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Create the user account
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password: tempPassword,
-        user_metadata: {
-          full_name: fullName
-        },
-        email_confirm: false
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Not authenticated",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call the edge function to create the worker
+      const { data, error } = await supabase.functions.invoke('create-worker', {
+        body: {
+          email,
+          fullName,
+          phone,
+          roleTitle
+        }
       });
 
-      if (authError) {
-        console.error('Auth error:', authError);
+      if (error) {
+        console.error('Function error:', error);
         toast({
           title: "Error",
-          description: authError.message,
+          description: error.message || "Failed to create worker",
           variant: "destructive",
         });
         return;
       }
 
-      if (!authData.user) {
+      if (data.error) {
         toast({
           title: "Error",
-          description: "Failed to create user",
+          description: data.error,
           variant: "destructive",
         });
         return;
-      }
-
-      // Add worker role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: 'worker'
-        });
-
-      if (roleError) {
-        console.error('Role error:', roleError);
-        toast({
-          title: "Error",
-          description: "Failed to assign worker role",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Update profile with must_reset_password flag
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          must_reset_password: true
-        })
-        .eq('id', authData.user.id);
-
-      if (profileError) {
-        console.error('Profile error:', profileError);
-      }
-
-      // Add to team members if needed
-      if (phone || roleTitle) {
-        const { error: teamError } = await supabase
-          .from('team_members')
-          .insert({
-            user_id: authData.user.id,
-            name: fullName,
-            email: email,
-            phone: phone || null,
-            role_title: roleTitle || null
-          });
-
-        if (teamError) {
-          console.error('Team member error:', teamError);
-        }
-      }
-
-      // Log the user creation
-      const { error: logError } = await supabase
-        .from('created_users_log')
-        .insert({
-          admin_id: user.id,
-          email: email
-        });
-
-      if (logError) {
-        console.error('Log error:', logError);
       }
 
       toast({
         title: "Success",
-        description: `Worker ${fullName} created successfully. Temporary password: ${tempPassword}`,
+        description: `${data.message}. Temporary password: ${data.tempPassword}`,
       });
 
       // Reset form
