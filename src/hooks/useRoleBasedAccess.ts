@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export function useRoleBasedAccess() {
   const { user } = useAuth();
-  const { role, loading, isAdmin, isManager } = useUserRole();
+  const { role, loading, isAdmin, isManager, isWorker } = useUserRole();
 
   const canManageTeam = () => {
     return isAdmin() || isManager();
@@ -23,6 +23,14 @@ export function useRoleBasedAccess() {
   };
 
   const canManageUsers = () => {
+    return isAdmin();
+  };
+
+  const canCreateWorkers = () => {
+    return isAdmin();
+  };
+
+  const canManageTasks = () => {
     return isAdmin();
   };
 
@@ -57,11 +65,11 @@ export function useRoleBasedAccess() {
     return !user;
   };
 
-  const requiresRole = (requiredRole: 'admin' | 'manager' | 'user') => {
+  const requiresRole = (requiredRole: 'admin' | 'manager' | 'user' | 'worker') => {
     if (loading) return true; // Still loading
     if (!role) return true; // No role assigned
     
-    const roleHierarchy = { admin: 3, manager: 2, user: 1 };
+    const roleHierarchy = { admin: 4, manager: 3, user: 2, worker: 1 };
     return roleHierarchy[role] < roleHierarchy[requiredRole];
   };
 
@@ -71,6 +79,8 @@ export function useRoleBasedAccess() {
     canDeleteProjects,
     canViewReports,
     canManageUsers,
+    canCreateWorkers,
+    canManageTasks,
     canAccessProject,
     canEditProject,
     canUploadFiles,
@@ -80,6 +90,7 @@ export function useRoleBasedAccess() {
     role,
     loading,
     isAdmin: isAdmin(),
-    isManager: isManager()
+    isManager: isManager(),
+    isWorker: isWorker()
   };
 }

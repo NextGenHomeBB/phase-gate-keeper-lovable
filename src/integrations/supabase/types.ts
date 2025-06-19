@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      created_users_log: {
+        Row: {
+          admin_id: string
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -16,6 +37,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          must_reset_password: boolean
           updated_at: string
         }
         Insert: {
@@ -24,6 +46,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          must_reset_password?: boolean
           updated_at?: string
         }
         Update: {
@@ -32,6 +55,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          must_reset_password?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -337,6 +361,45 @@ export type Database = {
           name?: string
           start_date?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
