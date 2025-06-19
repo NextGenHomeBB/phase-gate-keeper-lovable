@@ -144,7 +144,7 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
               </Badge>
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              {material.quantity} {material.unit}
+              {material.quantity > 0 && `${material.quantity} ${material.unit}`}
               {material.estimatedCost && (
                 <span className="ml-3">
                   €{material.estimatedCost.toFixed(2)} per {material.unit} 
