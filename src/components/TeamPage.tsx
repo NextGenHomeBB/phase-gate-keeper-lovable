@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Mail, Phone, User, UserPlus, Shield } from "lucide-react";
+import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/AddTeamMemberDialog";
+import { CreateWorkerDialog } from "@/components/admin/CreateWorkerDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { teamService } from "@/services/teamService";
@@ -43,6 +43,7 @@ interface TeamPageProps {
 
 export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isCreateWorkerDialogOpen, setIsCreateWorkerDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,24 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
     }
   };
 
+  const handleWorkerCreated = async () => {
+    // Refresh the team members list after a worker is created
+    try {
+      setLoading(true);
+      const members = await teamService.fetchTeamMembers();
+      onUpdateTeamMembers(members);
+    } catch (error) {
+      console.error('Error refreshing team members:', error);
+      toast({
+        title: t('common.error'),
+        description: t('team.loadError'),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (roleLoading) {
     return (
       <div className="space-y-6">
@@ -213,6 +232,15 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Button 
+              onClick={() => setIsCreateWorkerDialogOpen(true)}
+              variant="outline"
+              className="bg-orange-50 hover:bg-orange-100 border-orange-200"
+            >
+              <UserCog className="w-4 h-4 mr-2" />
+              Create Worker
+            </Button>
             
             <Button 
               onClick={() => setIsAddDialogOpen(true)}
@@ -332,11 +360,19 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
       </div>
 
       {isAdmin && (
-        <AddTeamMemberDialog
-          isOpen={isAddDialogOpen}
-          onClose={() => setIsAddDialogOpen(false)}
-          onAdd={handleAddTeamMember}
-        />
+        <>
+          <AddTeamMemberDialog
+            isOpen={isAddDialogOpen}
+            onClose={() => setIsAddDialogOpen(false)}
+            onAdd={handleAddTeamMember}
+          />
+          
+          <CreateWorkerDialog
+            isOpen={isCreateWorkerDialogOpen}
+            onClose={() => setIsCreateWorkerDialogOpen(false)}
+            onWorkerCreated={handleWorkerCreated}
+          />
+        </>
       )}
     </div>
   );
