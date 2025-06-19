@@ -69,6 +69,92 @@ serve(async (req) => {
 
     const { email, fullName, phone, roleTitle } = await req.json()
 
+    // Check if user already exists
+    const { data: existingUser, error: userCheckError } = await supabaseAdmin.auth.admin.listUsers()
+    
+    if (userCheckError) {
+      console.error('Error checking existing users:', userCheckError)
+      return new Response(JSON.stringify({ error: 'Failed to check existing users' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const existingUserRecord = existingUser.users.find(u => u.email === email)
+    
+    if (existingUserRecord) {
+      // User already exists, let's check if they're already a worker
+      const { data: existingRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', existingUserRecord.id)
+        .eq('role', 'worker')
+        .single()
+
+      if (existingRole) {
+        return new Response(JSON.stringify({ 
+          error: `A worker with email ${email} already exists` 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      // User exists but is not a worker, add worker role and sync data
+      const { error: roleError2 } = await supabaseAdmin
+        .from('user_roles')
+        .insert({
+          user_id: existingUserRecord.id,
+          role: 'worker'
+        })
+
+      if (roleError2) {
+        console.error('Role error:', roleError2)
+        return new Response(JSON.stringify({ error: 'Failed to assign worker role' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Update profile
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .upsert({
+          id: existingUserRecord.id,
+          full_name: fullName,
+          email: email,
+          must_reset_password: true
+        })
+
+      if (profileError) {
+        console.error('Profile error:', profileError)
+      }
+
+      // Add/update team member info
+      if (phone || roleTitle) {
+        const { error: teamError } = await supabaseAdmin
+          .from('team_members')
+          .upsert({
+            user_id: existingUserRecord.id,
+            name: fullName,
+            email: email,
+            phone: phone || null,
+            role_title: roleTitle || null
+          })
+
+        if (teamError) {
+          console.error('Team member error:', teamError)
+        }
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `${fullName} has been added as a worker (existing user)` 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // Generate a temporary password
     const tempPassword = Math.random().toString(36).slice(-8) + 'A1!'
 
@@ -83,6 +169,7 @@ serve(async (req) => {
     })
 
     if (authError2) {
+      console.error('Auth creation error:', authError2)
       return new Response(JSON.stringify({ error: authError2.message }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -96,6 +183,8 @@ serve(async (req) => {
       })
     }
 
+    console.log('User created:', authData.user.id)
+
     // Add worker role
     const { error: roleError2 } = await supabaseAdmin
       .from('user_roles')
@@ -108,14 +197,15 @@ serve(async (req) => {
       console.error('Role error:', roleError2)
     }
 
-    // Update profile with must_reset_password flag
+    // Ensure profile exists with must_reset_password flag
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({
+      .upsert({
+        id: authData.user.id,
         full_name: fullName,
+        email: email,
         must_reset_password: true
       })
-      .eq('id', authData.user.id)
 
     if (profileError) {
       console.error('Profile error:', profileError)

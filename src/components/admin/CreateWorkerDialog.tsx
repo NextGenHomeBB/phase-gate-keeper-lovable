@@ -38,6 +38,8 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
         return;
       }
 
+      console.log('Creating worker with data:', { email, fullName, phone, roleTitle });
+
       // Call the edge function to create the worker
       const { data, error } = await supabase.functions.invoke('create-worker', {
         body: {
@@ -47,6 +49,8 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
           roleTitle
         }
       });
+
+      console.log('Function response:', { data, error });
 
       if (error) {
         console.error('Function error:', error);
@@ -67,10 +71,17 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
         return;
       }
 
-      toast({
-        title: "Success",
-        description: `${data.message}. Temporary password: ${data.tempPassword}`,
-      });
+      if (data.tempPassword) {
+        toast({
+          title: "Success",
+          description: `${data.message}. Temporary password: ${data.tempPassword}`,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+      }
 
       // Reset form
       setEmail('');
@@ -84,7 +95,7 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
       console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred while creating the worker",
         variant: "destructive",
       });
     } finally {
