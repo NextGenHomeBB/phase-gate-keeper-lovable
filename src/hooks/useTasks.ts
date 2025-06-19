@@ -17,7 +17,7 @@ export function useTasks(refreshTrigger: number) {
         .from('tasks')
         .select(`
           *,
-          assigned_user:profiles!tasks_assignee_id_fkey(full_name, email)
+          profiles!inner(full_name, email)
         `)
         .order('created_at', { ascending: false });
 
@@ -31,15 +31,21 @@ export function useTasks(refreshTrigger: number) {
         return;
       }
 
-      // Type cast and filter the data to match our Task interface
-      const typedTasks = (data || [])
-        .filter(task => task.assigned_user && !('error' in task.assigned_user))
-        .map(task => ({
-          ...task,
-          priority: task.priority as 'low' | 'medium' | 'high',
-          status: task.status as 'pending' | 'in_progress' | 'completed',
-          assigned_user: task.assigned_user as { full_name: string; email: string }
-        }));
+      // Transform the data to match our Task interface
+      const typedTasks = (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        priority: task.priority as 'low' | 'medium' | 'high',
+        status: task.status as 'pending' | 'in_progress' | 'completed',
+        assignee_id: task.assignee_id,
+        created_at: task.created_at,
+        due_date: task.due_date,
+        assigned_user: task.profiles ? {
+          full_name: task.profiles.full_name || '',
+          email: task.profiles.email || ''
+        } : undefined
+      }));
 
       setTasks(typedTasks);
     } catch (error) {
