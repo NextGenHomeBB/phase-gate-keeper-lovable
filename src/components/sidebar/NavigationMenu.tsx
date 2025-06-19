@@ -1,5 +1,5 @@
 
-import { Home, BarChart3, Users, Settings, ClipboardList, Plus } from "lucide-react";
+import { Home, BarChart3, Users, Settings, ClipboardList, Plus, Shield } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { useRoleBasedAccess } from "@/hooks/useRoleBasedAccess";
 
 interface NavigationMenuProps {
   currentView: 'dashboard' | 'team' | 'reports' | 'settings';
@@ -20,6 +21,7 @@ interface NavigationMenuProps {
 export function NavigationMenu({ currentView, onViewChange, onSelectProject }: NavigationMenuProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { isAdmin } = useRoleBasedAccess();
 
   const handleNavigationClick = (view: 'dashboard' | 'team' | 'reports' | 'settings') => {
     onViewChange(view);
@@ -74,6 +76,16 @@ export function NavigationMenu({ currentView, onViewChange, onSelectProject }: N
               <span>{t('navigation.team')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/admin')}
+              >
+                <Shield className="w-4 h-4" />
+                <span>Admin</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => handleNavigationClick('settings')}
