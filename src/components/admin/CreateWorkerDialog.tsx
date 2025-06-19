@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CreateWorkerDialogProps {
@@ -67,7 +67,6 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
       if (data && data.error) {
         console.error('Application error:', data.error);
         
-        // Show specific error message from the function
         toast({
           title: "Error",
           description: data.error,
@@ -76,19 +75,30 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
         return;
       }
 
-      // Success case
+      // Success case - handle both new and existing workers
       if (data && data.success) {
-        if (data.tempPassword) {
-          toast({
-            title: "Success",
-            description: `${data.message}. Temporary password: ${data.tempPassword}`,
-          });
+        // Different toast messages based on whether it's a new user or existing
+        const isNewUser = data.tempPassword;
+        const isUpdated = data.message && data.message.includes('updated');
+        
+        let toastTitle = "Success";
+        let toastDescription = data.message;
+        
+        if (isNewUser) {
+          toastTitle = "Worker Created";
+          toastDescription = `${data.message}. Temporary password: ${data.tempPassword}`;
+        } else if (isUpdated) {
+          toastTitle = "Worker Updated";
+          toastDescription = data.message;
         } else {
-          toast({
-            title: "Success",
-            description: data.message,
-          });
+          toastTitle = "Worker Added";
+          toastDescription = data.message;
         }
+
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+        });
 
         // Reset form
         setEmail('');
@@ -119,8 +129,19 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
     }
   };
 
+  const handleClose = () => {
+    if (!loading) {
+      // Reset form when closing
+      setEmail('');
+      setFullName('');
+      setPhone('');
+      setRoleTitle('');
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Worker</DialogTitle>
@@ -134,6 +155,7 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
@@ -144,6 +166,7 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
@@ -153,6 +176,7 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              disabled={loading}
             />
           </div>
           
@@ -163,15 +187,21 @@ export function CreateWorkerDialog({ isOpen, onClose, onWorkerCreated }: CreateW
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
               placeholder="e.g., Construction Worker, Electrician"
+              disabled={loading}
             />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Worker'}
+              {loading ? 'Processing...' : 'Create Worker'}
             </Button>
           </div>
         </form>

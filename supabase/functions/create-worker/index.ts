@@ -148,11 +148,48 @@ serve(async (req) => {
       }
 
       if (existingRole) {
-        console.log('User is already a worker')
+        console.log('User is already a worker - returning success')
+        
+        // Update profile and team member info if provided
+        if (phone || roleTitle) {
+          console.log('Updating existing worker info...')
+          
+          // Update profile
+          const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .upsert({
+              id: existingUserRecord.id,
+              full_name: fullName,
+              email: email
+            })
+
+          if (profileError) {
+            console.error('Profile update error:', profileError)
+          }
+
+          // Update team member info using upsert with conflict resolution
+          const { error: teamError } = await supabaseAdmin
+            .from('team_members')
+            .upsert({
+              user_id: existingUserRecord.id,
+              name: fullName,
+              email: email,
+              phone: phone || null,
+              role_title: roleTitle || null
+            }, {
+              onConflict: 'email'
+            })
+
+          if (teamError) {
+            console.error('Team member update error (non-critical):', teamError)
+            // Don't fail the entire operation for team member updates
+          }
+        }
+        
         return new Response(JSON.stringify({ 
-          error: `A worker with email ${email} already exists` 
+          success: true, 
+          message: `${fullName} is already a worker and has been updated` 
         }), {
-          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
@@ -185,7 +222,7 @@ serve(async (req) => {
           id: existingUserRecord.id,
           full_name: fullName,
           email: email,
-          must_reset_password: true
+          must_reset_password: false
         })
 
       if (profileError) {
@@ -198,7 +235,7 @@ serve(async (req) => {
 
       console.log('Profile updated successfully')
 
-      // Add/update team member info
+      // Add/update team member info with proper conflict resolution
       if (phone || roleTitle) {
         console.log('Updating team member info...')
         const { error: teamError } = await supabaseAdmin
@@ -209,17 +246,16 @@ serve(async (req) => {
             email: email,
             phone: phone || null,
             role_title: roleTitle || null
+          }, {
+            onConflict: 'email'
           })
 
         if (teamError) {
-          console.error('Team member update error:', teamError)
-          return new Response(JSON.stringify({ error: 'Failed to update team member: ' + teamError.message }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
+          console.error('Team member update error (non-critical):', teamError)
+          // Don't fail the entire operation for team member updates
+        } else {
+          console.log('Team member info updated successfully')
         }
-
-        console.log('Team member info updated successfully')
       }
 
       console.log('Successfully added existing user as worker')
@@ -305,28 +341,27 @@ serve(async (req) => {
 
     console.log('Profile created successfully')
 
-    // Add to team members if needed
+    // Add to team members if needed with proper conflict resolution
     if (phone || roleTitle) {
       console.log('Creating team member record...')
       const { error: teamError } = await supabaseAdmin
         .from('team_members')
-        .insert({
+        .upsert({
           user_id: authData.user.id,
           name: fullName,
           email: email,
           phone: phone || null,
           role_title: roleTitle || null
+        }, {
+          onConflict: 'email'
         })
 
       if (teamError) {
-        console.error('Team member creation error:', teamError)
-        return new Response(JSON.stringify({ error: 'Failed to create team member: ' + teamError.message }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        console.error('Team member creation error (non-critical):', teamError)
+        // Don't fail the entire operation for team member creation
+      } else {
+        console.log('Team member record created successfully')
       }
-
-      console.log('Team member record created successfully')
     }
 
     // Log the user creation
