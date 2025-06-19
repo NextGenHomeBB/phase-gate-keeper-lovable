@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Phone, Mail, Key, UserCheck, UserX } from 'lucide-react';
+import { Trash2, Phone, Mail, Key, UserCheck, UserX, Building } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ResetPasswordDialog } from './ResetPasswordDialog';
+import { AssignProjectsDialog } from './AssignProjectsDialog';
 
 interface Worker {
   id: string;
@@ -57,6 +58,15 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
     workerName: '',
     workerEmail: '',
     tempPassword: '',
+  });
+  const [assignProjectsDialog, setAssignProjectsDialog] = useState<{
+    isOpen: boolean;
+    workerId: string;
+    workerName: string;
+  }>({
+    isOpen: false,
+    workerId: '',
+    workerName: '',
   });
   const { toast } = useToast();
 
@@ -286,6 +296,49 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
     }
   };
 
+  const handleAssignProjects = (workerId: string, workerName: string) => {
+    // Find the team member ID for this worker
+    const worker = workers.find(w => w.id === workerId);
+    if (!worker?.team_member) {
+      toast({
+        title: "Error",
+        description: "Worker must have a team member record to assign projects",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get the team member ID from the team_members table
+    const getTeamMemberId = async () => {
+      const { data: teamMember } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('user_id', workerId)
+        .single();
+
+      if (teamMember) {
+        setAssignProjectsDialog({
+          isOpen: true,
+          workerId: teamMember.id,
+          workerName,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Could not find team member record for this worker",
+          variant: "destructive",
+        });
+      }
+    };
+
+    getTeamMemberId();
+  };
+
+  const handleAssignmentUpdated = () => {
+    // Refresh workers list or perform any other updates needed
+    fetchWorkers();
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading workers...</div>;
   }
@@ -382,6 +435,15 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAssignProjects(worker.id, worker.full_name || 'Unnamed Worker')}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Building className="h-4 w-4" />
+                      </Button>
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -434,6 +496,14 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
         workerName={resetPasswordDialog.workerName}
         workerEmail={resetPasswordDialog.workerEmail}
         tempPassword={resetPasswordDialog.tempPassword}
+      />
+
+      <AssignProjectsDialog
+        isOpen={assignProjectsDialog.isOpen}
+        onClose={() => setAssignProjectsDialog({ ...assignProjectsDialog, isOpen: false })}
+        workerId={assignProjectsDialog.workerId}
+        workerName={assignProjectsDialog.workerName}
+        onAssignmentUpdated={handleAssignmentUpdated}
       />
     </>
   );
