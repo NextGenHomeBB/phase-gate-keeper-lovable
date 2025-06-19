@@ -51,10 +51,58 @@ export interface DatabaseChecklistItem {
 
 export const projectService = {
   async fetchProjects(): Promise<Project[]> {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated to fetch projects');
+    }
+
+    // Get user role
+    const { data: userRole } = await supabase.rpc('get_user_role', { _user_id: user.id });
+
+    let query;
+
+    if (userRole === 'admin') {
+      // Admins can see all projects
+      query = supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+    } else {
+      // For non-admin users, get projects they created OR are team members of
+      // First get team member IDs for this user
+      const { data: teamMemberData } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('user_id', user.id);
+
+      const teamMemberIds = teamMemberData?.map(tm => tm.id) || [];
+
+      if (teamMemberIds.length > 0) {
+        // Get projects where user is creator OR assigned as team member
+        const { data: projectTeamData } = await supabase
+          .from('project_team_members')
+          .select('project_id')
+          .in('team_member_id', teamMemberIds);
+
+        const assignedProjectIds = projectTeamData?.map(ptm => ptm.project_id) || [];
+
+        query = supabase
+          .from('projects')
+          .select('*')
+          .or(`created_by.eq.${user.id},id.in.(${assignedProjectIds.length > 0 ? assignedProjectIds.join(',') : 'null'})`)
+          .order('created_at', { ascending: false });
+      } else {
+        // User has no team member record, only show projects they created
+        query = supabase
+          .from('projects')
+          .select('*')
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: false });
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching projects:', error);
