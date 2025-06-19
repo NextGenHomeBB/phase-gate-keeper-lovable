@@ -3,19 +3,26 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, Users, ClipboardList, ArrowLeft } from 'lucide-react';
+import { UserPlus, Users, ClipboardList, ArrowLeft, Plus } from 'lucide-react';
 import { CreateWorkerDialog } from './CreateWorkerDialog';
+import { CreateTaskDialog } from './CreateTaskDialog';
 import { WorkersList } from './WorkersList';
+import { TasksList } from './TasksList';
 import { useRoleBasedAccess } from '@/hooks/useRoleBasedAccess';
 import { useNavigate } from 'react-router-dom';
 
 export function AdminDashboard() {
   const [createWorkerOpen, setCreateWorkerOpen] = useState(false);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { canCreateWorkers } = useRoleBasedAccess();
   const navigate = useNavigate();
 
   const handleWorkerCreated = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleTaskCreated = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -80,11 +87,18 @@ export function AdminDashboard() {
 
         <TabsContent value="tasks" className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>Task Management</CardTitle>
+              <Button 
+                onClick={() => setCreateTaskOpen(true)}
+                className="flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Create Task</span>
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Task management functionality coming soon...</p>
+              <TasksList refreshTrigger={refreshTrigger} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -94,6 +108,12 @@ export function AdminDashboard() {
         isOpen={createWorkerOpen}
         onClose={() => setCreateWorkerOpen(false)}
         onWorkerCreated={handleWorkerCreated}
+      />
+
+      <CreateTaskDialog
+        isOpen={createTaskOpen}
+        onClose={() => setCreateTaskOpen(false)}
+        onTaskCreated={handleTaskCreated}
       />
     </div>
   );
