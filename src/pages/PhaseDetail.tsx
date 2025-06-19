@@ -194,6 +194,47 @@ export default function PhaseDetail() {
     }
   };
 
+  const handleAddChecklistItem = async (phaseId: number, description: string, notes?: string) => {
+    if (!project) return;
+
+    try {
+      // Generate a unique ID for the new checklist item
+      const newItemId = `${phaseId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const newItem = {
+        id: newItemId,
+        description: description,
+        completed: false,
+        required: false,
+        notes: notes
+      };
+
+      await projectService.addChecklistItem(project.id, phaseId, newItem);
+
+      const updatedPhases = project.phases.map(p => {
+        if (p.id === phaseId) {
+          const updatedChecklist = [...p.checklist, newItem];
+          return { ...p, checklist: updatedChecklist };
+        }
+        return p;
+      });
+
+      const updatedProject = { ...project, phases: updatedPhases };
+      setProject(updatedProject);
+      
+      // Update the current phase state
+      const updatedPhase = updatedPhases.find(p => p.id === phaseId);
+      setPhase(updatedPhase || null);
+    } catch (error) {
+      console.error('Error adding checklist item:', error);
+      toast({
+        title: "Fout",
+        description: "Kon checklist item niet toevoegen.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handlePhaseCompletionToggle = async (phaseId: number, completed: boolean) => {
     if (!project) return;
 
@@ -322,6 +363,7 @@ export default function PhaseDetail() {
             onEditChecklistItem={handleEditChecklistItem}
             onAddPhotoToChecklist={handleAddPhotoToChecklist}
             onRemoveChecklistItem={handleRemoveChecklistItem}
+            onAddChecklistItem={handleAddChecklistItem}
           />
 
           <ProjectDetailMaterials 

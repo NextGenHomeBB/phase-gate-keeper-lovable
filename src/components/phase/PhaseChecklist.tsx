@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Camera, Edit, X } from "lucide-react";
+import { CheckCircle, Camera, Edit, X, Plus } from "lucide-react";
 import { Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "@/components/CameraCapture";
 import { ChecklistItemEditor } from "./ChecklistItemEditor";
@@ -15,6 +15,7 @@ interface PhaseChecklistProps {
   onEditChecklistItem: (phaseId: number, itemId: string, description: string, notes?: string) => void;
   onAddPhotoToChecklist: (phaseId: number, itemId: string, photoBlob: Blob) => void;
   onRemoveChecklistItem?: (phaseId: number, itemId: string) => void;
+  onAddChecklistItem?: (phaseId: number, description: string, notes?: string) => void;
 }
 
 export function PhaseChecklist({ 
@@ -22,13 +23,17 @@ export function PhaseChecklist({
   onChecklistItemToggle, 
   onEditChecklistItem,
   onAddPhotoToChecklist,
-  onRemoveChecklistItem
+  onRemoveChecklistItem,
+  onAddChecklistItem
 }: PhaseChecklistProps) {
   const { t } = useLanguage(); 
   const { toast } = useToast();
   const [editingChecklistItem, setEditingChecklistItem] = useState<{phaseId: number, itemId: string} | null>(null);
   const [editingItemText, setEditingItemText] = useState("");
   const [editingItemNotes, setEditingItemNotes] = useState("");
+  const [isAddingNewItem, setIsAddingNewItem] = useState(false);
+  const [newItemText, setNewItemText] = useState("");
+  const [newItemNotes, setNewItemNotes] = useState("");
 
   const handleEditChecklistItem = (phaseId: number, itemId: string) => {
     const item = phase.checklist.find(i => i.id === itemId);
@@ -93,12 +98,61 @@ export function PhaseChecklist({
     }
   };
 
+  const handleAddNewItem = () => {
+    setIsAddingNewItem(true);
+    setNewItemText("");
+    setNewItemNotes("");
+  };
+
+  const handleSaveNewItem = async () => {
+    if (!newItemText.trim() || !onAddChecklistItem) return;
+
+    try {
+      await onAddChecklistItem(phase.id, newItemText.trim(), newItemNotes.trim() || undefined);
+      
+      setIsAddingNewItem(false);
+      setNewItemText("");
+      setNewItemNotes("");
+
+      toast({
+        title: "Checklist item added",
+        description: "The new checklist item has been successfully added.",
+      });
+    } catch (error) {
+      console.error('Error adding checklist item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add checklist item.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelNewItem = () => {
+    setIsAddingNewItem(false);
+    setNewItemText("");
+    setNewItemNotes("");
+  };
+
   return (
     <div>
-      <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <CheckCircle className="w-5 h-5 text-blue-600" />
-        {t('projectDetail.checklist')}
-      </h4>
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-lg font-semibold flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-blue-600" />
+          {t('projectDetail.checklist')}
+        </h4>
+        {onAddChecklistItem && (
+          <Button
+            onClick={handleAddNewItem}
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Item
+          </Button>
+        )}
+      </div>
+      
       <ul className="list-none pl-0 space-y-3">
         {phase.checklist.map(item => (
           <li key={item.id} className="flex items-center justify-between p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
@@ -160,6 +214,16 @@ export function PhaseChecklist({
         onNotesChange={setEditingItemNotes}
         onSave={handleSaveChecklistItem}
         onCancel={handleCancelEditChecklistItem}
+      />
+
+      <ChecklistItemEditor
+        isOpen={isAddingNewItem}
+        editingItemText={newItemText}
+        editingItemNotes={newItemNotes}
+        onTextChange={setNewItemText}
+        onNotesChange={setNewItemNotes}
+        onSave={handleSaveNewItem}
+        onCancel={handleCancelNewItem}
       />
     </div>
   );
