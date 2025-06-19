@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Camera, Edit } from "lucide-react";
+import { CheckCircle, Camera, Edit, X } from "lucide-react";
 import { Phase, ChecklistItem } from "@/pages/Index";
 import { CameraCapture } from "@/components/CameraCapture";
 import { ChecklistItemEditor } from "./ChecklistItemEditor";
@@ -14,13 +14,15 @@ interface PhaseChecklistProps {
   onChecklistItemToggle: (phaseId: number, itemId: string, completed: boolean) => void;
   onEditChecklistItem: (phaseId: number, itemId: string, description: string, notes?: string) => void;
   onAddPhotoToChecklist: (phaseId: number, itemId: string, photoBlob: Blob) => void;
+  onRemoveChecklistItem?: (phaseId: number, itemId: string) => void;
 }
 
 export function PhaseChecklist({ 
   phase, 
   onChecklistItemToggle, 
   onEditChecklistItem,
-  onAddPhotoToChecklist 
+  onAddPhotoToChecklist,
+  onRemoveChecklistItem
 }: PhaseChecklistProps) {
   const { t } = useLanguage(); 
   const { toast } = useToast();
@@ -72,6 +74,25 @@ export function PhaseChecklist({
     setEditingItemNotes("");
   };
 
+  const handleRemoveChecklistItem = async (itemId: string) => {
+    if (!onRemoveChecklistItem) return;
+
+    try {
+      await onRemoveChecklistItem(phase.id, itemId);
+      toast({
+        title: "Checklist item removed",
+        description: "The checklist item has been successfully removed.",
+      });
+    } catch (error) {
+      console.error('Error removing checklist item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove checklist item.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div>
       <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -116,6 +137,16 @@ export function PhaseChecklist({
               <CameraCapture
                 onCapture={(photoBlob) => onAddPhotoToChecklist(phase.id, item.id, photoBlob)}
               />
+              {onRemoveChecklistItem && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveChecklistItem(item.id)}
+                  className="hover:bg-red-50 hover:scale-105 transition-all text-red-500 hover:text-red-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </li>
         ))}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -165,6 +164,36 @@ export default function PhaseDetail() {
     reader.readAsDataURL(photoBlob);
   };
 
+  const handleRemoveChecklistItem = async (phaseId: number, itemId: string) => {
+    if (!project) return;
+
+    try {
+      await projectService.deleteChecklistItem(project.id, phaseId, itemId);
+
+      const updatedPhases = project.phases.map(p => {
+        if (p.id === phaseId) {
+          const updatedChecklist = p.checklist.filter(item => item.id !== itemId);
+          return { ...p, checklist: updatedChecklist };
+        }
+        return p;
+      });
+
+      const updatedProject = { ...project, phases: updatedPhases };
+      setProject(updatedProject);
+      
+      // Update the current phase state
+      const updatedPhase = updatedPhases.find(p => p.id === phaseId);
+      setPhase(updatedPhase || null);
+    } catch (error) {
+      console.error('Error removing checklist item:', error);
+      toast({
+        title: "Fout",
+        description: "Kon checklist item niet verwijderen.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handlePhaseCompletionToggle = async (phaseId: number, completed: boolean) => {
     if (!project) return;
 
@@ -292,6 +321,7 @@ export default function PhaseDetail() {
             onChecklistItemToggle={handleChecklistItemToggle}
             onEditChecklistItem={handleEditChecklistItem}
             onAddPhotoToChecklist={handleAddPhotoToChecklist}
+            onRemoveChecklistItem={handleRemoveChecklistItem}
           />
 
           <ProjectDetailMaterials 
