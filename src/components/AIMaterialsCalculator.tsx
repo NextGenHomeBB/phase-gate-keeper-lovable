@@ -1,366 +1,131 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Calculator, Sparkles, Plus } from "lucide-react";
-import { Material } from "@/pages/Index";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Brain, Calculator, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface AIMaterialsCalculatorProps {
-  onAddMaterials: (materials: Material[]) => void;
-}
-
-export function AIMaterialsCalculator({ onAddMaterials }: AIMaterialsCalculatorProps) {
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [squareMeters, setSquareMeters] = useState<number>(0);
-  const [projectType, setProjectType] = useState<string>("");
-  const [roomType, setRoomType] = useState<string>("");
-  const [calculatedMaterials, setCalculatedMaterials] = useState<Material[]>([]);
+const AIMaterialsCalculator = () => {
+  const [projectDescription, setProjectDescription] = useState("");
+  const [roomDimensions, setRoomDimensions] = useState("");
+  const [additionalRequirements, setAdditionalRequirements] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const projectTypes = [
-    "Nieuwbouw woning",
-    "Renovatie badkamer",
-    "Renovatie keuken",
-    "Dakvernieuwing",
-    "Vloervernieuwing",
-    "Schilderwerk binnen",
-    "Schilderwerk buiten",
-    "Isolatie",
-    "Uitbreiding woning"
-  ];
-
-  const roomTypes = [
-    "Woonkamer",
-    "Slaapkamer", 
-    "Badkamer",
-    "Keuken",
-    "Hal/gang",
-    "Toilet",
-    "Zolder",
-    "Kelder",
-    "Garage"
-  ];
-
-  const calculateMaterialsWithAI = async () => {
-    if (!squareMeters || !projectType) {
+  const generateSuggestions = async () => {
+    if (!projectDescription.trim()) {
       toast({
-        title: "Incomplete gegevens",
-        description: "Vul alle vereiste velden in om de berekening uit te voeren.",
-        variant: "destructive"
+        title: "Fout",
+        description: "Voeg een projectbeschrijving toe",
+        variant: "destructive",
       });
       return;
     }
 
-    setIsCalculating(true);
+    setIsLoading(true);
     
-    try {
-      // Simulate AI calculation based on common construction standards
-      const materials = generateMaterialsBasedOnType(squareMeters, projectType, roomType);
-      setCalculatedMaterials(materials);
+    // Simulate AI processing
+    setTimeout(() => {
+      const mockSuggestions = [
+        "Cement: 25 zakken (25kg per zak) voor fundering en vloer",
+        "Baksteen: 2000 stuks rood metselwerk",
+        "Isolatiemateriaal: 50m² glaswol isolatie (10cm dik)",
+        "Dakpannen: 150 stuks betonnen dakpannen",
+        "Houten balken: 20 stuks 2x8 inch behandeld hout",
+        "Gipsplaten: 30 stuks 120x250cm voor binnenwanden",
+        "Elektrische bekabeling: 200m NYM-kabel 3x2.5mm²",
+        "Sanitair: Basis toilet, wasbak en douche set"
+      ];
+      
+      setSuggestions(mockSuggestions);
+      setIsLoading(false);
       
       toast({
-        title: "Berekening voltooid!",
-        description: `${materials.length} materialen berekend voor ${squareMeters}m²`,
+        title: "Succes",
+        description: "AI suggesties gegenereerd!",
       });
-    } catch (error) {
-      toast({
-        title: "Berekeningsfout",
-        description: "Er is een fout opgetreden bij het berekenen van de materialen.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCalculating(false);
-    }
-  };
-
-  const generateMaterialsBasedOnType = (m2: number, type: string, room: string): Material[] => {
-    const materials: Material[] = [];
-    
-    // Base calculations per project type
-    switch (type) {
-      case "Renovatie badkamer":
-        materials.push(
-          {
-            id: `ai-${Date.now()}-1`,
-            name: "Tegels vloer",
-            quantity: Math.ceil(m2 * 1.1), // 10% extra
-            unit: "m²",
-            category: "Afwerking",
-            estimatedCost: 25
-          },
-          {
-            id: `ai-${Date.now()}-2`,
-            name: "Tegels wand",
-            quantity: Math.ceil(m2 * 2.5), // walls
-            unit: "m²",
-            category: "Afwerking",
-            estimatedCost: 30
-          },
-          {
-            id: `ai-${Date.now()}-3`,
-            name: "Tegellijm",
-            quantity: Math.ceil(m2 * 0.5),
-            unit: "zakken",
-            category: "Bevestiging",
-            estimatedCost: 15
-          },
-          {
-            id: `ai-${Date.now()}-4`,
-            name: "Voegmortel",
-            quantity: Math.ceil(m2 * 0.2),
-            unit: "zakken",
-            category: "Afwerking",
-            estimatedCost: 12
-          }
-        );
-        break;
-
-      case "Vloervernieuwing":
-        materials.push(
-          {
-            id: `ai-${Date.now()}-1`,
-            name: "Laminaat/PVC",
-            quantity: Math.ceil(m2 * 1.1),
-            unit: "m²",
-            category: "Afwerking",
-            estimatedCost: 35
-          },
-          {
-            id: `ai-${Date.now()}-2`,
-            name: "Onderlaag",
-            quantity: Math.ceil(m2 * 1.05),
-            unit: "m²",
-            category: "Isolatie",
-            estimatedCost: 8
-          },
-          {
-            id: `ai-${Date.now()}-3`,
-            name: "Plinten",
-            quantity: Math.ceil(Math.sqrt(m2) * 4 * 1.1), // perimeter estimate
-            unit: "meter",
-            category: "Afwerking",
-            estimatedCost: 12
-          }
-        );
-        break;
-
-      case "Schilderwerk binnen":
-        const wallArea = m2 * 2.5; // estimate wall area
-        materials.push(
-          {
-            id: `ai-${Date.now()}-1`,
-            name: "Muurverf",
-            quantity: Math.ceil(wallArea / 10), // 1 liter per 10m²
-            unit: "liter",
-            category: "Afwerking",
-            estimatedCost: 18
-          },
-          {
-            id: `ai-${Date.now()}-2`,
-            name: "Primer",
-            quantity: Math.ceil(wallArea / 12),
-            unit: "liter",
-            category: "Afwerking",
-            estimatedCost: 22
-          },
-          {
-            id: `ai-${Date.now()}-3`,
-            name: "Kwast set",
-            quantity: 1,
-            unit: "stuks",
-            category: "Diversen",
-            estimatedCost: 35
-          },
-          {
-            id: `ai-${Date.now()}-4`,
-            name: "Roller set",
-            quantity: 1,
-            unit: "stuks",
-            category: "Diversen",
-            estimatedCost: 25
-          }
-        );
-        break;
-
-      case "Dakvernieuwing":
-        materials.push(
-          {
-            id: `ai-${Date.now()}-1`,
-            name: "Dakpannen",
-            quantity: Math.ceil(m2 * 12), // 12 pannen per m²
-            unit: "stuks",
-            category: "Dakbedekking",
-            estimatedCost: 1.2
-          },
-          {
-            id: `ai-${Date.now()}-2`,
-            name: "Daklatten",
-            quantity: Math.ceil(m2 * 2),
-            unit: "meter",
-            category: "Hout",
-            estimatedCost: 2.5
-          },
-          {
-            id: `ai-${Date.now()}-3`,
-            name: "Onderdakfolie",
-            quantity: Math.ceil(m2 * 1.1),
-            unit: "m²",
-            category: "Folie",
-            estimatedCost: 4.5
-          }
-        );
-        break;
-
-      default:
-        // Generic materials for other project types
-        materials.push(
-          {
-            id: `ai-${Date.now()}-1`,
-            name: "Basismateriaal",
-            quantity: Math.ceil(m2 * 1.1),
-            unit: "m²",
-            category: "Diversen",
-            estimatedCost: 20
-          }
-        );
-    }
-
-    return materials;
-  };
-
-  const handleAddAllMaterials = () => {
-    onAddMaterials(calculatedMaterials);
-    setCalculatedMaterials([]);
-    toast({
-      title: "Materialen toegevoegd!",
-      description: `${calculatedMaterials.length} materialen zijn toegevoegd aan de lijst.`,
-    });
+    }, 2000);
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
-          AI Materialen Calculator
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Input fields */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Oppervlakte (m²)</label>
-              <Input
-                type="number"
-                placeholder="Bijv. 25"
-                value={squareMeters || ''}
-                onChange={(e) => setSquareMeters(parseFloat(e.target.value) || 0)}
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">Project type</label>
-              <Select value={projectType} onValueChange={setProjectType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecteer project type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ruimte type (optioneel)</label>
-              <Select value={roomType} onValueChange={setRoomType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecteer ruimte" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roomTypes.map((room) => (
-                    <SelectItem key={room} value={room}>{room}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-blue-600" />
+            AI Materialen Calculator
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="description">Projectbeschrijving</Label>
+            <Textarea
+              id="description"
+              placeholder="Beschrijf je bouwproject in detail..."
+              value={projectDescription}
+              onChange={(e) => setProjectDescription(e.target.value)}
+              rows={3}
+            />
           </div>
-
-          {/* Calculate button */}
+          
+          <div>
+            <Label htmlFor="dimensions">Afmetingen (optioneel)</Label>
+            <Input
+              id="dimensions"
+              placeholder="bijv. 10m x 8m x 3m hoog"
+              value={roomDimensions}
+              onChange={(e) => setRoomDimensions(e.target.value)}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="requirements">Aanvullende eisen</Label>
+            <Textarea
+              id="requirements"
+              placeholder="Specifieke materiaalwensen, budget, tijdslijn..."
+              value={additionalRequirements}
+              onChange={(e) => setAdditionalRequirements(e.target.value)}
+              rows={2}
+            />
+          </div>
+          
           <Button 
-            onClick={calculateMaterialsWithAI} 
-            disabled={isCalculating || !squareMeters || !projectType}
-            className="w-full md:w-auto"
+            onClick={generateSuggestions}
+            disabled={isLoading}
+            className="w-full"
           >
-            {isCalculating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Berekenen...
-              </>
-            ) : (
-              <>
-                <Calculator className="w-4 h-4 mr-2" />
-                Bereken Materialen
-              </>
-            )}
+            <Calculator className="w-4 h-4 mr-2" />
+            {isLoading ? "Genereren..." : "Genereer AI Suggesties"}
           </Button>
+        </CardContent>
+      </Card>
 
-          {/* Results */}
-          {calculatedMaterials.length > 0 && (
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">Berekende Materialen ({calculatedMaterials.length})</h4>
-                <Button onClick={handleAddAllMaterials} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Alle toevoegen
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                {calculatedMaterials.map((material) => (
-                  <div key={material.id} className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{material.name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {material.category}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {material.quantity} {material.unit} × €{material.estimatedCost?.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">
-                          €{((material.estimatedCost || 0) * material.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Totaal geschatte kosten:</span>
-                  <span className="text-lg font-bold text-green-700">
-                    €{calculatedMaterials.reduce((total, material) => 
-                      total + (material.estimatedCost || 0) * material.quantity, 0
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      {suggestions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-yellow-600" />
+              AI Materiaal Suggesties
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {suggestions.map((suggestion, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
+                  <span className="text-sm">{suggestion}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
-}
+};
+
+export default AIMaterialsCalculator;
