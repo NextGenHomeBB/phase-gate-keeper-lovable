@@ -21,6 +21,7 @@ import { projectService } from "@/services/projectService";
 import { ProjectMaterialsList } from "./materials/ProjectMaterialsList";
 import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
 import { PhaseLegend } from "./phase/PhaseLegend";
+import { KanbanView } from "./phase/KanbanView";
 
 interface ProjectDetailProps {
   project: Project;
