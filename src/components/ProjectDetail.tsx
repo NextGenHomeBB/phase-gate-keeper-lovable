@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Kanban } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -43,6 +44,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("phases");
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState("");
@@ -422,158 +424,182 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="phases" className="space-y-6">
-          {/* Phase Legend */}
+          {/* Phase Legend and Header */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
               <PhaseLegend compact />
             </div>
             <div className="lg:col-span-3">
-              {/* Enhanced Add Phase Button */}
+              {/* Enhanced Add Phase Button with View Toggle */}
               <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100 border-2 border-indigo-200 rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
                     <h3 className="text-xl font-bold text-indigo-900 mb-1">Projectfases Beheren</h3>
                     <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
                   </div>
-                  <Button 
-                    onClick={handleAddPhase} 
-                    size="lg"
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Nieuwe Fase Toevoegen
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    {/* View Toggle */}
+                    <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
+                      <ToggleGroupItem value="grid" aria-label="Grid weergave">
+                        <Grid2X2 className="w-4 h-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="kanban" aria-label="Kanban weergave">
+                        <Kanban className="w-4 h-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                    
+                    <Button 
+                      onClick={handleAddPhase} 
+                      size="lg"
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Nieuwe Fase Toevoegen
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Enhanced Phase Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {project.phases.map((phase, index) => {
-              const PhaseIcon = getPhaseIcon(index);
-              const progress = getPhaseProgress(phase);
-              const progressColor = getPhaseProgressColor(progress);
-              const isEditing = editingPhaseId === phase.id;
-              const phaseStatus = getPhaseStatus(phase);
-              
-              return (
-                <Card 
-                  key={phase.id} 
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
-                  onClick={() => !isEditing && handlePhaseClick(phase)}
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-bold flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-white/60 backdrop-blur-sm">
-                          <PhaseIcon className="w-5 h-5 text-gray-700" />
+          {/* Conditional View Rendering */}
+          {viewMode === 'kanban' ? (
+            <KanbanView
+              phases={project.phases}
+              onPhaseClick={handlePhaseClick}
+              onEditPhaseName={handleEditPhaseName}
+              onDeletePhase={handleDeletePhase}
+              getPhaseProgress={getPhaseProgress}
+              getPhaseStatus={getPhaseStatus}
+            />
+          ) : (
+            {/* Enhanced Phase Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {project.phases.map((phase, index) => {
+                const PhaseIcon = getPhaseIcon(index);
+                const progress = getPhaseProgress(phase);
+                const progressColor = getPhaseProgressColor(progress);
+                const isEditing = editingPhaseId === phase.id;
+                const phaseStatus = getPhaseStatus(phase);
+                
+                return (
+                  <Card 
+                    key={phase.id} 
+                    className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
+                    onClick={() => !isEditing && handlePhaseClick(phase)}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-bold flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-white/60 backdrop-blur-sm">
+                            <PhaseIcon className="w-5 h-5 text-gray-700" />
+                          </div>
+                          <div className="flex flex-col">
+                            {isEditing ? (
+                              <Input
+                                value={editingPhaseName}
+                                onChange={(e) => setEditingPhaseName(e.target.value)}
+                                onKeyDown={(e) => handlePhaseNameKeyDown(e, phase.id)}
+                                onBlur={() => handleSavePhaseName(phase.id)}
+                                className="text-sm font-bold bg-white/80 border-blue-300 focus:border-blue-500"
+                                autoFocus
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            ) : (
+                              <span className="text-gray-800 leading-tight">{phase.name}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          {isEditing ? (
-                            <Input
-                              value={editingPhaseName}
-                              onChange={(e) => setEditingPhaseName(e.target.value)}
-                              onKeyDown={(e) => handlePhaseNameKeyDown(e, phase.id)}
-                              onBlur={() => handleSavePhaseName(phase.id)}
-                              className="text-sm font-bold bg-white/80 border-blue-300 focus:border-blue-500"
-                              autoFocus
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          ) : (
-                            <span className="text-gray-800 leading-tight">{phase.name}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditPhaseName(phase);
-                          }}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Palette className="w-4 h-4" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-80">
-                            <div className="space-y-3">
-                              <h4 className="font-medium">Kies een kleur</h4>
-                              <div className="grid grid-cols-5 gap-2">
-                                {pastelColors.map((colorClass, colorIndex) => (
-                                  <Button
-                                    key={colorIndex}
-                                    variant="outline"
-                                    size="sm"
-                                    className={`h-8 w-8 p-0 ${colorClass.split(' ').slice(0, 2).join(' ')} hover:scale-110 transition-transform border-2`}
-                                    onClick={() => handleColorChange(phase.id, colorIndex)}
-                                  />
-                                ))}
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditPhaseName(phase);
+                            }}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Palette className="w-4 h-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                              <div className="space-y-3">
+                                <h4 className="font-medium">Kies een kleur</h4>
+                                <div className="grid grid-cols-5 gap-2">
+                                  {pastelColors.map((colorClass, colorIndex) => (
+                                    <Button
+                                      key={colorIndex}
+                                      variant="outline"
+                                      size="sm"
+                                      className={`h-8 w-8 p-0 ${colorClass.split(' ').slice(0, 2).join(' ')} hover:scale-110 transition-transform border-2`}
+                                      onClick={() => handleColorChange(phase.id, colorIndex)}
+                                    />
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-red-100 text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-110"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePhase(phase.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 pt-0">
-                    <p className="text-gray-700 text-sm line-clamp-2 leading-relaxed">{phase.description}</p>
-                    
-                    {/* Enhanced Progress Section */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 font-medium">Voortgang</span>
-                        <span className={`font-bold ${progressColor}`}>{progress.toFixed(0)}%</span>
-                      </div>
-                      <div className="relative">
-                        <Progress value={progress} className="h-2.5" />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>{phase.checklist.filter(item => item.completed).length} voltooid</span>
-                          <span>{phase.checklist.length} totaal</span>
+                            </PopoverContent>
+                          </Popover>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-red-100 text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePhase(phase.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-0">
+                      <p className="text-gray-700 text-sm line-clamp-2 leading-relaxed">{phase.description}</p>
+                      
+                      {/* Enhanced Progress Section */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 font-medium">Voortgang</span>
+                          <span className={`font-bold ${progressColor}`}>{progress.toFixed(0)}%</span>
+                        </div>
+                        <div className="relative">
+                          <Progress value={progress} className="h-2.5" />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>{phase.checklist.filter(item => item.completed).length} voltooid</span>
+                            <span>{phase.checklist.length} totaal</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Enhanced Status Badges - Updated to use new PhaseBadge */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-2">
-                        <PhaseBadge status={phaseStatus} size="sm" />
-                      </div>
-                      {phase.locked && (
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-50 text-orange-700 border-orange-200">
-                          <Lock className="w-3 h-3 mr-1" />
-                          Vergrendeld
+                      {/* Enhanced Status Badges - Updated to use new PhaseBadge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          <PhaseBadge status={phaseStatus} size="sm" />
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        {phase.locked && (
+                          <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-50 text-orange-700 border-orange-200">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Vergrendeld
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-4">
