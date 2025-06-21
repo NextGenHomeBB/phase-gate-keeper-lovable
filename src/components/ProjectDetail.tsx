@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -473,7 +474,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               getPhaseStatus={getPhaseStatus}
             />
           ) : (
-            {/* Enhanced Phase Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {project.phases.map((phase, index) => {
                 const PhaseIcon = getPhaseIcon(index);
