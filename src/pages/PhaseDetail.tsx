@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -304,6 +303,54 @@ export default function PhaseDetail() {
     }
   };
 
+  const handlePhaseStatusChange = async (phaseId: number, status: PhaseStatus) => {
+    if (!project) return;
+
+    try {
+      // Map status to existing phase properties for backward compatibility
+      const updates: any = {};
+      
+      if (status === "done") {
+        updates.completed = true;
+        updates.locked = false;
+      } else if (status === "queued") {
+        updates.completed = false;
+        updates.locked = true;
+      } else {
+        updates.completed = false;
+        updates.locked = false;
+      }
+
+      await projectService.updateProjectPhase(project.id, phaseId, updates);
+      
+      const updatedPhases = project.phases.map(p => {
+        if (p.id === phaseId) {
+          return { ...p, ...updates };
+        }
+        return p;
+      });
+
+      const updatedProject = { ...project, phases: updatedPhases };
+      setProject(updatedProject);
+      
+      // Update the current phase state
+      const updatedPhase = updatedPhases.find(p => p.id === phaseId);
+      setPhase(updatedPhase || null);
+      
+      toast({
+        title: "Phase status updated",
+        description: `Phase status has been changed.`,
+      });
+    } catch (error) {
+      console.error('Error updating phase status:', error);
+      toast({
+        title: "Error",
+        description: "Could not update phase status.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getPhaseProgress = (phase: Phase) => {
     const completedItems = phase.checklist.filter(item => item.completed).length;
     const totalItems = phase.checklist.length;
@@ -353,6 +400,7 @@ export default function PhaseDetail() {
         progress={progress}
         onPhaseCompletionToggle={handlePhaseCompletionToggle}
         onPhaseLockToggle={handlePhaseLockToggle}
+        onPhaseStatusChange={handlePhaseStatusChange}
       />
 
       {/* Phase Content */}

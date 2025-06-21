@@ -13,6 +13,7 @@ interface PhaseHeaderProps {
   progress: number;
   onPhaseCompletionToggle: (phaseId: number, completed: boolean) => void;
   onPhaseLockToggle: (phaseId: number, locked: boolean) => void;
+  onPhaseStatusChange?: (phaseId: number, status: PhaseStatus) => void;
 }
 
 // Helper function to determine phase status based on existing Phase properties
@@ -29,10 +30,17 @@ export function PhaseHeader({
   phase, 
   progress, 
   onPhaseCompletionToggle, 
-  onPhaseLockToggle 
+  onPhaseLockToggle,
+  onPhaseStatusChange
 }: PhaseHeaderProps) {
   const { t } = useLanguage();
   const phaseStatus = getPhaseStatus(phase);
+
+  const handleStatusChange = (newStatus: PhaseStatus) => {
+    if (onPhaseStatusChange) {
+      onPhaseStatusChange(phase.id, newStatus);
+    }
+  };
 
   return (
     <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
@@ -99,9 +107,14 @@ export function PhaseHeader({
           </div>
         </div>
 
-        {/* Status Badge - Updated to use new PhaseBadge */}
+        {/* Status Badge - Now editable */}
         <div className="flex items-center gap-2">
-          <PhaseBadge status={phaseStatus} size="md" />
+          <PhaseBadge 
+            status={phaseStatus} 
+            size="md" 
+            editable={true}
+            onStatusChange={handleStatusChange}
+          />
           {phase.locked && (
             <div className="ml-2 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-50 text-orange-700 border-orange-200">
               <Lock className="w-3 h-3 mr-1" />
