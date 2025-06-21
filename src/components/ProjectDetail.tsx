@@ -19,11 +19,23 @@ import { ConstructionDrawings } from "./ConstructionDrawings";
 import { HomeStyleAI } from "./HomeStyleAI";
 import { projectService } from "@/services/projectService";
 import { ProjectMaterialsList } from "./materials/ProjectMaterialsList";
+import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
+import { PhaseLegend } from "./phase/PhaseLegend";
 
 interface ProjectDetailProps {
   project: Project;
   onUpdateProject: (project: Project) => void;
   onBack: () => void;
+}
+
+// Helper function to determine phase status based on existing Phase properties
+function getPhaseStatus(phase: Phase): PhaseStatus {
+  if (phase.completed) return "done";
+  if (phase.locked) return "queued";
+  // Check if phase has any special indicators (you can customize this logic)
+  const hasSpecialTasks = phase.checklist.some(item => item.description.toLowerCase().includes('special') || item.description.toLowerCase().includes('help'));
+  if (hasSpecialTasks) return "special";
+  return "active";
 }
 
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
@@ -409,21 +421,29 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="phases" className="space-y-6">
-          {/* Enhanced Add Phase Button */}
-          <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100 border-2 border-indigo-200 rounded-xl p-6 shadow-sm">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-indigo-900 mb-1">Projectfases Beheren</h3>
-                <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
+          {/* Phase Legend */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
+              <PhaseLegend compact />
+            </div>
+            <div className="lg:col-span-3">
+              {/* Enhanced Add Phase Button */}
+              <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100 border-2 border-indigo-200 rounded-xl p-6 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-indigo-900 mb-1">Projectfases Beheren</h3>
+                    <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
+                  </div>
+                  <Button 
+                    onClick={handleAddPhase} 
+                    size="lg"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Nieuwe Fase Toevoegen
+                  </Button>
+                </div>
               </div>
-              <Button 
-                onClick={handleAddPhase} 
-                size="lg"
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Nieuwe Fase Toevoegen
-              </Button>
             </div>
           </div>
           
@@ -434,6 +454,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               const progress = getPhaseProgress(phase);
               const progressColor = getPhaseProgressColor(progress);
               const isEditing = editingPhaseId === phase.id;
+              const phaseStatus = getPhaseStatus(phase);
               
               return (
                 <Card 
@@ -460,12 +481,6 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             />
                           ) : (
                             <span className="text-gray-800 leading-tight">{phase.name}</span>
-                          )}
-                          {phase.completed && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <CheckCircle className="w-3 h-3 text-green-600" />
-                              <span className="text-xs text-green-700 font-medium">Voltooid</span>
-                            </div>
                           )}
                         </div>
                       </div>
@@ -541,26 +556,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </div>
                     </div>
 
-                    {/* Enhanced Status Badges */}
+                    {/* Enhanced Status Badges - Updated to use new PhaseBadge */}
                     <div className="flex items-center justify-between">
                       <div className="flex gap-2">
-                        {phase.completed ? (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Voltooid
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-                            <Clock className="w-3 h-3 mr-1" />
-                            Actief
-                          </Badge>
-                        )}
+                        <PhaseBadge status={phaseStatus} size="sm" />
                       </div>
                       {phase.locked && (
-                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-50 text-orange-700 border-orange-200">
                           <Lock className="w-3 h-3 mr-1" />
                           Vergrendeld
-                        </Badge>
+                        </div>
                       )}
                     </div>
                   </CardContent>

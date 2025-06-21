@@ -2,17 +2,27 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Lock } from "lucide-react";
 import { Phase } from "@/pages/Index";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PhaseBadge, PhaseStatus } from "./PhaseBadge";
 
 interface PhaseHeaderProps {
   phase: Phase;
   progress: number;
   onPhaseCompletionToggle: (phaseId: number, completed: boolean) => void;
   onPhaseLockToggle: (phaseId: number, locked: boolean) => void;
+}
+
+// Helper function to determine phase status based on existing Phase properties
+function getPhaseStatus(phase: Phase): PhaseStatus {
+  if (phase.completed) return "done";
+  if (phase.locked) return "queued";
+  // Check if phase has any special indicators (you can customize this logic)
+  const hasSpecialTasks = phase.checklist.some(item => item.description.toLowerCase().includes('special') || item.description.toLowerCase().includes('help'));
+  if (hasSpecialTasks) return "special";
+  return "active";
 }
 
 export function PhaseHeader({ 
@@ -22,6 +32,7 @@ export function PhaseHeader({
   onPhaseLockToggle 
 }: PhaseHeaderProps) {
   const { t } = useLanguage();
+  const phaseStatus = getPhaseStatus(phase);
 
   return (
     <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
@@ -88,24 +99,14 @@ export function PhaseHeader({
           </div>
         </div>
 
-        {/* Status Badges */}
+        {/* Status Badge - Updated to use new PhaseBadge */}
         <div className="flex items-center gap-2">
-          {phase.completed ? (
-            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Completed
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-              <Clock className="w-3 h-3 mr-1" />
-              Active
-            </Badge>
-          )}
+          <PhaseBadge status={phaseStatus} size="md" />
           {phase.locked && (
-            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+            <div className="ml-2 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-orange-50 text-orange-700 border-orange-200">
               <Lock className="w-3 h-3 mr-1" />
               Locked
-            </Badge>
+            </div>
           )}
         </div>
       </CardContent>
