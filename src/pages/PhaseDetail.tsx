@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Project, Phase } from "@/pages/Index";
 import { ProjectDetailMaterials } from "@/components/ProjectDetailMaterials";
 import { PhaseHeader } from "@/components/phase/PhaseHeader";
 import { PhaseChecklist } from "@/components/phase/PhaseChecklist";
+import { PhaseStatus } from "@/components/phase/PhaseBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { projectService } from "@/services/projectService";
