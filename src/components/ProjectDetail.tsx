@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,6 +48,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState("");
+  const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const { toast } = useToast();
 
   // Lighter pastel color classes for phase cards
@@ -110,10 +110,22 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       ...prev,
       [phaseId]: colorIndex
     }));
+    // Close the popover after selection
+    setColorPopoverOpen(prev => ({
+      ...prev,
+      [phaseId]: false
+    }));
     toast({
       title: "Kleur bijgewerkt",
       description: "De fase kleur is succesvol gewijzigd.",
     });
+  };
+
+  const handleColorPopoverToggle = (phaseId: number, open: boolean) => {
+    setColorPopoverOpen(prev => ({
+      ...prev,
+      [phaseId]: open
+    }));
   };
 
   const handlePhaseClick = (phase: Phase) => {
@@ -481,6 +493,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 const progressColor = getPhaseProgressColor(progress);
                 const isEditing = editingPhaseId === phase.id;
                 const phaseStatus = getPhaseStatus(phase);
+                const currentColorIndex = customColors[phase.id] !== undefined ? customColors[phase.id] : index % pastelColors.length;
                 
                 return (
                   <Card 
@@ -522,7 +535,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Popover>
+                          <Popover 
+                            open={colorPopoverOpen[phase.id] || false}
+                            onOpenChange={(open) => handleColorPopoverToggle(phase.id, open)}
+                          >
                             <PopoverTrigger asChild>
                               <Button
                                 variant="ghost"
@@ -533,7 +549,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                 <Palette className="w-4 h-4" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-80">
+                            <PopoverContent className="w-80 bg-white border-gray-200 shadow-lg z-50">
                               <div className="space-y-3">
                                 <h4 className="font-medium">Kies een kleur</h4>
                                 <div className="grid grid-cols-5 gap-2">
@@ -542,9 +558,18 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                                       key={colorIndex}
                                       variant="outline"
                                       size="sm"
-                                      className={`h-8 w-8 p-0 ${colorClass.split(' ').slice(0, 2).join(' ')} hover:scale-110 transition-transform border-2`}
-                                      onClick={() => handleColorChange(phase.id, colorIndex)}
-                                    />
+                                      className={`h-10 w-10 p-0 ${colorClass.split(' ').slice(0, 2).join(' ')} hover:scale-110 transition-transform border-2 ${
+                                        currentColorIndex === colorIndex ? 'ring-2 ring-blue-500 border-blue-500' : ''
+                                      }`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleColorChange(phase.id, colorIndex);
+                                      }}
+                                    >
+                                      {currentColorIndex === colorIndex && (
+                                        <CheckCircle className="w-4 h-4 text-blue-600" />
+                                      )}
+                                    </Button>
                                   ))}
                                 </div>
                               </div>
