@@ -512,5 +512,24 @@ export const projectService = {
       console.error('Error updating project:', error);
       throw error;
     }
+  },
+
+  async deleteProject(projectId: string): Promise<void> {
+    // Get current user for authorization check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
+    // Delete the project (CASCADE should handle related data)
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      throw error;
+    }
   }
 };

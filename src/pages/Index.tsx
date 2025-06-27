@@ -133,6 +133,30 @@ const Index = () => {
     }
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await projectService.deleteProject(projectId);
+      setProjects(projects.filter(p => p.id !== projectId));
+      
+      // If the deleted project was selected, clear the selection
+      if (selectedProject?.id === projectId) {
+        setSelectedProject(null);
+      }
+      
+      toast({
+        title: t('project.deleted'),
+        description: t('project.deleteSuccess'),
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: t('common.error'),
+        description: t('project.deleteError'),
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleReorderProjects = async (reorderedProjects: Project[]) => {
     try {
       setProjects(reorderedProjects);
@@ -222,6 +246,7 @@ const Index = () => {
           onSelectProject={setSelectedProject} 
           onAddProject={handleAddProject}
           onUpdateProject={updateProject}
+          onDeleteProject={handleDeleteProject}
           onReorderProjects={handleReorderProjects}
           loading={projectsLoading}
           canAddProjects={isAdmin()}
