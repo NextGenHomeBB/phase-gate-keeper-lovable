@@ -24,6 +24,7 @@ import { ProjectMaterialsList } from "./materials/ProjectMaterialsList";
 import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
 import { PhaseLegend } from "./phase/PhaseLegend";
 import { KanbanView } from "./phase/KanbanView";
+import { ProjectTeamManager } from "./ProjectTeamManager";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editingPhaseDescription, setEditingPhaseDescription] = useState("");
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [teamMembersCount, setTeamMembersCount] = useState(project.teamMembers.length);
   const { toast } = useToast();
 
   // Load phase colors from the database when project loads
@@ -439,6 +441,17 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleTeamMembersChange = async () => {
+    try {
+      // Reload the project to get updated team members
+      const updatedProject = await projectService.getProject(project.id);
+      onUpdateProject(updatedProject);
+      setTeamMembersCount(updatedProject.teamMembers.length);
+    } catch (error) {
+      console.error('Error reloading project team members:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Name Header */}
@@ -530,9 +543,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <CardTitle className="text-lg font-semibold">Team Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-gray-700">
-              <Users className="w-4 h-4 mr-2 inline-block" />
-              {project.teamMembers.length} {t('projectDetail.members')}
+            <div className="space-y-3">
+              <div className="text-gray-700">
+                <Users className="w-4 h-4 mr-2 inline-block" />
+                {teamMembersCount} {t('projectDetail.members')}
+              </div>
+              <ProjectTeamManager 
+                projectId={project.id}
+                onTeamMembersChange={handleTeamMembersChange}
+              />
             </div>
           </CardContent>
         </Card>
