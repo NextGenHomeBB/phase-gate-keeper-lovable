@@ -226,7 +226,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             required: true
           }
         ],
-        materials: []
+        materials: [],
+        labour: []
       };
 
       const updatedProject = {

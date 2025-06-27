@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Project } from '@/pages/Index';
 import { TeamMember } from '@/components/TeamPage';
@@ -51,7 +52,8 @@ export const secureProjectService = {
             completed: i < (project.current_phase || 1) - 1,
             locked: i >= (project.current_phase || 1),
             checklist: getPhaseChecklist(i + 1),
-            materials: []
+            materials: [],
+            labour: []
           }))
         };
       })
@@ -145,7 +147,8 @@ export const secureProjectService = {
         completed: i < (data.current_phase || 1) - 1,
         locked: i >= (data.current_phase || 1),
         checklist: getPhaseChecklist(i + 1),
-        materials: []
+        materials: [],
+        labour: []
       }))
     };
   },
