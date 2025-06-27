@@ -45,11 +45,24 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("phases");
   const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
-  const [customColors, setCustomColors] = useState<{[phaseId: number]: number}>({});
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState("");
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const { toast } = useToast();
+
+  // Load phase colors from the database when project loads
+  useEffect(() => {
+    const loadPhaseColors = async () => {
+      try {
+        const phases = await projectService.fetchProjectPhases(project.id);
+        console.log('Loaded phases with colors:', phases);
+      } catch (error) {
+        console.error('Error loading phase colors:', error);
+      }
+    };
+
+    loadPhaseColors();
+  }, [project.id]);
 
   // Lighter pastel color classes for phase cards
   const pastelColors = [
@@ -87,7 +100,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const getPhaseColor = (phase: Phase, index: number) => {
-    const colorIndex = customColors[phase.id] !== undefined ? customColors[phase.id] : index % pastelColors.length;
+    // Use the color_index from the phase if it exists, otherwise use the default index
+    const colorIndex = phase.color_index !== null && phase.color_index !== undefined 
+      ? phase.color_index 
+      : index % pastelColors.length;
     return pastelColors[colorIndex];
   };
 
@@ -105,20 +121,41 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     return "text-red-500";
   };
 
-  const handleColorChange = (phaseId: number, colorIndex: number) => {
-    setCustomColors(prev => ({
-      ...prev,
-      [phaseId]: colorIndex
-    }));
-    // Close the popover after selection
-    setColorPopoverOpen(prev => ({
-      ...prev,
-      [phaseId]: false
-    }));
-    toast({
-      title: "Kleur bijgewerkt",
-      description: "De fase kleur is succesvol gewijzigd.",
-    });
+  const handleColorChange = async (phaseId: number, colorIndex: number) => {
+    try {
+      // Update the color in the database
+      await projectService.updateProjectPhase(project.id, phaseId, { 
+        color_index: colorIndex 
+      });
+
+      // Update the local project state
+      const updatedPhases = project.phases.map(phase => 
+        phase.id === phaseId 
+          ? { ...phase, color_index: colorIndex }
+          : phase
+      );
+      
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      // Close the popover after selection
+      setColorPopoverOpen(prev => ({
+        ...prev,
+        [phaseId]: false
+      }));
+      
+      toast({
+        title: "Kleur bijgewerkt",
+        description: "De fase kleur is succesvol gewijzigd en opgeslagen.",
+      });
+    } catch (error) {
+      console.error('Error updating phase color:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase kleur niet bijwerken.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleColorPopoverToggle = (phaseId: number, open: boolean) => {
@@ -493,7 +530,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 const progressColor = getPhaseProgressColor(progress);
                 const isEditing = editingPhaseId === phase.id;
                 const phaseStatus = getPhaseStatus(phase);
-                const currentColorIndex = customColors[phase.id] !== undefined ? customColors[phase.id] : index % pastelColors.length;
+                const currentColorIndex = phase.color_index !== null && phase.color_index !== undefined 
+                  ? phase.color_index 
+                  : index % pastelColors.length;
                 
                 return (
                   <Card 

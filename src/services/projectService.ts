@@ -32,6 +32,7 @@ export interface DatabasePhase {
   description: string | null;
   completed: boolean;
   locked: boolean;
+  color_index: number;
   created_at: string;
   updated_at: string;
 }
@@ -131,6 +132,7 @@ export const projectService = {
               description: phase.description || '',
               completed: phase.completed,
               locked: phase.locked,
+              color_index: phase.color_index,
               checklist: checklist,
               materials: materialsByPhase[phase.phase_number] || []
             };
@@ -173,6 +175,7 @@ export const projectService = {
           description: phase.description || '',
           completed: phase.completed,
           locked: phase.locked,
+          color_index: phase.color_index,
           checklist: checklist,
           materials: materialsByPhase[phase.phase_number] || []
         };
@@ -354,6 +357,7 @@ export const projectService = {
     description: string;
     completed: boolean;
     locked: boolean;
+    color_index: number;
   }>): Promise<void> {
     const { error } = await supabase
       .from('project_phases')

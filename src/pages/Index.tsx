@@ -36,10 +36,11 @@ export interface Phase {
   id: number;
   name: string;
   description: string;
-  checklist: ChecklistItem[];
-  materials: Material[];
   completed: boolean;
   locked: boolean;
+  color_index?: number | null; // Add color_index field
+  checklist: ChecklistItem[];
+  materials: Material[];
 }
 
 export interface Project {

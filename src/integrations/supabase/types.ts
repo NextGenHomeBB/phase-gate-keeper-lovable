@@ -206,6 +206,7 @@ export type Database = {
       }
       project_phases: {
         Row: {
+          color_index: number | null
           completed: boolean
           created_at: string
           description: string | null
@@ -217,6 +218,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          color_index?: number | null
           completed?: boolean
           created_at?: string
           description?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          color_index?: number | null
           completed?: boolean
           created_at?: string
           description?: string | null
