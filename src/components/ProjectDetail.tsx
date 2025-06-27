@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ArrowLeft, Calendar, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Kanban } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Kanban } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -24,6 +25,8 @@ import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
 import { PhaseLegend } from "./phase/PhaseLegend";
 import { KanbanView } from "./phase/KanbanView";
 import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface ProjectDetailProps {
   project: Project;
@@ -51,6 +54,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editingPhaseDescriptionId, setEditingPhaseDescriptionId] = useState<number | null>(null);
   const [editingPhaseDescription, setEditingPhaseDescription] = useState("");
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { toast } = useToast();
 
   // Load phase colors from the database when project loads
@@ -405,6 +409,36 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleStartDateChange = async (date: Date | undefined) => {
+    if (!date) return;
+
+    try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      
+      // Update project in database
+      const updatedProject = { ...project, startDate: formattedDate };
+      await projectService.updateProject(updatedProject);
+      
+      // Update local state
+      onUpdateProject(updatedProject);
+      
+      // Close the date picker
+      setIsDatePickerOpen(false);
+      
+      toast({
+        title: "Startdatum bijgewerkt",
+        description: "De project startdatum is succesvol gewijzigd.",
+      });
+    } catch (error) {
+      console.error('Error updating start date:', error);
+      toast({
+        title: "Fout",
+        description: "Kon startdatum niet bijwerken.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Name Header */}
@@ -465,10 +499,29 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <CardTitle className="text-lg font-semibold">{t('projectDetail.startDate')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-gray-700">
-              <Calendar className="w-4 h-4 mr-2 inline-block" />
-              {new Date(project.startDate).toLocaleDateString()}
-            </div>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start text-left font-normal p-0 h-auto text-gray-700 hover:text-gray-900 hover:bg-gray-50",
+                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md"
+                  )}
+                >
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  {format(new Date(project.startDate), "dd/MM/yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={new Date(project.startDate)}
+                  onSelect={handleStartDateChange}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </CardContent>
         </Card>
 
@@ -521,6 +574,47 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             </CardHeader>
             <CardContent>
               <p className="text-gray-700">{project.description}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Project Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Startdatum</label>
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal mt-1",
+                          "hover:bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        )}
+                      >
+                        <CalendarIcon className="w-4 h-4 mr-2 text-gray-500" />
+                        {format(new Date(project.startDate), "dd MMMM yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(project.startDate)}
+                        onSelect={handleStartDateChange}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Huidige Fase</label>
+                  <div className="mt-1 text-gray-900 font-medium">
+                    Fase {project.currentPhase}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
           <Card>
