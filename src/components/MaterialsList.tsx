@@ -7,6 +7,7 @@ import { MaterialsHeader } from "./materials/MaterialsHeader";
 import { MaterialsContent } from "./materials/MaterialsContent";
 import { MaterialForm } from "./materials/MaterialForm";
 import { ManualMaterialForm } from "./materials/ManualMaterialForm";
+import { LabourList } from "./labour/LabourList";
 import { useMaterials } from "@/hooks/useMaterials";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -110,12 +111,25 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Materials Section */}
       <Card>
         <CardHeader>
           <MaterialsHeader
@@ -159,6 +173,13 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
           </div>
         </CardContent>
       </Card>
+
+      {/* Labour Section */}
+      <LabourList
+        projectId={projectId}
+        phaseId={phaseId}
+        readOnly={readOnly}
+      />
     </div>
   );
 }

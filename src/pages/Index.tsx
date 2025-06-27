@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -34,6 +35,15 @@ export interface Material {
   vatPercentage?: number;
 }
 
+export interface Labour {
+  id: string;
+  task: string;
+  hours: number;
+  hourlyRate: number;
+  costPerJob: number;
+  billPerHour: boolean;
+}
+
 export interface Phase {
   id: number;
   name: string;
@@ -43,6 +53,7 @@ export interface Phase {
   color_index?: number | null; // Add color_index field
   checklist: ChecklistItem[];
   materials: Material[];
+  labour: Labour[];
 }
 
 export interface Project {

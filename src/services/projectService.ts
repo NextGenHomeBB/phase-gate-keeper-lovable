@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Project, Phase, ChecklistItem, Material } from "@/pages/Index";
+import { Project, Phase, ChecklistItem, Material, Labour } from "@/pages/Index";
 import { TeamMember } from "@/components/TeamPage";
 import { materialService } from "./materialService";
+import { labourService } from "./labourService";
 
 function getPhaseChecklist(phaseNumber: number): ChecklistItem[] {
   const baseItems = ["Alle stakeholders geïnformeerd", "Documentatie bijgewerkt", "Kwaliteitscontrole uitgevoerd", "Deliverables goedgekeurd door projectleider"];
@@ -110,11 +111,12 @@ export const projectService = {
       throw error;
     }
 
-    // For each project, fetch associated team members, materials, and phases
+    // For each project, fetch associated team members, materials, labour, and phases
     const projectsWithData = await Promise.all(
       (data || []).map(async (project) => {
         const teamMembers = await this.fetchProjectTeamMembers(project.id);
         const materialsByPhase = await materialService.fetchAllMaterialsForProject(project.id);
+        const labourByPhase = await labourService.fetchAllLabourForProject(project.id);
         const phases = await this.fetchProjectPhases(project.id);
         
         return {
@@ -134,7 +136,8 @@ export const projectService = {
               locked: phase.locked,
               color_index: phase.color_index,
               checklist: checklist,
-              materials: materialsByPhase[phase.phase_number] || []
+              materials: materialsByPhase[phase.phase_number] || [],
+              labour: labourByPhase[phase.phase_number] || []
             };
           }))
         };
@@ -158,6 +161,7 @@ export const projectService = {
 
     const teamMembers = await this.fetchProjectTeamMembers(projectId);
     const materialsByPhase = await materialService.fetchAllMaterialsForProject(projectId);
+    const labourByPhase = await labourService.fetchAllLabourForProject(projectId);
     const phases = await this.fetchProjectPhases(projectId);
     
     return {
@@ -177,7 +181,8 @@ export const projectService = {
           locked: phase.locked,
           color_index: phase.color_index,
           checklist: checklist,
-          materials: materialsByPhase[phase.phase_number] || []
+          materials: materialsByPhase[phase.phase_number] || [],
+          labour: labourByPhase[phase.phase_number] || []
         };
       }))
     };
@@ -492,7 +497,8 @@ export const projectService = {
         completed: false,
         locked: index > 0,
         checklist: getPhaseChecklist(index + 1),
-        materials: []
+        materials: [],
+        labour: []
       }))
     };
   },

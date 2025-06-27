@@ -151,6 +151,48 @@ export type Database = {
           },
         ]
       }
+      project_labour: {
+        Row: {
+          bill_per_hour: boolean
+          cost_per_job: number | null
+          created_at: string
+          created_by: string | null
+          hourly_rate: number | null
+          hours: number | null
+          id: string
+          phase_id: number
+          project_id: string
+          task: string
+          updated_at: string
+        }
+        Insert: {
+          bill_per_hour?: boolean
+          cost_per_job?: number | null
+          created_at?: string
+          created_by?: string | null
+          hourly_rate?: number | null
+          hours?: number | null
+          id?: string
+          phase_id: number
+          project_id: string
+          task: string
+          updated_at?: string
+        }
+        Update: {
+          bill_per_hour?: boolean
+          cost_per_job?: number | null
+          created_at?: string
+          created_by?: string | null
+          hourly_rate?: number | null
+          hours?: number | null
+          id?: string
+          phase_id?: number
+          project_id?: string
+          task?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_materials: {
         Row: {
           category: string
