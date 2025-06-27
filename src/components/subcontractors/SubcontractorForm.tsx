@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Subcontractor } from "@/services/subcontractorService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SubcontractorFormProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export function SubcontractorForm({
   initialData, 
   title 
 }: SubcontractorFormProps) {
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     name: '',
     trade_specialty: '',
@@ -81,10 +83,10 @@ export function SubcontractorForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`${isMobile ? 'sm:max-w-[95vw] mx-4' : 'sm:max-w-md'} max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className={isMobile ? "text-lg" : undefined}>{title}</DialogTitle>
+          <DialogDescription className={isMobile ? "text-sm" : undefined}>
             {initialData ? 'Update' : 'Add'} sub-contractor information and contact details.
           </DialogDescription>
         </DialogHeader>
@@ -98,6 +100,7 @@ export function SubcontractorForm({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Enter sub-contractor name"
               required
+              className={isMobile ? "text-base" : undefined}
             />
           </div>
 
@@ -109,6 +112,7 @@ export function SubcontractorForm({
               onChange={(e) => setFormData({ ...formData, trade_specialty: e.target.value })}
               placeholder="e.g., Electrician, Plumber, Carpenter"
               required
+              className={isMobile ? "text-base" : undefined}
             />
           </div>
 
@@ -120,6 +124,7 @@ export function SubcontractorForm({
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="Phone number"
+              className={isMobile ? "text-base" : undefined}
             />
           </div>
 
@@ -131,6 +136,7 @@ export function SubcontractorForm({
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="Email address"
+              className={isMobile ? "text-base" : undefined}
             />
           </div>
 
@@ -142,16 +148,18 @@ export function SubcontractorForm({
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Additional notes or comments"
               rows={3}
+              className={isMobile ? "text-base" : undefined}
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className={isMobile ? "flex-col space-y-2" : undefined}>
+            <Button type="button" variant="outline" onClick={onClose} className={isMobile ? "w-full" : undefined}>
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={!formData.name.trim() || !formData.trade_specialty.trim() || submitting}
+              className={isMobile ? "w-full" : undefined}
             >
               {submitting ? 'Saving...' : (initialData ? 'Update' : 'Add')}
             </Button>

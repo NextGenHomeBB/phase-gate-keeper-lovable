@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SubcontractorTable } from "./SubcontractorTable";
+import { SubcontractorMobileList } from "./SubcontractorMobileList";
 import { SubcontractorForm } from "./SubcontractorForm";
 import { subcontractorService, Subcontractor } from "@/services/subcontractorService";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function SubcontractorDirectory() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [subcontractors, setSubcontractors] = useState<Subcontractor[]>([]);
   const [filteredSubcontractors, setFilteredSubcontractors] = useState<Subcontractor[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,11 +114,11 @@ export function SubcontractorDirectory() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className={`space-y-6 ${isMobile ? 'p-4' : 'p-6'}`}>
       <div className="flex items-center gap-4 mb-4">
         <Button 
           variant="outline" 
-          size="sm" 
+          size={isMobile ? "sm" : "sm"}
           onClick={() => navigate(-1)}
           className="flex items-center gap-2"
         >
@@ -124,14 +128,16 @@ export function SubcontractorDirectory() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Sub-contractor Directory</CardTitle>
+        <CardHeader className={isMobile ? "p-4" : undefined}>
+          <CardTitle className={isMobile ? "text-xl" : undefined}>
+            Sub-contractor Directory
+          </CardTitle>
           <CardDescription>
             Manage your network of sub-contractors and their specialties
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <CardContent className={isMobile ? "p-4 pt-0" : undefined}>
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} gap-4 mb-6`}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -141,20 +147,44 @@ export function SubcontractorDirectory() {
                 className="pl-10"
               />
             </div>
-            <Button onClick={() => setIsFormOpen(true)}>
+            <Button 
+              onClick={() => setIsFormOpen(true)}
+              className={isMobile ? "w-full" : undefined}
+              size={isMobile ? "lg" : "default"}
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Sub-contractor
             </Button>
           </div>
 
-          <SubcontractorTable
-            subcontractors={filteredSubcontractors}
-            loading={loading}
-            onEdit={setEditingSubcontractor}
-            onDelete={handleDeleteSubcontractor}
-          />
+          {isMobile ? (
+            <SubcontractorMobileList
+              subcontractors={filteredSubcontractors}
+              loading={loading}
+              onEdit={setEditingSubcontractor}
+              onDelete={handleDeleteSubcontractor}
+            />
+          ) : (
+            <SubcontractorTable
+              subcontractors={filteredSubcontractors}
+              loading={loading}
+              onEdit={setEditingSubcontractor}
+              onDelete={handleDeleteSubcontractor}
+            />
+          )}
         </CardContent>
       </Card>
+
+      {/* Floating Action Button for Mobile */}
+      {isMobile && (
+        <Button
+          onClick={() => setIsFormOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+          size="icon"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      )}
 
       <SubcontractorForm
         isOpen={isFormOpen || !!editingSubcontractor}
