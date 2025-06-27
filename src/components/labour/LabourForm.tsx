@@ -16,13 +16,20 @@ import { subcontractorService, Subcontractor } from "@/services/subcontractorSer
 import { useToast } from "@/hooks/use-toast";
 
 interface LabourFormProps {
-  labour: Omit<Labour, 'id'>;
-  onLabourChange: (labour: Omit<Labour, 'id'>) => void;
-  onSave: () => void;
+  onSave: (labour: Omit<Labour, 'id'>) => void;
   onCancel: () => void;
 }
 
-export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourFormProps) {
+export function LabourForm({ onSave, onCancel }: LabourFormProps) {
+  const [labour, setLabour] = useState<Omit<Labour, 'id'>>({
+    task: '',
+    hours: 0,
+    hourlyRate: 0,
+    costPerJob: 0,
+    billPerHour: true,
+    subcontractor: undefined
+  });
+  
   const [subcontractors, setSubcontractors] = useState<Subcontractor[]>([]);
   const { toast } = useToast();
 
@@ -46,7 +53,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
 
   const handleSubcontractorChange = (subcontractorId: string) => {
     const selectedSubcontractor = subcontractors.find(s => s.id === subcontractorId);
-    onLabourChange({
+    setLabour({
       ...labour,
       subcontractor: selectedSubcontractor ? {
         id: selectedSubcontractor.id,
@@ -54,6 +61,12 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
         trade_specialty: selectedSubcontractor.trade_specialty
       } : undefined
     });
+  };
+
+  const handleSave = () => {
+    if (labour.task.trim()) {
+      onSave(labour);
+    }
   };
 
   return (
@@ -65,7 +78,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
             id="task"
             placeholder="Enter task description"
             value={labour.task}
-            onChange={(e) => onLabourChange({ ...labour, task: e.target.value })}
+            onChange={(e) => setLabour({ ...labour, task: e.target.value })}
           />
         </div>
 
@@ -95,7 +108,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
               id="billPerHour"
               checked={labour.billPerHour}
               onCheckedChange={(checked) => 
-                onLabourChange({ ...labour, billPerHour: checked })
+                setLabour({ ...labour, billPerHour: checked })
               }
             />
             <Label htmlFor="billPerHour">Bill per hour</Label>
@@ -113,7 +126,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
                 min="0"
                 placeholder="0"
                 value={labour.hours || ''}
-                onChange={(e) => onLabourChange({ 
+                onChange={(e) => setLabour({ 
                   ...labour, 
                   hours: parseFloat(e.target.value) || 0 
                 })}
@@ -128,7 +141,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
                 min="0"
                 placeholder="0.00"
                 value={labour.hourlyRate || ''}
-                onChange={(e) => onLabourChange({ 
+                onChange={(e) => setLabour({ 
                   ...labour, 
                   hourlyRate: parseFloat(e.target.value) || 0 
                 })}
@@ -145,7 +158,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
               min="0"
               placeholder="0.00"
               value={labour.costPerJob || ''}
-              onChange={(e) => onLabourChange({ 
+              onChange={(e) => setLabour({ 
                 ...labour, 
                 costPerJob: parseFloat(e.target.value) || 0 
               })}
@@ -158,7 +171,7 @@ export function LabourForm({ labour, onLabourChange, onSave, onCancel }: LabourF
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={onSave} disabled={!labour.task.trim()}>
+        <Button onClick={handleSave} disabled={!labour.task.trim()}>
           Save Labour
         </Button>
       </div>

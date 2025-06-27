@@ -7,12 +7,21 @@ import { Labour } from "@/pages/Index";
 
 interface LabourCardProps {
   labour: Labour;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit: (labourId: string) => void;
+  onDelete: (labourId: string) => void;
+  onUpdate?: (labourId: string, updates: Partial<Labour>) => void;
+  isEditing: boolean;
   readOnly?: boolean;
 }
 
-export function LabourCard({ labour, onEdit, onDelete, readOnly = false }: LabourCardProps) {
+export function LabourCard({ 
+  labour, 
+  onEdit, 
+  onDelete, 
+  onUpdate,
+  isEditing,
+  readOnly = false 
+}: LabourCardProps) {
   const getTotalCost = () => {
     if (labour.billPerHour) {
       return labour.hours * labour.hourlyRate;
@@ -38,10 +47,10 @@ export function LabourCard({ labour, onEdit, onDelete, readOnly = false }: Labou
           </div>
           {!readOnly && (
             <div className="flex space-x-1">
-              <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(labour.id)}>
                 <Edit2 className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onDelete}>
+              <Button variant="ghost" size="sm" onClick={() => onDelete(labour.id)}>
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
