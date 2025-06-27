@@ -11,6 +11,7 @@ export interface DatabaseLabour {
   hourly_rate: number;
   cost_per_job: number;
   bill_per_hour: boolean;
+  subcontractor_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -20,7 +21,14 @@ export const labourService = {
   async fetchLabourForPhase(projectId: string, phaseId: number): Promise<Labour[]> {
     const { data, error } = await supabase
       .from('project_labour')
-      .select('*')
+      .select(`
+        *,
+        sub_contractors (
+          id,
+          name,
+          trade_specialty
+        )
+      `)
       .eq('project_id', projectId)
       .eq('phase_id', phaseId)
       .order('created_at', { ascending: false });
@@ -36,14 +44,26 @@ export const labourService = {
       hours: item.hours || 0,
       hourlyRate: item.hourly_rate || 0,
       costPerJob: item.cost_per_job || 0,
-      billPerHour: item.bill_per_hour
+      billPerHour: item.bill_per_hour,
+      subcontractor: item.sub_contractors ? {
+        id: item.sub_contractors.id,
+        name: item.sub_contractors.name,
+        trade_specialty: item.sub_contractors.trade_specialty
+      } : undefined
     }));
   },
 
   async fetchAllLabourForProject(projectId: string): Promise<{ [phaseId: number]: Labour[] }> {
     const { data, error } = await supabase
       .from('project_labour')
-      .select('*')
+      .select(`
+        *,
+        sub_contractors (
+          id,
+          name,
+          trade_specialty
+        )
+      `)
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
@@ -65,7 +85,12 @@ export const labourService = {
         hours: item.hours || 0,
         hourlyRate: item.hourly_rate || 0,
         costPerJob: item.cost_per_job || 0,
-        billPerHour: item.bill_per_hour
+        billPerHour: item.bill_per_hour,
+        subcontractor: item.sub_contractors ? {
+          id: item.sub_contractors.id,
+          name: item.sub_contractors.name,
+          trade_specialty: item.sub_contractors.trade_specialty
+        } : undefined
       });
     });
 
@@ -85,9 +110,17 @@ export const labourService = {
         hourly_rate: labour.hourlyRate,
         cost_per_job: labour.costPerJob,
         bill_per_hour: labour.billPerHour,
+        subcontractor_id: labour.subcontractor?.id || null,
         created_by: user?.id
       })
-      .select()
+      .select(`
+        *,
+        sub_contractors (
+          id,
+          name,
+          trade_specialty
+        )
+      `)
       .single();
 
     if (error) {
@@ -101,7 +134,12 @@ export const labourService = {
       hours: data.hours || 0,
       hourlyRate: data.hourly_rate || 0,
       costPerJob: data.cost_per_job || 0,
-      billPerHour: data.bill_per_hour
+      billPerHour: data.bill_per_hour,
+      subcontractor: data.sub_contractors ? {
+        id: data.sub_contractors.id,
+        name: data.sub_contractors.name,
+        trade_specialty: data.sub_contractors.trade_specialty
+      } : undefined
     };
   },
 
@@ -113,6 +151,9 @@ export const labourService = {
     if (updates.hourlyRate !== undefined) updateData.hourly_rate = updates.hourlyRate;
     if (updates.costPerJob !== undefined) updateData.cost_per_job = updates.costPerJob;
     if (updates.billPerHour !== undefined) updateData.bill_per_hour = updates.billPerHour;
+    if (updates.subcontractor !== undefined) {
+      updateData.subcontractor_id = updates.subcontractor?.id || null;
+    }
 
     const { error } = await supabase
       .from('project_labour')

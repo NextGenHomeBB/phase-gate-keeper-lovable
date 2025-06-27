@@ -162,6 +162,7 @@ export type Database = {
           id: string
           phase_id: number
           project_id: string
+          subcontractor_id: string | null
           task: string
           updated_at: string
         }
@@ -175,6 +176,7 @@ export type Database = {
           id?: string
           phase_id: number
           project_id: string
+          subcontractor_id?: string | null
           task: string
           updated_at?: string
         }
@@ -188,10 +190,19 @@ export type Database = {
           id?: string
           phase_id?: number
           project_id?: string
+          subcontractor_id?: string | null
           task?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "project_labour_subcontractor_id_fkey"
+            columns: ["subcontractor_id"]
+            isOneToOne: false
+            referencedRelation: "sub_contractors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_materials: {
         Row: {
@@ -415,6 +426,39 @@ export type Database = {
           name?: string
           start_date?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sub_contractors: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          trade_specialty: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          trade_specialty: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          trade_specialty?: string
+          updated_at?: string
         }
         Relationships: []
       }

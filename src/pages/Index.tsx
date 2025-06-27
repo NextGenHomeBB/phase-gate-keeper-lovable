@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -42,6 +41,11 @@ export interface Labour {
   hourlyRate: number;
   costPerJob: number;
   billPerHour: boolean;
+  subcontractor?: {
+    id: string;
+    name: string;
+    trade_specialty: string;
+  };
 }
 
 export interface Phase {

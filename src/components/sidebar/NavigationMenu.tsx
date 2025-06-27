@@ -1,5 +1,5 @@
 
-import { Home, BarChart3, Users, Settings, ClipboardList, Plus, Shield } from "lucide-react";
+import { Home, BarChart3, Users, Settings, ClipboardList, Plus, Shield, HardHat } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -56,6 +56,14 @@ export function NavigationMenu({ currentView, onViewChange, onSelectProject }: N
             >
               <Plus className="w-4 h-4" />
               <span>Checklist Creator</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => navigate('/subcontractors')}
+            >
+              <HardHat className="w-4 h-4" />
+              <span>Sub-contractor Directory</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
