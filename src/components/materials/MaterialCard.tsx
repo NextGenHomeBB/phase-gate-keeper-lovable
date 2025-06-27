@@ -1,11 +1,12 @@
 
-import { Edit3, Trash2, Euro, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pencil, Trash2, Check, X, Euro, User } from "lucide-react";
 import { Material } from "@/pages/Index";
-import { useState } from "react";
 
 interface MaterialCardProps {
   material: Material;
@@ -13,11 +14,19 @@ interface MaterialCardProps {
   onDelete: (materialId: string) => void;
   onUpdate?: (materialId: string, updates: Partial<Material>) => void;
   readOnly?: boolean;
+  isManual?: boolean;
 }
 
-export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = false }: MaterialCardProps) {
+export function MaterialCard({ 
+  material, 
+  onEdit, 
+  onDelete, 
+  onUpdate, 
+  readOnly = false,
+  isManual = false
+}: MaterialCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedMaterial, setEditedMaterial] = useState<Material>(material);
+  const [editedMaterial, setEditedMaterial] = useState(material);
 
   const categories = [
     'Beton', 'Staal', 'Hout', 'Metselwerk', 'Mortel', 'Dakbedekking', 
@@ -25,7 +34,7 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
     'Elektra', 'Sanitair', 'Verlichting', 'Afwerking', 'Diversen'
   ];
 
-  const units = ['stuks', 'm²', 'm³', 'meter', 'kg', 'ton', 'zakken', 'rollen', 'liter'];
+  const units = ['stuks', 'm', 'm²', 'm³', 'kg', 'ton', 'liter', 'zakken', 'rollen', 'meter'];
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -41,142 +50,168 @@ export function MaterialCard({ material, onEdit, onDelete, onUpdate, readOnly = 
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedMaterial(material);
-  };
-
   const handleSave = () => {
     if (onUpdate) {
-      // Ensure quantity is at least 1 when saving
-      const validatedMaterial = {
-        ...editedMaterial,
-        quantity: editedMaterial.quantity < 1 ? 1 : editedMaterial.quantity
-      };
-      onUpdate(material.id, validatedMaterial);
+      onUpdate(material.id, editedMaterial);
     }
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
     setEditedMaterial(material);
+    setIsEditing(false);
+  };
+
+  const getTotalCost = (mat: Material) => {
+    const baseCost = mat.quantity * (mat.estimatedCost || 0);
+    const vatAmount = baseCost * ((mat.vatPercentage || 0) / 100);
+    return baseCost + vatAmount;
   };
 
   if (isEditing) {
     return (
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <Card className="p-4 border-2 border-blue-200 bg-blue-50">
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Input
-              placeholder="Materiaal naam"
               value={editedMaterial.name}
               onChange={(e) => setEditedMaterial({ ...editedMaterial, name: e.target.value })}
+              placeholder="Naam"
             />
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Input
                 type="number"
-                placeholder="Aantal"
                 value={editedMaterial.quantity}
                 onChange={(e) => setEditedMaterial({ ...editedMaterial, quantity: parseInt(e.target.value) || 0 })}
-                className="w-20"
-                min="0"
+                placeholder="Aantal"
+                min="1"
               />
               <Select value={editedMaterial.unit} onValueChange={(value) => setEditedMaterial({ ...editedMaterial, unit: value })}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {units.map((unit) => (
+                  {units.map(unit => (
                     <SelectItem key={unit} value={unit}>{unit}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <Select value={editedMaterial.category} onValueChange={(value) => setEditedMaterial({ ...editedMaterial, category: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
+                {categories.map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2">
-              <Euro className="w-4 h-4 text-gray-500" />
+          </div>
+          
+          {isManual && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Input
                 type="number"
-                step="0.01"
-                placeholder="Kosten per eenheid"
-                value={editedMaterial.estimatedCost || ''}
+                value={editedMaterial.estimatedCost || 0}
                 onChange={(e) => setEditedMaterial({ ...editedMaterial, estimatedCost: parseFloat(e.target.value) || 0 })}
+                placeholder="€ per eenheid"
                 min="0"
+                step="0.01"
+              />
+              <Input
+                type="number"
+                value={editedMaterial.vatPercentage || 0}
+                onChange={(e) => setEditedMaterial({ ...editedMaterial, vatPercentage: parseFloat(e.target.value) || 0 })}
+                placeholder="BTW %"
+                min="0"
+                max="100"
+                step="0.1"
               />
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleSave}>
-              <Check className="w-4 h-4 mr-1" />
-              Opslaan
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleCancel}>
-              <X className="w-4 h-4 mr-1" />
-              Annuleren
-            </Button>
+          )}
+          
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Totaal: <span className="font-semibold text-green-600">€{getTotalCost(editedMaterial).toFixed(2)}</span>
+              {(editedMaterial.vatPercentage || 0) > 0 && (
+                <span className="text-xs ml-1">(incl. {editedMaterial.vatPercentage}% BTW)</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleCancel}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="flex items-center justify-between p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
-      <div className="flex-1">
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className="font-medium">{material.name}</h4>
-              <Badge variant="outline" className={getCategoryColor(material.category)}>
-                {material.category}
+    <Card className={`p-4 hover:shadow-sm transition-shadow ${isManual ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-blue-500'}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h4 className="font-medium">{material.name}</h4>
+            <Badge variant="outline" className={getCategoryColor(material.category)}>
+              {material.category}
+            </Badge>
+            {isManual && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 text-xs">
+                <User className="w-3 h-3 mr-1" />
+                Handmatig
               </Badge>
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              {material.quantity > 0 && `${material.quantity} ${material.unit}`}
+            )}
+          </div>
+          <div className="text-sm text-gray-600 space-y-1">
+            <div>
+              {material.quantity} {material.unit}
               {material.estimatedCost && (
                 <span className="ml-3">
-                  €{material.estimatedCost.toFixed(2)} per {material.unit} 
-                  <span className="font-medium ml-1">
-                    (Totaal: €{(material.estimatedCost * material.quantity).toFixed(2)})
-                  </span>
+                  €{material.estimatedCost.toFixed(2)} per {material.unit}
                 </span>
               )}
             </div>
+            {material.estimatedCost && (
+              <div className="flex items-center gap-1">
+                <Euro className="w-3 h-3 text-green-600" />
+                <span className="font-medium text-green-600">
+                  €{getTotalCost(material).toFixed(2)}
+                </span>
+                {(material.vatPercentage || 0) > 0 && (
+                  <span className="text-xs text-gray-500">
+                    (incl. {material.vatPercentage}% BTW)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          {!readOnly && (
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={handleEdit}
-              >
-                <Edit3 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                onClick={() => onDelete(material.id)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
         </div>
+        {!readOnly && (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDelete(material.id)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
-    </div>
+    </Card>
   );
 }

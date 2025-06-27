@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Material } from '@/pages/Index';
 
@@ -14,6 +15,8 @@ export interface DatabaseMaterial {
   created_at: string;
   updated_at: string;
   checklist_item_id: string | null;
+  is_manual: boolean;
+  vat_percentage: number | null;
 }
 
 export const materialService = {
@@ -90,7 +93,9 @@ export const materialService = {
         category: material.category,
         estimated_cost: material.estimatedCost || 0,
         created_by: user?.id || null,
-        checklist_item_id: checklistItemId || null
+        checklist_item_id: checklistItemId || null,
+        is_manual: material.isManual || false,
+        vat_percentage: material.vatPercentage || 0
       })
       .select()
       .single();
@@ -115,7 +120,9 @@ export const materialService = {
       category: material.category,
       estimated_cost: material.estimatedCost || 0,
       created_by: user?.id || null,
-      checklist_item_id: checklistItemId
+      checklist_item_id: checklistItemId,
+      is_manual: material.isManual || false,
+      vat_percentage: material.vatPercentage || 0
     }));
 
     const { data, error } = await supabase
@@ -139,6 +146,8 @@ export const materialService = {
     if (updates.unit !== undefined) updateData.unit = updates.unit;
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.estimatedCost !== undefined) updateData.estimated_cost = updates.estimatedCost;
+    if (updates.isManual !== undefined) updateData.is_manual = updates.isManual;
+    if (updates.vatPercentage !== undefined) updateData.vat_percentage = updates.vatPercentage;
 
     const { data, error } = await supabase
       .from('project_materials')
@@ -178,7 +187,9 @@ export const materialService = {
       unit: material.unit,
       category: material.category,
       estimated_cost: material.estimatedCost || 0,
-      created_by: user?.id || null
+      created_by: user?.id || null,
+      is_manual: material.isManual || false,
+      vat_percentage: material.vatPercentage || 0
     }));
 
     const { data, error } = await supabase
@@ -201,7 +212,9 @@ export const materialService = {
       quantity: dbMaterial.quantity,
       unit: dbMaterial.unit,
       category: dbMaterial.category,
-      estimatedCost: dbMaterial.estimated_cost || 0
+      estimatedCost: dbMaterial.estimated_cost || 0,
+      isManual: dbMaterial.is_manual,
+      vatPercentage: dbMaterial.vat_percentage || 0
     };
   },
 

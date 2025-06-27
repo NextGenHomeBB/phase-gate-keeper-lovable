@@ -159,12 +159,14 @@ export type Database = {
           created_by: string | null
           estimated_cost: number | null
           id: string
+          is_manual: boolean
           name: string
           phase_id: number
           project_id: string
           quantity: number
           unit: string
           updated_at: string
+          vat_percentage: number | null
         }
         Insert: {
           category?: string
@@ -173,12 +175,14 @@ export type Database = {
           created_by?: string | null
           estimated_cost?: number | null
           id?: string
+          is_manual?: boolean
           name: string
           phase_id: number
           project_id: string
           quantity?: number
           unit?: string
           updated_at?: string
+          vat_percentage?: number | null
         }
         Update: {
           category?: string
@@ -187,12 +191,14 @@ export type Database = {
           created_by?: string | null
           estimated_cost?: number | null
           id?: string
+          is_manual?: boolean
           name?: string
           phase_id?: number
           project_id?: string
           quantity?: number
           unit?: string
           updated_at?: string
+          vat_percentage?: number | null
         }
         Relationships: [
           {

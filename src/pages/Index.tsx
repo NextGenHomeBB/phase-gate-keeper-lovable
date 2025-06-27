@@ -30,6 +30,8 @@ export interface Material {
   unit: string;
   category: string;
   estimatedCost?: number;
+  isManual?: boolean;
+  vatPercentage?: number;
 }
 
 export interface Phase {
@@ -289,7 +291,6 @@ const Index = () => {
     </div>;
 };
 
-// Helper functions voor sample data
 function getPhaseName(phaseNumber: number): string {
   const phases = [
     "Fundering en Grondwerk",

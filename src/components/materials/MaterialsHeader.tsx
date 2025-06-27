@@ -1,68 +1,64 @@
 
 import { CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Plus, Sparkles, Euro } from "lucide-react";
+import { Package, Plus, Euro } from "lucide-react";
 
 interface MaterialsHeaderProps {
   materialsCount: number;
   totalCost: number;
   readOnly?: boolean;
   onAddMaterial: () => void;
+  onAddManualMaterial: () => void;
   isAdding: boolean;
+  isAddingManual: boolean;
 }
 
 export function MaterialsHeader({ 
   materialsCount, 
   totalCost, 
   readOnly = false, 
-  onAddMaterial, 
-  isAdding 
+  onAddMaterial,
+  onAddManualMaterial,
+  isAdding,
+  isAddingManual
 }: MaterialsHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <CardTitle className="flex items-center">
-          <Package className="w-5 h-5 mr-2" />
+    <div>
+      <CardTitle className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Package className="w-5 h-5" />
           Materialen ({materialsCount})
-        </CardTitle>
-        {materialsCount > 0 && (
-          <div className="flex items-center text-sm text-gray-600 mt-1">
-            <Euro className="w-4 h-4 mr-1" />
-            Geschatte totale kosten: €{totalCost.toFixed(2)}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-green-600">
+            <Euro className="w-4 h-4" />
+            <span className="font-bold">€{totalCost.toFixed(2)}</span>
           </div>
-        )}
-      </div>
-      {!readOnly && (
-        <Tabs defaultValue="manual" className="w-auto">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="manual" className="flex items-center">
-              <Plus className="w-4 h-4 mr-1" />
-              Handmatig
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="flex items-center">
-              <Sparkles className="w-4 h-4 mr-1" />
-              AI Bereken
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="manual">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAddMaterial}
-              disabled={isAdding}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Materiaal toevoegen
-            </Button>
-          </TabsContent>
-          <TabsContent value="ai">
-            <div className="text-center text-sm text-gray-600">
-              Gebruik de AI calculator hierboven
+          {!readOnly && (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={onAddMaterial}
+                disabled={isAdding || isAddingManual}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                AI Calculator
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onAddManualMaterial}
+                disabled={isAdding || isAddingManual}
+                className="border-green-600 text-green-600 hover:bg-green-50"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Handmatig Item
+              </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-      )}
+          )}
+        </div>
+      </CardTitle>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { MaterialsHeader } from "./materials/MaterialsHeader";
 import { MaterialsContent } from "./materials/MaterialsContent";
 import { MaterialForm } from "./materials/MaterialForm";
+import { ManualMaterialForm } from "./materials/ManualMaterialForm";
 import { useMaterials } from "@/hooks/useMaterials";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -19,6 +20,7 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
   const { t } = useLanguage();
   const [editingMaterial, setEditingMaterial] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isAddingManual, setIsAddingManual] = useState(false);
   const [newMaterial, setNewMaterial] = useState<Omit<Material, 'id'>>({
     name: '',
     quantity: 1,
@@ -58,6 +60,15 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
     }
   };
 
+  const handleAddManualMaterial = async (material: Omit<Material, 'id'>) => {
+    try {
+      await addMaterial(material);
+      setIsAddingManual(false);
+    } catch (error) {
+      console.error('Failed to add manual material:', error);
+    }
+  };
+
   const handleUpdateMaterial = async (materialId: string, updatedMaterial: Partial<Material>) => {
     try {
       await updateMaterial(materialId, updatedMaterial);
@@ -77,7 +88,9 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
 
   const getTotalEstimatedCost = () => {
     return materials.reduce((total, material) => {
-      return total + (material.estimatedCost || 0) * material.quantity;
+      const baseCost = (material.estimatedCost || 0) * material.quantity;
+      const vatAmount = baseCost * ((material.vatPercentage || 0) / 100);
+      return total + baseCost + vatAmount;
     }, 0);
   };
 
@@ -110,18 +123,28 @@ export function MaterialsList({ projectId, phaseId, readOnly = false }: Material
             totalCost={getTotalEstimatedCost()}
             readOnly={readOnly}
             onAddMaterial={() => setIsAdding(true)}
+            onAddManualMaterial={() => setIsAddingManual(true)}
             isAdding={isAdding}
+            isAddingManual={isAddingManual}
           />
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {/* Add new material form */}
+          <div className="space-y-4">
+            {/* Add new AI material form */}
             {isAdding && (
               <MaterialForm
                 material={newMaterial}
                 onMaterialChange={setNewMaterial}
                 onSave={handleAddMaterial}
                 onCancel={() => setIsAdding(false)}
+              />
+            )}
+
+            {/* Add new manual material form */}
+            {isAddingManual && (
+              <ManualMaterialForm
+                onSave={handleAddManualMaterial}
+                onCancel={() => setIsAddingManual(false)}
               />
             )}
 
