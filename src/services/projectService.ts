@@ -357,18 +357,18 @@ export const projectService = {
     }
   },
 
-  async updateProjectPhase(projectId: string, phaseNumber: number, updates: Partial<{
-    name: string;
-    description: string;
-    completed: boolean;
-    locked: boolean;
-    color_index: number;
-  }>): Promise<void> {
+  async updateProjectPhase(projectId: string, phaseId: number, updates: { 
+    completed?: boolean; 
+    locked?: boolean; 
+    color_index?: number; 
+    name?: string;
+    description?: string;
+  }): Promise<void> {
     const { error } = await supabase
       .from('project_phases')
       .update(updates)
       .eq('project_id', projectId)
-      .eq('phase_number', phaseNumber);
+      .eq('phase_number', phaseId);
 
     if (error) {
       console.error('Error updating project phase:', error);

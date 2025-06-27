@@ -185,6 +185,49 @@ export const secureProjectService = {
       console.error('Error updating project:', error);
       throw error;
     }
+  },
+
+  async updateProjectPhase(projectId: string, phaseId: number, updates: { 
+    completed?: boolean; 
+    locked?: boolean; 
+    color_index?: number; 
+    name?: string;
+    description?: string;
+  }): Promise<void> {
+    // Get current user for authorization check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
+    // Sanitize inputs if provided
+    const sanitizedUpdates: any = {};
+    if (updates.name !== undefined) {
+      sanitizedUpdates.name = sanitizeInput(updates.name);
+    }
+    if (updates.description !== undefined) {
+      sanitizedUpdates.description = updates.description ? sanitizeInput(updates.description) : null;
+    }
+    if (updates.completed !== undefined) {
+      sanitizedUpdates.completed = updates.completed;
+    }
+    if (updates.locked !== undefined) {
+      sanitizedUpdates.locked = updates.locked;
+    }
+    if (updates.color_index !== undefined) {
+      sanitizedUpdates.color_index = updates.color_index;
+    }
+
+    const { error } = await supabase
+      .from('project_phases')
+      .update(sanitizedUpdates)
+      .eq('project_id', projectId)
+      .eq('phase_number', phaseId);
+
+    if (error) {
+      console.error('Error updating project phase:', error);
+      throw error;
+    }
   }
 };
 

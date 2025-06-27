@@ -23,6 +23,7 @@ import { ProjectMaterialsList } from "./materials/ProjectMaterialsList";
 import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
 import { PhaseLegend } from "./phase/PhaseLegend";
 import { KanbanView } from "./phase/KanbanView";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ProjectDetailProps {
   project: Project;
@@ -47,6 +48,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
   const [editingPhaseName, setEditingPhaseName] = useState("");
+  const [editingPhaseDescriptionId, setEditingPhaseDescriptionId] = useState<number | null>(null);
+  const [editingPhaseDescription, setEditingPhaseDescription] = useState("");
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const { toast } = useToast();
 
@@ -342,6 +345,66 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handleEditPhaseDescription = (phase: Phase) => {
+    setEditingPhaseDescriptionId(phase.id);
+    setEditingPhaseDescription(phase.description);
+  };
+
+  const handleSavePhaseDescription = async (phaseId: number) => {
+    if (editingPhaseDescription.length > 200) {
+      toast({
+        title: "Fout",
+        description: "Beschrijving mag maximaal 200 karakters bevatten.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await projectService.updateProjectPhase(project.id, phaseId, {
+        description: editingPhaseDescription.trim()
+      });
+
+      const updatedPhases = project.phases.map(phase => 
+        phase.id === phaseId 
+          ? { ...phase, description: editingPhaseDescription.trim() }
+          : phase
+      );
+      
+      const updatedProject = { ...project, phases: updatedPhases };
+      onUpdateProject(updatedProject);
+      
+      setEditingPhaseDescriptionId(null);
+      setEditingPhaseDescription("");
+      
+      toast({
+        title: "Beschrijving bijgewerkt",
+        description: "De fase beschrijving is succesvol gewijzigd.",
+      });
+    } catch (error) {
+      console.error('Error updating phase description:', error);
+      toast({
+        title: "Fout",
+        description: "Kon fase beschrijving niet bijwerken.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEditPhaseDescription = () => {
+    setEditingPhaseDescriptionId(null);
+    setEditingPhaseDescription("");
+  };
+
+  const handlePhaseDescriptionKeyDown = (e: React.KeyboardEvent, phaseId: number) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSavePhaseDescription(phaseId);
+    } else if (e.key === 'Escape') {
+      handleCancelEditPhaseDescription();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Project Name Header */}
@@ -529,7 +592,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 const PhaseIcon = getPhaseIcon(index);
                 const progress = getPhaseProgress(phase);
                 const progressColor = getPhaseProgressColor(progress);
-                const isEditing = editingPhaseId === phase.id;
+                const isEditingName = editingPhaseId === phase.id;
+                const isEditingDescription = editingPhaseDescriptionId === phase.id;
                 const phaseStatus = getPhaseStatus(phase);
                 const currentColorIndex = phase.color_index !== null && phase.color_index !== undefined 
                   ? phase.color_index 
@@ -539,7 +603,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <Card 
                     key={phase.id} 
                     className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
-                    onClick={() => !isEditing && handlePhaseClick(phase)}
+                    onClick={() => !isEditingName && !isEditingDescription && handlePhaseClick(phase)}
                   >
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base font-bold flex items-center justify-between">
@@ -548,7 +612,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             <PhaseIcon className="w-5 h-5 text-gray-700" />
                           </div>
                           <div className="flex flex-col">
-                            {isEditing ? (
+                            {isEditingName ? (
                               <Input
                                 value={editingPhaseName}
                                 onChange={(e) => setEditingPhaseName(e.target.value)}
@@ -630,7 +694,52 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 pt-0">
-                      <p className="text-gray-700 text-sm line-clamp-2 leading-relaxed">{phase.description}</p>
+                      {/* Editable Description */}
+                      <div onClick={(e) => e.stopPropagation()}>
+                        {isEditingDescription ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editingPhaseDescription}
+                              onChange={(e) => setEditingPhaseDescription(e.target.value)}
+                              onKeyDown={(e) => handlePhaseDescriptionKeyDown(e, phase.id)}
+                              className="text-sm bg-white/80 border-blue-300 focus:border-blue-500 min-h-[60px] resize-none"
+                              placeholder="Fase beschrijving..."
+                              maxLength={200}
+                              autoFocus
+                            />
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-500">
+                                {editingPhaseDescription.length}/200 karakters
+                              </span>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={handleCancelEditPhaseDescription}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  Annuleren
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSavePhaseDescription(phase.id)}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  Opslaan
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p 
+                            className="text-gray-700 text-sm line-clamp-2 leading-relaxed cursor-text hover:bg-white/30 rounded p-1 transition-colors"
+                            onClick={() => handleEditPhaseDescription(phase)}
+                            title="Klik om te bewerken"
+                          >
+                            {phase.description || "Klik om beschrijving toe te voegen..."}
+                          </p>
+                        )}
+                      </div>
                       
                       {/* Enhanced Progress Section */}
                       <div className="space-y-3">
