@@ -791,6 +791,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Clock className="w-4 h-4 mr-2" />
             {t('projectDetail.phases')}
           </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            Calendar
+          </TabsTrigger>
           <TabsTrigger value="timeline">
             <Activity className="w-4 h-4 mr-2" />
             Timeline
@@ -879,6 +883,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               </ul>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <PhaseCalendarPlanner
+            phases={project.phases}
+            currentDate={currentCalendarDate}
+            onDateChange={setCurrentCalendarDate}
+            onPhaseClick={handlePhaseScheduleClick}
+          />
         </TabsContent>
 
         <TabsContent value="timeline">
