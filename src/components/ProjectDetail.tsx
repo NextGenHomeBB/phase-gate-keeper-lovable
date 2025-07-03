@@ -545,9 +545,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   const handleProjectResponsibleChange = async (responsibleId: string) => {
     try {
+      const actualResponsibleId = responsibleId === "none" ? "" : responsibleId;
       setProjectResponsible(responsibleId);
       // Update project in database
-      const updatedProject = { ...project, project_manager: responsibleId };
+      const updatedProject = { ...project, project_manager: actualResponsibleId };
       await projectService.updateProject(updatedProject);
       onUpdateProject(updatedProject);
       
@@ -907,14 +908,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <div>
                 <label className="text-sm font-medium text-gray-600">Project Verantwoordelijke</label>
                 <Select 
-                  value={projectResponsible} 
+                  value={projectResponsible || "none"} 
                   onValueChange={handleProjectResponsibleChange}
                 >
                   <SelectTrigger className="w-full mt-1">
                     <SelectValue placeholder="Selecteer project verantwoordelijke" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Geen verantwoordelijke</SelectItem>
+                    <SelectItem value="none">Geen verantwoordelijke</SelectItem>
                     {allTeamMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         <div className="flex items-center gap-2">
@@ -1230,15 +1231,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                        {/* Phase Responsible Selection */}
                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                          <div className="text-xs font-medium text-muted-foreground">Fase Verantwoordelijke</div>
-                         <Select 
-                           value={phaseResponsibles[phase.id] || ""} 
-                           onValueChange={(value) => handlePhaseResponsibleChange(phase.id, value)}
+                          <Select 
+                            value={phaseResponsibles[phase.id] || "none"} 
+                            onValueChange={(value) => handlePhaseResponsibleChange(phase.id, value)}
                          >
                            <SelectTrigger className="h-8 text-xs">
                              <SelectValue placeholder="Selecteer verantwoordelijke" />
                            </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="">Geen verantwoordelijke</SelectItem>
+                            <SelectContent>
+                              <SelectItem value="none">Geen verantwoordelijke</SelectItem>
                              {allTeamMembers.map((member) => (
                                <SelectItem key={member.id} value={member.id}>
                                  <div className="flex items-center gap-2">

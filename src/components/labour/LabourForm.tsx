@@ -52,15 +52,22 @@ export function LabourForm({ onSave, onCancel }: LabourFormProps) {
   };
 
   const handleSubcontractorChange = (subcontractorId: string) => {
-    const selectedSubcontractor = subcontractors.find(s => s.id === subcontractorId);
-    setLabour({
-      ...labour,
-      subcontractor: selectedSubcontractor ? {
-        id: selectedSubcontractor.id,
-        name: selectedSubcontractor.name,
-        trade_specialty: selectedSubcontractor.trade_specialty
-      } : undefined
-    });
+    if (subcontractorId === "none") {
+      setLabour({
+        ...labour,
+        subcontractor: undefined
+      });
+    } else {
+      const selectedSubcontractor = subcontractors.find(s => s.id === subcontractorId);
+      setLabour({
+        ...labour,
+        subcontractor: selectedSubcontractor ? {
+          id: selectedSubcontractor.id,
+          name: selectedSubcontractor.name,
+          trade_specialty: selectedSubcontractor.trade_specialty
+        } : undefined
+      });
+    }
   };
 
   const handleSave = () => {
@@ -85,14 +92,14 @@ export function LabourForm({ onSave, onCancel }: LabourFormProps) {
         <div className="space-y-2">
           <Label htmlFor="subcontractor">Sub-contractor (Optional)</Label>
           <Select
-            value={labour.subcontractor?.id || ""}
+            value={labour.subcontractor?.id || "none"}
             onValueChange={handleSubcontractorChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select sub-contractor" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               {subcontractors.map((sub) => (
                 <SelectItem key={sub.id} value={sub.id}>
                   {sub.name} - {sub.trade_specialty}

@@ -106,11 +106,19 @@ export const projectService = {
 
         const assignedProjectIds = projectTeamData?.map(ptm => ptm.project_id) || [];
 
-        query = supabase
-          .from('projects')
-          .select('*')
-          .or(`created_by.eq.${user.id},id.in.(${assignedProjectIds.length > 0 ? assignedProjectIds.join(',') : 'null'})`)
-          .order('created_at', { ascending: false });
+        if (assignedProjectIds.length > 0) {
+          query = supabase
+            .from('projects')
+            .select('*')
+            .or(`created_by.eq.${user.id},id.in.(${assignedProjectIds.join(',')})`)
+            .order('created_at', { ascending: false });
+        } else {
+          query = supabase
+            .from('projects')
+            .select('*')
+            .eq('created_by', user.id)
+            .order('created_at', { ascending: false });
+        }
       } else {
         // User has no team member record, only show projects they created
         query = supabase
