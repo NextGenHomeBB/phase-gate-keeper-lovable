@@ -3,12 +3,16 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Plus, Search, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChecklistTemplates } from "@/components/checklist/ChecklistTemplates";
 import { ChecklistEditor } from "@/components/checklist/ChecklistEditor";
 import { ChecklistFilters } from "@/components/checklist/ChecklistFilters";
+import { ConstructionTemplates } from "@/components/checklist/ConstructionTemplates";
+import { SectionedChecklistEditor } from "@/components/checklist/SectionedChecklistEditor";
+import { SectionedChecklist, convertSectionedToFlat } from "@/data/constructionChecklists";
 import { toast } from "@/hooks/use-toast";
 
 export interface ChecklistItem {
@@ -40,11 +44,13 @@ const ChecklistCreator = () => {
   const { user } = useAuth();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [selectedChecklist, setSelectedChecklist] = useState<Checklist | null>(null);
+  const [selectedSectionedChecklist, setSelectedSectionedChecklist] = useState<SectionedChecklist | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTrade, setSelectedTrade] = useState<string>("all");
   const [selectedPhase, setSelectedPhase] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("standard");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -192,6 +198,24 @@ const ChecklistCreator = () => {
     });
   };
 
+  const handleImportConstructionTemplate = (sectionedChecklist: SectionedChecklist) => {
+    const flatChecklist = convertSectionedToFlat(sectionedChecklist, 'inspection');
+    flatChecklist.createdBy = user?.id || "";
+    setChecklists(prev => [...prev, flatChecklist]);
+    setSelectedChecklist(flatChecklist);
+    setActiveTab("standard");
+    toast({
+      title: "Construction Template Imported",
+      description: `${sectionedChecklist.title} has been imported as a flat checklist.`,
+    });
+  };
+
+  const handleSelectSectionedChecklist = (checklist: SectionedChecklist) => {
+    setSelectedSectionedChecklist(checklist);
+    setSelectedChecklist(null);
+    setActiveTab("construction");
+  };
+
   if (!user) {
     return null;
   }
@@ -231,7 +255,7 @@ const ChecklistCreator = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search checklists..."
                     value={searchTerm}
@@ -250,15 +274,33 @@ const ChecklistCreator = () => {
               </CardContent>
             </Card>
 
-            {/* Checklist Templates */}
-            <ChecklistTemplates
-              checklists={filteredChecklists}
-              selectedChecklist={selectedChecklist}
-              onSelectChecklist={setSelectedChecklist}
-              onEditChecklist={handleEditChecklist}
-              onDeleteChecklist={handleDeleteChecklist}
-              onCopyChecklist={handleCopyChecklist}
-            />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="standard">Standard</TabsTrigger>
+                <TabsTrigger value="construction">Construction</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="standard" className="mt-4">
+                <ChecklistTemplates
+                  checklists={filteredChecklists}
+                  selectedChecklist={selectedChecklist}
+                  onSelectChecklist={(checklist) => {
+                    setSelectedChecklist(checklist);
+                    setSelectedSectionedChecklist(null);
+                  }}
+                  onEditChecklist={handleEditChecklist}
+                  onDeleteChecklist={handleDeleteChecklist}
+                  onCopyChecklist={handleCopyChecklist}
+                />
+              </TabsContent>
+              
+              <TabsContent value="construction" className="mt-4">
+                <ConstructionTemplates
+                  onSelectChecklist={handleSelectSectionedChecklist}
+                  onImportAsFlat={handleImportConstructionTemplate}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Right Panel - Checklist Editor */}
@@ -276,16 +318,24 @@ const ChecklistCreator = () => {
                   }
                 }}
               />
+            ) : selectedSectionedChecklist ? (
+              <SectionedChecklistEditor
+                checklist={selectedSectionedChecklist}
+                isEditing={false}
+                onSave={() => {}}
+                onEdit={() => {}}
+                onCancel={() => setSelectedSectionedChecklist(null)}
+              />
             ) : (
               <Card className="h-96 flex items-center justify-center">
                 <CardContent className="text-center">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-muted-foreground mb-4">
                     <Filter className="w-16 h-16 mx-auto" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
                     Select a Checklist
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Choose a checklist from the library to view or edit, or create a new one.
                   </p>
                   <Button onClick={handleCreateNew}>
