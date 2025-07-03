@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Edit, Eye, Building, CheckSquare } from "lucide-react";
-import { constructionChecklists, SectionedChecklist } from "@/data/constructionChecklists";
+import CHECKLISTS, { PhaseChecklist, constructionChecklists, SectionedChecklist } from "@/data/constructionChecklists";
 
 interface ConstructionTemplatesProps {
   onSelectChecklist: (checklist: SectionedChecklist) => void;
@@ -13,7 +13,14 @@ export function ConstructionTemplates({
   onSelectChecklist,
   onImportAsFlat
 }: ConstructionTemplatesProps) {
-  const checklists = Object.values(constructionChecklists);
+  const checklists = CHECKLISTS.map(checklist => ({
+    id: checklist.code,
+    title: checklist.name,
+    sections: checklist.sections.map(section => ({
+      title: section.name,
+      items: section.items.map(item => item.description)
+    }))
+  }));
 
   const getTotalItems = (checklist: SectionedChecklist) => {
     return checklist.sections.reduce((total, section) => total + section.items.length, 0);
@@ -47,12 +54,12 @@ export function ConstructionTemplates({
                       {checklist.sections.length} sections • {getTotalItems(checklist)} items
                     </CardDescription>
                   </div>
-                  <Badge 
-                    variant={checklist.id === 'prework' ? 'default' : 'secondary'} 
-                    className="text-xs ml-2"
-                  >
-                    {checklist.id === 'prework' ? 'Pre-work' : 'Post-work'}
-                  </Badge>
+                   <Badge 
+                     variant={checklist.id === 'voorwerk' ? 'default' : 'secondary'} 
+                     className="text-xs ml-2"
+                   >
+                     {checklist.id === 'voorwerk' ? 'Pre-work' : 'Post-work'}
+                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="pt-0 space-y-3">

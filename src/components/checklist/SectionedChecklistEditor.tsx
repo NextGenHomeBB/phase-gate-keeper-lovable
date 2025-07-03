@@ -218,26 +218,27 @@ export function SectionedChecklistEditor({
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="space-y-2">
-                        {section.items.map((item, itemIndex) => {
-                          const itemState = itemProgress[section.title]?.[itemIndex];
-                          
-                          return (
-                            <div
-                              key={itemIndex}
-                              className="flex items-start space-x-3 p-2 rounded border hover:bg-muted/30 transition-colors"
-                            >
-                              <Checkbox
-                                checked={itemState?.completed || false}
-                                onCheckedChange={() => toggleItemCompletion(section.title, itemIndex)}
-                                disabled={isEditing}
-                                className="mt-1"
-                              />
-                              <span className={`text-sm flex-1 ${itemState?.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                {item}
-                              </span>
-                            </div>
-                          );
-                        })}
+                         {section.items.map((item, itemIndex) => {
+                           const itemState = itemProgress[section.title]?.[itemIndex];
+                           const itemText = typeof item === 'string' ? item : (item as any)?.description || item;
+                           
+                           return (
+                             <div
+                               key={itemIndex}
+                               className="flex items-start space-x-3 p-2 rounded border hover:bg-muted/30 transition-colors"
+                             >
+                               <Checkbox
+                                 checked={itemState?.completed || false}
+                                 onCheckedChange={() => toggleItemCompletion(section.title, itemIndex)}
+                                 disabled={isEditing}
+                                 className="mt-1"
+                               />
+                               <span className={`text-sm flex-1 ${itemState?.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                 {itemText}
+                               </span>
+                             </div>
+                           );
+                         })}
                       </div>
                     </CardContent>
                   </CollapsibleContent>
