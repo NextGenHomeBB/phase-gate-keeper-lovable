@@ -614,7 +614,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </TabsTrigger>
           <TabsTrigger value="info">
             <Info className="w-4 h-4 mr-2" />
-            Project Info
+            Project Overview
           </TabsTrigger>
           <TabsTrigger value="phases">
             <Clock className="w-4 h-4 mr-2" />
