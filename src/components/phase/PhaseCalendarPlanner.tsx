@@ -52,7 +52,10 @@ export function PhaseCalendarPlanner({
   const getPhasesForDate = (date: Date) => {
     const dayOfWeek = getDay(date);
     // Don't show phases on Sundays (day 0 = Sunday)
-    if (dayOfWeek === 0) return [];
+    if (dayOfWeek === 0) {
+      console.log(`Excluding Sunday: ${format(date, 'yyyy-MM-dd')}`);
+      return [];
+    }
     
     return phases.filter(phase => {
       if (!phase.start_date || !phase.end_date) return false;
@@ -60,7 +63,14 @@ export function PhaseCalendarPlanner({
       const startDate = new Date(phase.start_date);
       const endDate = new Date(phase.end_date);
       
-      return isWithinInterval(date, { start: startDate, end: endDate });
+      // Check if the date is within the phase range
+      const isInRange = isWithinInterval(date, { start: startDate, end: endDate });
+      
+      if (isInRange) {
+        console.log(`Phase "${phase.name}" appears on ${format(date, 'yyyy-MM-dd')} (${dayOfWeek === 0 ? 'Sunday' : 'Weekday'})`);
+      }
+      
+      return isInRange;
     });
   };
 
@@ -115,7 +125,7 @@ export function PhaseCalendarPlanner({
                   "min-h-[80px] p-1 border rounded-lg transition-colors",
                   !isCurrentMonth && "opacity-50",
                   isToday && "ring-2 ring-primary",
-                  isSunday ? "bg-muted/30 border-dashed" : "hover:bg-muted/50"
+                  isSunday ? "bg-muted/20 border-dashed border-muted cursor-not-allowed" : "hover:bg-muted/50"
                 )}
               >
                 <div className={cn(
