@@ -737,25 +737,25 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </div>
                   <div className="flex items-center gap-4">
                     {/* Primary View Toggle */}
-                    <div className="bg-white/80 p-1 rounded-lg border-2 border-indigo-300">
+                    <div className="bg-gradient-to-r from-indigo-100 to-blue-100 p-2 rounded-xl border-2 border-indigo-400 shadow-lg">
                       <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
-                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
-                          <Grid2X2 className="w-4 h-4" />
+                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white shadow-md">
+                          <Grid2X2 className="w-5 h-5" />
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
-                          <Kanban className="w-4 h-4" />
+                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white shadow-md">
+                          <Kanban className="w-5 h-5" />
                         </ToggleGroupItem>
                       </ToggleGroup>
                     </div>
                     
                     {/* Secondary View Toggle */}
-                    <div className="bg-purple-50 p-1 rounded-lg border-2 border-purple-300">
+                    <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl border-2 border-purple-400 shadow-lg">
                       <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
-                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white">
-                          <Grid2X2 className="w-4 h-4" />
+                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white shadow-md">
+                          <Grid2X2 className="w-5 h-5" />
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white">
-                          <Kanban className="w-4 h-4" />
+                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white shadow-md">
+                          <Kanban className="w-5 h-5" />
                         </ToggleGroupItem>
                       </ToggleGroup>
                     </div>
