@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog } from "lucide-react";
+import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog, Edit } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/AddTeamMemberDialog";
+import { EditTeamMemberDialog } from "@/components/EditTeamMemberDialog";
 import { CreateWorkerDialog } from "@/components/admin/CreateWorkerDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -45,6 +46,8 @@ interface TeamPageProps {
 
 export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [isCreateWorkerDialogOpen, setIsCreateWorkerDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -95,6 +98,43 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditTeamMember = async (memberId: string, updatedData: Partial<TeamMember>) => {
+    try {
+      // Update roles in database
+      if (updatedData.roles) {
+        await teamService.updateTeamMemberRoles(memberId, updatedData.roles);
+      }
+      
+      // Update local state
+      const updatedMembers = teamMembers.map(member => 
+        member.id === memberId 
+          ? { ...member, ...updatedData }
+          : member
+      );
+      onUpdateTeamMembers(updatedMembers);
+      
+      setIsEditDialogOpen(false);
+      setEditingMember(null);
+      
+      toast({
+        title: "Teamlid bijgewerkt",
+        description: "De gegevens zijn succesvol opgeslagen.",
+      });
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      toast({
+        title: t('common.error'),
+        description: "Kon teamlid niet bijwerken.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditDialog = (member: TeamMember) => {
+    setEditingMember(member);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteTeamMember = async (memberId: string) => {
@@ -243,6 +283,20 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
               <UserCog className="w-4 h-4 mr-2" />
               Create Worker
             </Button>
+
+            <Button 
+              onClick={() => {
+                if (teamMembers.length > 0) {
+                  openEditDialog(teamMembers[0]);
+                }
+              }}
+              variant="outline"
+              className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+              disabled={teamMembers.length === 0}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Teamleden
+            </Button>
             
             <Button 
               onClick={() => setIsAddDialogOpen(true)}
@@ -356,17 +410,27 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                       )}
                     </TableCell>
                     <TableCell>{new Date(member.startDate).toLocaleDateString('nl-NL')}</TableCell>
-                    {isAdmin && (
-                      <TableCell>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteTeamMember(member.id)}
-                        >
-                          {t('team.remove')}
-                        </Button>
-                      </TableCell>
-                    )}
+                     {isAdmin && (
+                       <TableCell>
+                         <div className="flex gap-2">
+                           <Button 
+                             variant="outline" 
+                             size="sm"
+                             onClick={() => openEditDialog(member)}
+                             className="hover:bg-purple-50"
+                           >
+                             <Edit className="w-4 h-4" />
+                           </Button>
+                           <Button 
+                             variant="destructive" 
+                             size="sm"
+                             onClick={() => handleDeleteTeamMember(member.id)}
+                           >
+                             {t('team.remove')}
+                           </Button>
+                         </div>
+                       </TableCell>
+                     )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -381,6 +445,16 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
             isOpen={isAddDialogOpen}
             onClose={() => setIsAddDialogOpen(false)}
             onAdd={handleAddTeamMember}
+          />
+
+          <EditTeamMemberDialog
+            isOpen={isEditDialogOpen}
+            onClose={() => {
+              setIsEditDialogOpen(false);
+              setEditingMember(null);
+            }}
+            onSave={handleEditTeamMember}
+            member={editingMember}
           />
           
           <CreateWorkerDialog
