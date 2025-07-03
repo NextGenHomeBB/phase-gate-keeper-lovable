@@ -68,7 +68,7 @@ export const secureTeamService = {
       .from('team_members')
       .insert(sanitizedMember)
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error adding team member:', error);

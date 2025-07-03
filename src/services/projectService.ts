@@ -157,7 +157,7 @@ export const projectService = {
       .from('projects')
       .select('*')
       .eq('id', projectId)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error fetching project:', error);
@@ -344,7 +344,7 @@ export const projectService = {
         locked: false
       })
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error adding project phase:', error);
@@ -465,7 +465,7 @@ export const projectService = {
         created_by: user.id
       })
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error adding project:', error);

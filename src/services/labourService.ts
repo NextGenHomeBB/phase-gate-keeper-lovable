@@ -121,7 +121,7 @@ export const labourService = {
           trade_specialty
         )
       `)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error adding labour:', error);

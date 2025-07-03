@@ -55,7 +55,7 @@ export const teamService = {
         user_id: user.id // Add the current user ID
       })
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error adding team member:', error);

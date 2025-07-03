@@ -34,7 +34,7 @@ export const projectFileService = {
         uploaded_by: user?.id || null
       })
       .select()
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error('Error uploading project file:', error);

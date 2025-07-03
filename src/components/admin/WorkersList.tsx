@@ -314,7 +314,7 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
         .from('team_members')
         .select('id')
         .eq('user_id', workerId)
-        .maybeSingle();
+        .single();
 
       if (teamMember) {
         setAssignProjectsDialog({
