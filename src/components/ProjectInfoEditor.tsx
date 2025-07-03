@@ -457,9 +457,21 @@ export const ProjectInfoEditor = ({ project, onSave, onCancel }: ProjectInfoEdit
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ventilatie</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="bijv. natuurlijk, mechanisch" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer ventilatietype" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="natuurlijke_ventilatie">Natuurlijke ventilatie</SelectItem>
+                        <SelectItem value="mechanische_ventilatie_type_c">Mechanische ventilatie (type C)</SelectItem>
+                        <SelectItem value="balansventilatie_wtw_type_d">Balansventilatie met warmteterugwinning (type D)</SelectItem>
+                        <SelectItem value="wtw">WTW (warmteterugwinning)</SelectItem>
+                        <SelectItem value="hybride_ventilatie">Hybride ventilatie</SelectItem>
+                        <SelectItem value="lokale_ventilatie">Lokale ventilatie (badkamer, keuken, toilet)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
