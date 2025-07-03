@@ -28,6 +28,9 @@ import { ProjectTeamManager } from "./ProjectTeamManager";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PhaseCalendarPlanner } from "./phase/PhaseCalendarPlanner";
+import { PhaseTimeline } from "./phase/PhaseTimeline";
+import { PhaseSchedulingDialog } from "./phase/PhaseSchedulingDialog";
 
 interface ProjectDetailProps {
   project: Project;
@@ -57,6 +60,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [teamMembersCount, setTeamMembersCount] = useState(project.teamMembers.length);
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
+  const [selectedPhaseForScheduling, setSelectedPhaseForScheduling] = useState<Phase | null>(null);
   const { toast } = useToast();
 
   // Load phase colors from the database when project loads
@@ -176,6 +181,48 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
   const handlePhaseClick = (phase: Phase) => {
     navigate(`/project/${project.id}/phase/${phase.id}`);
+  };
+
+  const handlePhaseScheduleClick = (phase: Phase) => {
+    setSelectedPhaseForScheduling(phase);
+  };
+
+  const handlePhaseUpdate = async (phaseId: number, updates: { 
+    completed?: boolean; 
+    locked?: boolean; 
+    color_index?: number;
+    name?: string;
+    description?: string;
+    start_date?: string;
+    end_date?: string;
+  }) => {
+    try {
+      await projectService.updateProjectPhase(project.id, phaseId, updates);
+      
+      // Reload the project to get the updated data
+      const updatedProject = await projectService.getProject(project.id);
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Phase updated successfully",
+        description: "Phase has been updated with new information.",
+      });
+    } catch (error) {
+      console.error("Error updating phase:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update phase.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getPreviousPhaseEndDate = (phaseId: number): Date | undefined => {
+    const currentPhaseIndex = project.phases.findIndex(p => p.id === phaseId);
+    if (currentPhaseIndex <= 0) return undefined;
+    
+    const previousPhase = project.phases[currentPhaseIndex - 1];
+    return previousPhase.end_date ? new Date(previousPhase.end_date) : undefined;
   };
 
   const getProgressPercentage = () => {
@@ -568,6 +615,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <Clock className="w-4 h-4 mr-2" />
             {t('projectDetail.phases')}
           </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            Calendar
+          </TabsTrigger>
+          <TabsTrigger value="timeline">
+            <Activity className="w-4 h-4 mr-2" />
+            Timeline
+          </TabsTrigger>
           <TabsTrigger value="photos">
             <Camera className="w-4 h-4 mr-2" />
             {t('projectDetail.photos')}
@@ -648,6 +703,22 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               </ul>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <PhaseCalendarPlanner
+            phases={project.phases}
+            currentDate={currentCalendarDate}
+            onDateChange={setCurrentCalendarDate}
+            onPhaseClick={handlePhaseScheduleClick}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeline">
+          <PhaseTimeline
+            phases={project.phases}
+            onPhaseClick={handlePhaseScheduleClick}
+          />
         </TabsContent>
 
         <TabsContent value="phases" className="space-y-6">
@@ -948,6 +1019,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
       {/* Materials Calculator moved to the bottom */}
       <MaterialsCalculator project={project} />
+
+      <PhaseSchedulingDialog
+        open={!!selectedPhaseForScheduling}
+        onOpenChange={(open) => !open && setSelectedPhaseForScheduling(null)}
+        phase={selectedPhaseForScheduling}
+        onSave={handlePhaseUpdate}
+        previousPhaseEndDate={selectedPhaseForScheduling ? getPreviousPhaseEndDate(selectedPhaseForScheduling.id) : undefined}
+      />
     </div>
   );
 }

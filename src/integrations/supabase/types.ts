@@ -265,39 +265,54 @@ export type Database = {
       }
       project_phases: {
         Row: {
+          actual_end_date: string | null
+          actual_start_date: string | null
           color_index: number | null
           completed: boolean
           created_at: string
           description: string | null
+          end_date: string | null
+          estimated_duration_days: number | null
           id: string
           locked: boolean
           name: string
           phase_number: number
           project_id: string
+          start_date: string | null
           updated_at: string
         }
         Insert: {
+          actual_end_date?: string | null
+          actual_start_date?: string | null
           color_index?: number | null
           completed?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          estimated_duration_days?: number | null
           id?: string
           locked?: boolean
           name: string
           phase_number: number
           project_id: string
+          start_date?: string | null
           updated_at?: string
         }
         Update: {
+          actual_end_date?: string | null
+          actual_start_date?: string | null
           color_index?: number | null
           completed?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          estimated_duration_days?: number | null
           id?: string
           locked?: boolean
           name?: string
           phase_number?: number
           project_id?: string
+          start_date?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -128,17 +128,22 @@ export const projectService = {
           teamMembers: teamMembers.map(tm => tm.name),
           phases: await Promise.all(phases.map(async (phase) => {
             const checklist = await this.fetchPhaseChecklist(project.id, phase.phase_number);
-            return {
-              id: phase.phase_number,
-              name: phase.name,
-              description: phase.description || '',
-              completed: phase.completed,
-              locked: phase.locked,
-              color_index: phase.color_index,
-              checklist: checklist,
-              materials: materialsByPhase[phase.phase_number] || [],
-              labour: labourByPhase[phase.phase_number] || []
-            };
+        return {
+          id: phase.phase_number,
+          name: phase.name,
+          description: phase.description || '',
+          completed: phase.completed,
+          locked: phase.locked,
+          color_index: phase.color_index,
+          start_date: phase.start_date || undefined,
+          end_date: phase.end_date || undefined,
+          actual_start_date: phase.actual_start_date || undefined,
+          actual_end_date: phase.actual_end_date || undefined,
+          estimated_duration_days: phase.estimated_duration_days || undefined,
+          checklist: checklist,
+          materials: materialsByPhase[phase.phase_number] || [],
+          labour: labourByPhase[phase.phase_number] || []
+        };
           }))
         };
       })
@@ -180,6 +185,11 @@ export const projectService = {
           completed: phase.completed,
           locked: phase.locked,
           color_index: phase.color_index,
+          start_date: phase.start_date || undefined,
+          end_date: phase.end_date || undefined,
+          actual_start_date: phase.actual_start_date || undefined,
+          actual_end_date: phase.actual_end_date || undefined,
+          estimated_duration_days: phase.estimated_duration_days || undefined,
           checklist: checklist,
           materials: materialsByPhase[phase.phase_number] || [],
           labour: labourByPhase[phase.phase_number] || []
@@ -363,6 +373,10 @@ export const projectService = {
     color_index?: number; 
     name?: string;
     description?: string;
+    start_date?: string;
+    end_date?: string;
+    actual_start_date?: string;
+    actual_end_date?: string;
   }): Promise<void> {
     const { error } = await supabase
       .from('project_phases')
@@ -490,16 +504,22 @@ export const projectService = {
       currentPhase: data.current_phase || 1,
       startDate: data.start_date || new Date().toISOString().split('T')[0],
       teamMembers: [],
-      phases: defaultPhases.map((phase, index) => ({
-        id: index + 1,
-        name: phase.name,
-        description: phase.description,
-        completed: false,
-        locked: index > 0,
-        checklist: getPhaseChecklist(index + 1),
-        materials: [],
-        labour: []
-      }))
+        phases: defaultPhases.map((phase, index) => ({
+          id: index + 1,
+          name: phase.name,
+          description: phase.description,
+          completed: false,
+          locked: index > 0,
+          color_index: index,
+          start_date: undefined,
+          end_date: undefined,
+          actual_start_date: undefined,
+          actual_end_date: undefined,
+          estimated_duration_days: undefined,
+          checklist: getPhaseChecklist(index + 1),
+          materials: [],
+          labour: []
+        }))
     };
   },
 

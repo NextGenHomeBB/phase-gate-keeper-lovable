@@ -54,7 +54,12 @@ export interface Phase {
   description: string;
   completed: boolean;
   locked: boolean;
-  color_index?: number | null; // Add color_index field
+  color_index?: number | null;
+  start_date?: string;
+  end_date?: string;
+  actual_start_date?: string;
+  actual_end_date?: string;
+  estimated_duration_days?: number;
   checklist: ChecklistItem[];
   materials: Material[];
   labour: Labour[];
