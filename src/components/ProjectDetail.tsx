@@ -746,14 +746,25 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </ToggleGroupItem>
                     </ToggleGroup>
                     
-                    <Button 
-                      onClick={handleAddPhase} 
-                      size="lg"
-                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Nieuwe Fase Toevoegen
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={handleAddPhase} 
+                        size="lg"
+                        className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                      >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Nieuwe Fase Toevoegen
+                      </Button>
+                      <Button 
+                        onClick={() => navigate('/checklist-creator')} 
+                        size="lg"
+                        variant="outline"
+                        className="border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                      >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Checklist Toevoegen
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
