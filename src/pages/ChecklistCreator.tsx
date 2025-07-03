@@ -327,6 +327,10 @@ const ChecklistCreator = () => {
                 onSave={() => {}}
                 onEdit={() => {}}
                 onCancel={() => setSelectedSectionedChecklist(null)}
+                onAddToProject={(checklist) => {
+                  console.log('Adding checklist to project:', checklist);
+                  // TODO: Implement project phase integration
+                }}
               />
             ) : (
               <Card className="h-96 flex items-center justify-center">

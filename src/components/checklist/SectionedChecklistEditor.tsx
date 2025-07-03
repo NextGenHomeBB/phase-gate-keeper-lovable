@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Save, Edit, X, Download } from "lucide-react";
+import { ChevronDown, ChevronRight, Save, Edit, X, Download, Plus } from "lucide-react";
 import { SectionedChecklist, ChecklistSection } from "@/data/constructionChecklists";
 import { ChecklistExport } from "./ChecklistExport";
 
@@ -15,6 +15,7 @@ interface SectionedChecklistEditorProps {
   onSave: (checklist: SectionedChecklist) => void;
   onEdit: () => void;
   onCancel: () => void;
+  onAddToProject?: (checklist: SectionedChecklist) => void;
 }
 
 interface ChecklistItemWithProgress {
@@ -27,7 +28,8 @@ export function SectionedChecklistEditor({
   isEditing,
   onSave,
   onEdit,
-  onCancel
+  onCancel,
+  onAddToProject
 }: SectionedChecklistEditorProps) {
   const [editedChecklist, setEditedChecklist] = useState<SectionedChecklist>(checklist);
   const [sectionStates, setSectionStates] = useState<Record<string, boolean>>({});
@@ -137,6 +139,16 @@ export function SectionedChecklistEditor({
                   <Download className="w-4 h-4 mr-2" />
                   Export
                 </Button>
+                {onAddToProject && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => onAddToProject(checklist)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add to Project
+                  </Button>
+                )}
                 <Button size="sm" onClick={onEdit}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
