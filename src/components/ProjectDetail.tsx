@@ -28,6 +28,8 @@ import { PhaseBadge, PhaseStatus } from "./phase/PhaseBadge";
 import { PhaseLegend } from "./phase/PhaseLegend";
 import { KanbanView } from "./phase/KanbanView";
 import { ProjectTeamManager } from "./ProjectTeamManager";
+import { TeamMember } from "./TeamPage";
+import { teamService } from "@/services/teamService";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -73,6 +75,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [isAddingDate, setIsAddingDate] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedItem, setSelectedItem] = useState<string>("");
+  const [allTeamMembers, setAllTeamMembers] = useState<TeamMember[]>([]);
+  const [phaseResponsibles, setPhaseResponsibles] = useState<{[phaseId: number]: string}>({});
+  const [projectResponsible, setProjectResponsible] = useState<string>(project.project_manager || "");
   const { toast } = useToast();
 
   const deliveryItems = [
@@ -96,6 +101,20 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
     loadPhaseColors();
   }, [project.id]);
+
+  // Load team members for selection
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      try {
+        const members = await teamService.fetchTeamMembers();
+        setAllTeamMembers(members);
+      } catch (error) {
+        console.error('Error loading team members:', error);
+      }
+    };
+
+    loadTeamMembers();
+  }, []);
 
   // Lighter pastel color classes for phase cards
   const pastelColors = [
@@ -517,6 +536,35 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const handlePhaseResponsibleChange = (phaseId: number, responsibleId: string) => {
+    setPhaseResponsibles(prev => ({
+      ...prev,
+      [phaseId]: responsibleId
+    }));
+  };
+
+  const handleProjectResponsibleChange = async (responsibleId: string) => {
+    try {
+      setProjectResponsible(responsibleId);
+      // Update project in database
+      const updatedProject = { ...project, project_manager: responsibleId };
+      await projectService.updateProject(updatedProject);
+      onUpdateProject(updatedProject);
+      
+      toast({
+        title: "Project manager bijgewerkt",
+        description: "De projectverantwoordelijke is succesvol gewijzigd.",
+      });
+    } catch (error) {
+      console.error('Error updating project responsible:', error);
+      toast({
+        title: "Fout",
+        description: "Kon projectverantwoordelijke niet bijwerken.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleTeamMembersChange = async () => {
     try {
       // Reload the project to get updated team members
@@ -855,6 +903,32 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <CardTitle className="text-lg font-semibold">Project Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Project Responsible Selection */}
+              <div>
+                <label className="text-sm font-medium text-gray-600">Project Verantwoordelijke</label>
+                <Select 
+                  value={projectResponsible} 
+                  onValueChange={handleProjectResponsibleChange}
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Selecteer project verantwoordelijke" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Geen verantwoordelijke</SelectItem>
+                    {allTeamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{member.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {member.roles ? member.roles.join(", ") : member.role}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Startdatum</label>
@@ -1151,8 +1225,39 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             {phase.description || "Klik om beschrijving toe te voegen..."}
                           </p>
                         )}
-                      </div>
-                      
+                       </div>
+
+                       {/* Phase Responsible Selection */}
+                       <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                         <div className="text-xs font-medium text-muted-foreground">Fase Verantwoordelijke</div>
+                         <Select 
+                           value={phaseResponsibles[phase.id] || ""} 
+                           onValueChange={(value) => handlePhaseResponsibleChange(phase.id, value)}
+                         >
+                           <SelectTrigger className="h-8 text-xs">
+                             <SelectValue placeholder="Selecteer verantwoordelijke" />
+                           </SelectTrigger>
+                           <SelectContent>
+                             <SelectItem value="">Geen verantwoordelijke</SelectItem>
+                             {allTeamMembers.map((member) => (
+                               <SelectItem key={member.id} value={member.id}>
+                                 <div className="flex items-center gap-2">
+                                   <span className="font-medium">{member.name}</span>
+                                   <span className="text-xs text-muted-foreground">
+                                     {member.roles ? member.roles.join(", ") : member.role}
+                                   </span>
+                                 </div>
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+                         {phaseResponsibles[phase.id] && (
+                           <div className="text-xs text-muted-foreground">
+                             Verantwoordelijk: {allTeamMembers.find(m => m.id === phaseResponsibles[phase.id])?.name}
+                           </div>
+                         )}
+                       </div>
+                       
                       {/* Enhanced Progress Section */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-sm">
