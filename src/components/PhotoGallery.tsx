@@ -90,7 +90,7 @@ export function PhotoGallery({ projectId, phaseId, title, className }: PhotoGall
             caption: captionText || caption || null,
           })
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error adding photo:', error);

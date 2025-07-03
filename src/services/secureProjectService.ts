@@ -126,7 +126,7 @@ export const secureProjectService = {
       .from('projects')
       .insert(sanitizedProject)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error adding project:', error);

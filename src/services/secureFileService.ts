@@ -84,7 +84,7 @@ export const secureFileService = {
       .from('project_files')
       .insert(sanitizedData)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error uploading project file:', error);

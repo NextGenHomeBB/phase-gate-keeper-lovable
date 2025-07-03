@@ -98,7 +98,7 @@ export const materialService = {
         vat_percentage: material.vatPercentage || 0
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error adding material:', error);
@@ -154,7 +154,7 @@ export const materialService = {
       .update(updateData)
       .eq('id', materialId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error updating material:', error);

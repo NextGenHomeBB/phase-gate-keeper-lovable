@@ -47,7 +47,7 @@ export const subcontractorService = {
       .from('sub_contractors')
       .insert(subcontractor)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error adding subcontractor:', error);
