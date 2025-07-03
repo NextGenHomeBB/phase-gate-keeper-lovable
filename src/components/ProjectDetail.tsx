@@ -574,36 +574,31 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <CardTitle className="text-lg font-semibold">Project Date</CardTitle>
           </CardHeader>
           <CardContent>
-            <Popover open={isProjectDatePickerOpen} onOpenChange={setIsProjectDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    console.log('Project Date button clicked!');
-                    setIsProjectDatePickerOpen(true);
-                  }}
-                  className={cn(
-                    "w-full justify-start text-left font-normal p-3",
-                    "hover:bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                    "cursor-pointer transition-colors duration-200"
-                  )}
-                >
-                  <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="flex-1">
-                    {project.startDate ? format(new Date(project.startDate), "dd/MM/yyyy") : "Selecteer datum"}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
-                <Calendar
-                  mode="single"
-                  selected={project.startDate ? new Date(project.startDate) : undefined}
-                  onSelect={handleStartDateChange}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <Button
+              variant="outline"
+              onClick={() => setCategoryDatesDialogOpen(true)}
+              className={cn(
+                "w-full justify-start text-left font-normal p-3",
+                "hover:bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                "cursor-pointer transition-colors duration-200"
+              )}
+            >
+              <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="flex-1">
+                {project.startDate ? (
+                  <div className="flex flex-col">
+                    <span>{format(new Date(project.startDate), "dd/MM/yyyy")}</span>
+                    {project.categoryStartDates && Object.keys(project.categoryStartDates).length > 0 && (
+                      <span className="text-xs text-gray-500">
+                        + {Object.keys(project.categoryStartDates).length} categories
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  "Selecteer project startdatum"
+                )}
+              </span>
+            </Button>
           </CardContent>
         </Card>
 
