@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
@@ -68,10 +69,19 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedPhaseForScheduling, setSelectedPhaseForScheduling] = useState<Phase | null>(null);
   const [categoryDatesDialogOpen, setCategoryDatesDialogOpen] = useState(false);
-  const [projectDates, setProjectDates] = useState<Date[]>([]);
+  const [projectDates, setProjectDates] = useState<{date: Date, item: string}[]>([]);
   const [isAddingDate, setIsAddingDate] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedItem, setSelectedItem] = useState<string>("");
   const { toast } = useToast();
+
+  const deliveryItems = [
+    "Keukenlevering",
+    "Vloerenlevering", 
+    "Tegellevering",
+    "Overige",
+    "Bouwmaterialen"
+  ];
 
   // Load phase colors from the database when project loads
   useEffect(() => {
@@ -609,7 +619,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center justify-between">
-              Project Datums
+              Leveringen
               <Button
                 variant="outline"
                 size="sm"
@@ -626,9 +636,12 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               {projectDates.length > 0 ? (
                 <>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {projectDates.map((date, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
-                        <span>{format(date, "dd/MM/yyyy")}</span>
+                    {projectDates.map((entry, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-gray-900">{entry.item}</div>
+                          <div className="text-xs text-gray-500">{format(entry.date, "dd/MM/yyyy")}</div>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -636,7 +649,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                             const newDates = projectDates.filter((_, i) => i !== index);
                             setProjectDates(newDates);
                           }}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex-shrink-0"
                         >
                           ×
                         </Button>
@@ -646,14 +659,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   <div className="border-t pt-2">
                     <div className="flex items-center text-sm font-medium">
                       <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                      Totaal: {projectDates.length} datum{projectDates.length !== 1 ? 's' : ''}
+                      Totaal: {projectDates.length} levering{projectDates.length !== 1 ? 'en' : ''}
                     </div>
                   </div>
                 </>
               ) : (
                 <div className="text-center py-4 text-gray-500">
                   <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">Geen datums toegevoegd</p>
+                  <p className="text-sm">Geen leveringen toegevoegd</p>
                 </div>
               )}
             </div>
@@ -664,54 +677,79 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           <Dialog open={isAddingDate} onOpenChange={setIsAddingDate}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Datum Toevoegen</DialogTitle>
+                <DialogTitle>Levering Toevoegen</DialogTitle>
                 <DialogDescription>
-                  Selecteer een datum om toe te voegen aan de project datums lijst.
+                  Selecteer een leveringstype en datum om toe te voegen aan de project leveringen lijst.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "PPP") : "Selecteer een datum"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+              <div className="space-y-4 py-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Leveringstype
+                  </label>
+                  <Select value={selectedItem} onValueChange={setSelectedItem}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecteer leveringstype" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      {deliveryItems.map((item) => (
+                        <SelectItem key={item} value={item} className="hover:bg-gray-100">
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Leveringsdatum
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, "PPP") : "Selecteer een datum"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
                   setIsAddingDate(false);
                   setSelectedDate(undefined);
+                  setSelectedItem("");
                 }}>
                   Annuleren
                 </Button>
                 <Button onClick={() => {
-                  if (selectedDate) {
-                    setProjectDates([...projectDates, selectedDate]);
+                  if (selectedDate && selectedItem) {
+                    setProjectDates([...projectDates, { date: selectedDate, item: selectedItem }]);
                     setIsAddingDate(false);
                     setSelectedDate(undefined);
+                    setSelectedItem("");
                     toast({
-                      title: "Datum toegevoegd",
-                      description: `${format(selectedDate, "dd/MM/yyyy")} is toegevoegd aan de project datums.`,
+                      title: "Levering toegevoegd",
+                      description: `${selectedItem} op ${format(selectedDate, "dd/MM/yyyy")} is toegevoegd.`,
                     });
                   }
-                }} disabled={!selectedDate}>
+                }} disabled={!selectedDate || !selectedItem}>
                   Toevoegen
                 </Button>
               </DialogFooter>
