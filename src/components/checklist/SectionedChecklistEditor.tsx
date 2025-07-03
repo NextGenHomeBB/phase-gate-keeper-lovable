@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, ChevronRight, Save, Edit, X, Download, Plus } from "lucide-react";
 import { SectionedChecklist, ChecklistSection } from "@/data/constructionChecklists";
 import { ChecklistExport } from "./ChecklistExport";
+import { AddToProjectDialog } from "./AddToProjectDialog";
 
 interface SectionedChecklistEditorProps {
   checklist: SectionedChecklist;
@@ -44,6 +45,7 @@ export function SectionedChecklistEditor({
     return initial;
   });
   const [showExport, setShowExport] = useState(false);
+  const [showAddToProject, setShowAddToProject] = useState(false);
 
   const handleSave = () => {
     onSave(editedChecklist);
@@ -143,7 +145,7 @@ export function SectionedChecklistEditor({
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => onAddToProject(checklist)}
+                    onClick={() => setShowAddToProject(true)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add to Project
@@ -260,6 +262,13 @@ export function SectionedChecklistEditor({
           })}
         </div>
       </CardContent>
+
+      {/* Add to Project Dialog */}
+      <AddToProjectDialog
+        checklist={checklist}
+        isOpen={showAddToProject}
+        onClose={() => setShowAddToProject(false)}
+      />
     </Card>
   );
 }
