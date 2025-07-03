@@ -736,25 +736,29 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    {/* View Toggle */}
-                    <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
-                      <ToggleGroupItem value="grid" aria-label="Grid weergave">
-                        <Grid2X2 className="w-4 h-4" />
-                      </ToggleGroupItem>
-                      <ToggleGroupItem value="kanban" aria-label="Kanban weergave">
-                        <Kanban className="w-4 h-4" />
-                      </ToggleGroupItem>
-                    </ToggleGroup>
+                    {/* Primary View Toggle */}
+                    <div className="bg-white/80 p-1 rounded-lg border-2 border-indigo-300">
+                      <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
+                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
+                          <Grid2X2 className="w-4 h-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
+                          <Kanban className="w-4 h-4" />
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
                     
-                    {/* Duplicate View Toggle */}
-                    <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
-                      <ToggleGroupItem value="grid" aria-label="Grid weergave">
-                        <Grid2X2 className="w-4 h-4" />
-                      </ToggleGroupItem>
-                      <ToggleGroupItem value="kanban" aria-label="Kanban weergave">
-                        <Kanban className="w-4 h-4" />
-                      </ToggleGroupItem>
-                    </ToggleGroup>
+                    {/* Secondary View Toggle */}
+                    <div className="bg-purple-50 p-1 rounded-lg border-2 border-purple-300">
+                      <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
+                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white">
+                          <Grid2X2 className="w-4 h-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white">
+                          <Kanban className="w-4 h-4" />
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
                     
                     <div className="flex gap-3">
                       <Button 
