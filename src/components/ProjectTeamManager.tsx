@@ -27,9 +27,10 @@ import { format } from "date-fns";
 interface ProjectTeamManagerProps {
   projectId: string;
   onTeamMembersChange: () => void;
+  autoSelectMemberId?: string;
 }
 
-export function ProjectTeamManager({ projectId, onTeamMembersChange }: ProjectTeamManagerProps) {
+export function ProjectTeamManager({ projectId, onTeamMembersChange, autoSelectMemberId }: ProjectTeamManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedMemberInfo, setSelectedMemberInfo] = useState<TeamMember | null>(null);
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -42,6 +43,23 @@ export function ProjectTeamManager({ projectId, onTeamMembersChange }: ProjectTe
   useEffect(() => {
     loadData();
   }, [projectId]);
+
+  // Calculate available team members
+  const availableTeamMembers = allTeamMembers.filter(
+    member => !projectTeamMembers.some(pm => pm.id === member.id)
+  );
+
+  // Auto-select team member when autoSelectMemberId is provided
+  useEffect(() => {
+    if (autoSelectMemberId && allTeamMembers.length > 0) {
+      const memberExists = availableTeamMembers.some(member => member.id === autoSelectMemberId);
+      if (memberExists) {
+        console.log('Auto-selecting team member:', autoSelectMemberId);
+        setSelectedTeamMemberId(autoSelectMemberId);
+        setIsOpen(true); // Open the dialog to show the selection
+      }
+    }
+  }, [autoSelectMemberId, allTeamMembers, projectTeamMembers]);
 
   const loadData = async () => {
     try {
@@ -115,9 +133,6 @@ export function ProjectTeamManager({ projectId, onTeamMembersChange }: ProjectTe
     setIsInfoDialogOpen(true);
   };
 
-  const availableTeamMembers = allTeamMembers.filter(
-    member => !projectTeamMembers.some(pm => pm.id === member.id)
-  );
 
   return (
     <>

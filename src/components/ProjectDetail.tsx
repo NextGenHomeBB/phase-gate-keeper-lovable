@@ -563,7 +563,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     
     // Auto-scroll to team members section when a responsible is selected
     if (responsibleId && responsibleId !== "none" && responsibleId !== "") {
-      console.log('Phase responsible selected:', responsibleId, 'starting scroll timer');
+      console.log('Phase responsible selected:', responsibleId, 'starting scroll timer and auto-select');
       setTimeout(() => {
         scrollToTeamMembers();
       }, 300); // Increased delay to ensure dropdown fully closes and DOM updates
@@ -866,6 +866,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               <ProjectTeamManager 
                 projectId={project.id}
                 onTeamMembersChange={handleTeamMembersChange}
+                autoSelectMemberId={Object.values(phaseResponsibles).find(id => id && id !== "none") || undefined}
               />
             </div>
           </CardContent>
