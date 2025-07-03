@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, getDay, eachDayOfInterval } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,12 @@ const PHASE_COLORS = [
   "bg-orange-500"
 ];
 
+// Helper function to count working days (excluding Sundays)
+const getWorkingDaysBetween = (start: Date, end: Date) => {
+  const days = eachDayOfInterval({ start, end });
+  return days.filter(day => getDay(day) !== 0).length; // 0 = Sunday
+};
+
 export function PhaseTimeline({ phases, onPhaseClick }: PhaseTimelineProps) {
   const scheduledPhases = phases.filter(phase => phase.start_date && phase.end_date);
   
@@ -37,7 +43,7 @@ export function PhaseTimeline({ phases, onPhaseClick }: PhaseTimelineProps) {
 
   const totalProjectDays = React.useMemo(() => {
     if (!projectStart || !projectEnd) return 0;
-    return differenceInDays(projectEnd, projectStart) + 1;
+    return getWorkingDaysBetween(projectStart, projectEnd);
   }, [projectStart, projectEnd]);
 
   const getPhasePosition = (phase: Phase) => {
@@ -46,8 +52,8 @@ export function PhaseTimeline({ phases, onPhaseClick }: PhaseTimelineProps) {
     const phaseStart = new Date(phase.start_date);
     const phaseEnd = new Date(phase.end_date);
     
-    const startOffset = differenceInDays(phaseStart, projectStart);
-    const duration = differenceInDays(phaseEnd, phaseStart) + 1;
+    const startOffset = getWorkingDaysBetween(projectStart, phaseStart) - 1; // -1 because we don't include the start day in offset
+    const duration = getWorkingDaysBetween(phaseStart, phaseEnd);
     
     const left = (startOffset / totalProjectDays) * 100;
     const width = (duration / totalProjectDays) * 100;
@@ -69,10 +75,10 @@ export function PhaseTimeline({ phases, onPhaseClick }: PhaseTimelineProps) {
     if (now < start) return 0;
     if (now > end) return phase.completed ? 100 : 90; // Show 90% if overdue but not completed
     
-    const totalDays = differenceInDays(end, start) + 1;
-    const passedDays = differenceInDays(now, start) + 1;
+    const totalWorkingDays = getWorkingDaysBetween(start, end);
+    const passedWorkingDays = getWorkingDaysBetween(start, now);
     
-    return Math.min((passedDays / totalDays) * 100, 100);
+    return Math.min((passedWorkingDays / totalWorkingDays) * 100, 100);
   };
 
   if (scheduledPhases.length === 0) {
@@ -130,7 +136,7 @@ export function PhaseTimeline({ phases, onPhaseClick }: PhaseTimelineProps) {
                     </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {phase.estimated_duration_days} days
+                    {getWorkingDaysBetween(new Date(phase.start_date!), new Date(phase.end_date!))} working days
                   </div>
                 </div>
                 
