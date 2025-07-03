@@ -65,6 +65,7 @@ export function PhaseDatePicker({
                   !startDate && "text-muted-foreground"
                 )}
                 disabled={disabled}
+                aria-label={startDate ? `Start date: ${format(startDate, "PPP")}` : "Pick start date"}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {startDate ? format(startDate, "PPP") : <span>Pick start date</span>}
@@ -97,6 +98,7 @@ export function PhaseDatePicker({
                   !endDate && "text-muted-foreground"
                 )}
                 disabled={disabled || !startDate}
+                aria-label={endDate ? `End date: ${format(endDate, "PPP")}` : "Pick end date"}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {endDate ? format(endDate, "PPP") : <span>Pick end date</span>}
