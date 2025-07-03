@@ -1,0 +1,13 @@
+{
+  "name": "buildpro-bundle-analysis",
+  "description": "Bundle analysis configuration for BuildPro",
+  "scripts": {
+    "analyze": "npx rollup-plugin-visualizer dist/stats.html --open",
+    "build:analyze": "npm run build && npm run analyze"
+  },
+  "bundleThresholds": {
+    "javascript": "500kb",
+    "css": "100kb",
+    "note": "These are recommended thresholds for gzipped assets"
+  }
+}
