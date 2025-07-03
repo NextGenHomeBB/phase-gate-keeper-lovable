@@ -43,9 +43,11 @@ export function ConstructionTemplates({
             <Card
               key={checklist.id}
               className="cursor-pointer transition-colors hover:bg-muted/50"
-              onClick={() => onSelectChecklist(checklist)}
             >
-              <CardHeader className="pb-2">
+              <CardHeader 
+                className="pb-2 cursor-pointer"
+                onClick={() => onSelectChecklist(checklist)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-sm font-medium truncate">
@@ -56,16 +58,19 @@ export function ConstructionTemplates({
                     </CardDescription>
                   </div>
                    <Badge 
-                     variant={checklist.id === 'voorwerk' ? 'default' : 'secondary'} 
-                     className="text-xs ml-2"
-                   >
-                     {checklist.id === 'voorwerk' ? 'Pre-work' : 'Post-work'}
-                   </Badge>
+                      variant={checklist.id === 'voorwerk' ? 'default' : 'secondary'} 
+                      className="text-xs ml-2"
+                    >
+                      {checklist.id === 'voorwerk' ? 'Pre-work' : 'Post-work'}
+                    </Badge>
                 </div>
               </CardHeader>
               <CardContent className="pt-0 space-y-3">
                 {/* Section Preview */}
-                <div className="flex flex-wrap gap-1">
+                <div 
+                  className="flex flex-wrap gap-1 cursor-pointer"
+                  onClick={() => onSelectChecklist(checklist)}
+                >
                   {checklist.sections.slice(0, 3).map((section, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {section.title}
