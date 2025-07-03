@@ -610,7 +610,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         <TabsList>
           <TabsTrigger value="overview">
             <FileText className="w-4 h-4 mr-2" />
-            {t('projectDetail.overview')}
+            Project Overview
           </TabsTrigger>
           <TabsTrigger value="info">
             <Info className="w-4 h-4 mr-2" />
