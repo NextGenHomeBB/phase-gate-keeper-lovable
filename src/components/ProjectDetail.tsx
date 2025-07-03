@@ -62,6 +62,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [editingPhaseDescription, setEditingPhaseDescription] = useState("");
   const [colorPopoverOpen, setColorPopoverOpen] = useState<{[phaseId: number]: boolean}>({});
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isProjectDatePickerOpen, setIsProjectDatePickerOpen] = useState(false);
   const [teamMembersCount, setTeamMembersCount] = useState(project.teamMembers.length);
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedPhaseForScheduling, setSelectedPhaseForScheduling] = useState<Phase | null>(null);
@@ -466,8 +467,9 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     console.log('handleStartDateChange called with:', date);
     console.log('Current categoryDatesDialogOpen state:', categoryDatesDialogOpen);
     
-    // Close the date picker first
+    // Close both date pickers first
     setIsDatePickerOpen(false);
+    setIsProjectDatePickerOpen(false);
     
     // Open the category dates dialog
     setCategoryDatesDialogOpen(true);
@@ -572,23 +574,23 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <CardTitle className="text-lg font-semibold">Project Date</CardTitle>
           </CardHeader>
           <CardContent>
-            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <Popover open={isProjectDatePickerOpen} onOpenChange={setIsProjectDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start text-left font-normal p-0 h-auto text-gray-700 hover:text-gray-900 hover:bg-gray-50",
-                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md"
+                    "w-full justify-start text-left font-normal p-2 h-auto text-gray-700 hover:text-gray-900 hover:bg-gray-50",
+                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md transition-colors"
                   )}
                 >
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  {format(new Date(project.startDate), "dd/MM/yyyy")}
+                  {project.startDate ? format(new Date(project.startDate), "dd/MM/yyyy") : "Selecteer datum"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={new Date(project.startDate)}
+                  selected={project.startDate ? new Date(project.startDate) : undefined}
                   onSelect={handleStartDateChange}
                   initialFocus
                   className="pointer-events-auto"
