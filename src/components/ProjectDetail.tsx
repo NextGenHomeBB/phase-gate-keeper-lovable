@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid3X3, Kanban } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Grid3X3, Kanban } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
