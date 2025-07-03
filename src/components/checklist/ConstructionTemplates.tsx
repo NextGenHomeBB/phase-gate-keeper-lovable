@@ -43,6 +43,7 @@ export function ConstructionTemplates({
             <Card
               key={checklist.id}
               className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => onSelectChecklist(checklist)}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
