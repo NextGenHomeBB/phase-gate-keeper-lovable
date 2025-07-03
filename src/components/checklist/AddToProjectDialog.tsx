@@ -52,7 +52,7 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
     if (!selectedProjectId || !selectedPhaseId) {
       toast({
         title: "Selection Required",
-        description: "Please select both a project and a phase",
+        description: "Please select both a project and insertion point",
         variant: "destructive"
       });
       return;
@@ -61,7 +61,21 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
     try {
       setSubmitting(true);
       
-      // Convert sectioned checklist to individual items and add them to the phase
+      const insertAfterPhase = parseInt(selectedPhaseId);
+      const newPhaseNumber = insertAfterPhase + 1;
+      
+      // First, shift all existing phases that come after the insertion point
+      await projectService.shiftPhasesAfter(selectedProjectId, insertAfterPhase);
+      
+      // Create the new control phase
+      const newPhase = await projectService.addProjectPhase(
+        selectedProjectId,
+        `Control Phase: ${checklist.title}`,
+        `Quality control and inspection phase based on ${checklist.title}`,
+        newPhaseNumber
+      );
+
+      // Add all checklist items to the new phase
       for (const section of checklist.sections) {
         for (let i = 0; i < section.items.length; i++) {
           const item = section.items[i];
@@ -72,12 +86,12 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
             description: `[${section.title}] ${itemText}`,
             completed: false,
             required: true,
-            notes: `Added from construction template: ${checklist.title}`
+            notes: `Control item from: ${checklist.title}`
           };
 
           await projectService.addChecklistItem(
             selectedProjectId,
-            parseInt(selectedPhaseId),
+            newPhaseNumber,
             checklistItem
           );
         }
@@ -85,16 +99,16 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
 
       toast({
         title: "Success",
-        description: `Added ${checklist.sections.reduce((total, section) => total + section.items.length, 0)} items to project phase`,
+        description: `Created new control phase ${newPhaseNumber} with ${checklist.sections.reduce((total, section) => total + section.items.length, 0)} control items`,
       });
 
       onClose();
       
     } catch (error) {
-      console.error('Error adding checklist to project:', error);
+      console.error('Error creating control phase:', error);
       toast({
         title: "Error",
-        description: "Failed to add checklist to project",
+        description: "Failed to create control phase",
         variant: "destructive"
       });
     } finally {
@@ -106,9 +120,9 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Checklist to Project</DialogTitle>
+          <DialogTitle>Create Control Phase</DialogTitle>
           <DialogDescription>
-            Select a project and phase to add "{checklist.title}" checklist items.
+            Select a project and choose where to insert the new control phase: "{checklist.title}".
           </DialogDescription>
         </DialogHeader>
 
@@ -152,34 +166,35 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
                 </Select>
               </div>
 
-              {/* Phase Selection */}
-              {selectedProject && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Select Phase</label>
-                  <Select value={selectedPhaseId} onValueChange={setSelectedPhaseId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a phase" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePhases.map((phase) => (
-                        <SelectItem key={phase.id} value={phase.id.toString()}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{phase.name}</span>
-                            <div className="flex items-center space-x-1 ml-2">
-                              {phase.completed && (
-                                <Badge variant="default" className="text-xs">Completed</Badge>
-                              )}
-                              {phase.locked && (
-                                <Badge variant="secondary" className="text-xs">Locked</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+               {/* Phase Insertion Point Selection */}
+               {selectedProject && (
+                 <div className="space-y-2">
+                   <label className="text-sm font-medium">Insert Control Phase After</label>
+                   <Select value={selectedPhaseId} onValueChange={setSelectedPhaseId}>
+                     <SelectTrigger>
+                       <SelectValue placeholder="Choose insertion point" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="0">
+                         <div className="flex items-center justify-between w-full">
+                           <span>At the beginning (Phase 1)</span>
+                           <Badge variant="outline" className="text-xs ml-2">New: Phase 1</Badge>
+                         </div>
+                       </SelectItem>
+                       {availablePhases.map((phase) => (
+                         <SelectItem key={phase.id} value={phase.id.toString()}>
+                           <div className="flex items-center justify-between w-full">
+                             <span>After: {phase.name}</span>
+                             <Badge variant="outline" className="text-xs ml-2">
+                               New: Phase {phase.id + 1}
+                             </Badge>
+                           </div>
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+               )}
             </>
           )}
         </div>
@@ -193,7 +208,7 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
             disabled={!selectedProjectId || !selectedPhaseId || submitting}
           >
             {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Add to Phase
+            Create Control Phase
           </Button>
         </DialogFooter>
       </DialogContent>

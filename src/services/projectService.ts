@@ -315,43 +315,94 @@ export const projectService = {
     return data || [];
   },
 
-  async addProjectPhase(projectId: string, phaseName: string, phaseDescription: string): Promise<DatabasePhase> {
-    // Get the highest phase number for this project
-    const { data: existingPhases, error: fetchError } = await supabase
+  async addProjectPhase(projectId: string, phaseName: string, phaseDescription: string, phaseNumber?: number): Promise<DatabasePhase> {
+    if (phaseNumber) {
+      // If specific phase number is provided, use it
+      const { data, error } = await supabase
+        .from('project_phases')
+        .insert({
+          project_id: projectId,
+          phase_number: phaseNumber,
+          name: phaseName,
+          description: phaseDescription,
+          completed: false,
+          locked: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding project phase:', error);
+        throw error;
+      }
+
+      return data;
+    } else {
+      // Get the highest phase number for this project (existing behavior)
+      const { data: existingPhases, error: fetchError } = await supabase
+        .from('project_phases')
+        .select('phase_number')
+        .eq('project_id', projectId)
+        .order('phase_number', { ascending: false })
+        .limit(1);
+
+      if (fetchError) {
+        console.error('Error fetching existing phases:', fetchError);
+        throw fetchError;
+      }
+
+      const nextPhaseNumber = existingPhases && existingPhases.length > 0 
+        ? existingPhases[0].phase_number + 1 
+        : 1;
+
+      const { data, error } = await supabase
+        .from('project_phases')
+        .insert({
+          project_id: projectId,
+          phase_number: nextPhaseNumber,
+          name: phaseName,
+          description: phaseDescription,
+          completed: false,
+          locked: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding project phase:', error);
+        throw error;
+      }
+
+      return data;
+    }
+  },
+
+  async shiftPhasesAfter(projectId: string, afterPhaseNumber: number): Promise<void> {
+    // Get all phases after the insertion point
+    const { data: phasesToShift, error: fetchError } = await supabase
       .from('project_phases')
-      .select('phase_number')
+      .select('id, phase_number')
       .eq('project_id', projectId)
-      .order('phase_number', { ascending: false })
-      .limit(1);
+      .gt('phase_number', afterPhaseNumber)
+      .order('phase_number', { ascending: false }); // Process in reverse order to avoid conflicts
 
     if (fetchError) {
-      console.error('Error fetching existing phases:', fetchError);
+      console.error('Error fetching phases to shift:', fetchError);
       throw fetchError;
     }
 
-    const nextPhaseNumber = existingPhases && existingPhases.length > 0 
-      ? existingPhases[0].phase_number + 1 
-      : 1;
+    // Shift each phase number by 1
+    for (const phase of phasesToShift || []) {
+      const { error } = await supabase
+        .from('project_phases')
+        .update({ phase_number: phase.phase_number + 1 })
+        .eq('id', phase.id);
 
-    const { data, error } = await supabase
-      .from('project_phases')
-      .insert({
-        project_id: projectId,
-        phase_number: nextPhaseNumber,
-        name: phaseName,
-        description: phaseDescription,
-        completed: false,
-        locked: false
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding project phase:', error);
-      throw error;
+      if (error) {
+        console.error('Error shifting phase:', error);
+        throw error;
+      }
     }
-
-    return data;
   },
 
   async deleteProjectPhase(projectId: string, phaseNumber: number): Promise<void> {
