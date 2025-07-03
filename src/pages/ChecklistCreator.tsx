@@ -211,9 +211,11 @@ const ChecklistCreator = () => {
   };
 
   const handleSelectSectionedChecklist = (checklist: SectionedChecklist) => {
+    console.log('handleSelectSectionedChecklist called with:', checklist);
     setSelectedSectionedChecklist(checklist);
     setSelectedChecklist(null);
     setActiveTab("construction");
+    console.log('State updated, activeTab set to construction');
   };
 
   if (!user) {

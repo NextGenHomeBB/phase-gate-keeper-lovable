@@ -46,7 +46,10 @@ export function ConstructionTemplates({
             >
               <CardHeader 
                 className="pb-2 cursor-pointer"
-                onClick={() => onSelectChecklist(checklist)}
+                onClick={() => {
+                  console.log('Clicked on checklist:', checklist);
+                  onSelectChecklist(checklist);
+                }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
