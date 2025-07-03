@@ -141,16 +141,11 @@ const Index = () => {
   // Load projects when user is authenticated
   useEffect(() => {
     async function loadProjects() {
-      if (!user || roleLoading) {
-        console.log('Debug: Not loading projects - user:', !!user, 'roleLoading:', roleLoading);
-        return;
-      }
+      if (!user || roleLoading) return;
       
       try {
-        console.log('Debug: Starting to load projects for user:', user.id);
         setProjectsLoading(true);
         const fetchedProjects = await projectService.fetchProjects();
-        console.log('Debug: Fetched projects:', fetchedProjects.length, 'projects');
         setProjects(fetchedProjects);
       } catch (error) {
         console.error('Error loading projects:', error);
@@ -169,7 +164,6 @@ const Index = () => {
 
   // Show loading spinner while checking auth
   if (loading || roleLoading) {
-    console.log('Debug: Showing loading screen - authLoading:', loading, 'roleLoading:', roleLoading);
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
@@ -180,11 +174,8 @@ const Index = () => {
 
   // Don't render anything if not authenticated
   if (!user) {
-    console.log('Debug: No user found, not rendering main content');
     return null;
   }
-
-  console.log('Debug: Rendering main content - user:', user.id, 'projects:', projects.length, 'projectsLoading:', projectsLoading);
 
   const updateProject = async (updatedProject: Project) => {
     try {
