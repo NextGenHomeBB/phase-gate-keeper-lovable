@@ -569,7 +569,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">{t('projectDetail.startDate')}</CardTitle>
+            <CardTitle className="text-lg font-semibold">Project Date</CardTitle>
           </CardHeader>
           <CardContent>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
