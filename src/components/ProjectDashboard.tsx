@@ -2,13 +2,14 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, Plus, Edit3, Shield, Copy, GripVertical, TrendingUp, Trash2 } from "lucide-react";
+import { Calendar, Users, Plus, Edit3, Shield, Copy, GripVertical, TrendingUp, Trash2, CalendarDays } from "lucide-react";
 import { Project } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ProjectDateDialog } from "@/components/ProjectDateDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,8 @@ export function ProjectDashboard({
   const [editDescription, setEditDescription] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [dateDialogOpen, setDateDialogOpen] = useState(false);
+  const [projectForDate, setProjectForDate] = useState<Project | null>(null);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedIndex: null,
@@ -423,42 +426,54 @@ export function ProjectDashboard({
                             >
                               {project.name}
                             </CardTitle>
-                            <div className="flex items-center gap-1">
-                              {canAddProjects && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditStart(project);
-                                    }}
-                                  >
-                                    <Edit3 className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCopyProject(project);
-                                    }}
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    onClick={(e) => handleDeleteClick(project, e)}
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
+                             <div className="flex items-center gap-1">
+                               {canAddProjects && (
+                                 <>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       setProjectForDate(project);
+                                       setDateDialogOpen(true);
+                                     }}
+                                   >
+                                     <CalendarDays className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       handleEditStart(project);
+                                     }}
+                                   >
+                                     <Edit3 className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       handleCopyProject(project);
+                                     }}
+                                   >
+                                     <Copy className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                     onClick={(e) => handleDeleteClick(project, e)}
+                                   >
+                                     <Trash2 className="w-3 h-3" />
+                                   </Button>
+                                 </>
+                               )}
+                             </div>
                           </div>
                         )}
                       </div>
@@ -554,6 +569,15 @@ export function ProjectDashboard({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {projectForDate && (
+        <ProjectDateDialog
+          open={dateDialogOpen}
+          onOpenChange={setDateDialogOpen}
+          project={projectForDate}
+          onUpdateProject={onUpdateProject}
+        />
+      )}
     </>
   );
 }
