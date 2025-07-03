@@ -32,6 +32,8 @@ import { cn } from "@/lib/utils";
 import { PhaseCalendarPlanner } from "./phase/PhaseCalendarPlanner";
 import { PhaseTimeline } from "./phase/PhaseTimeline";
 import { PhaseSchedulingDialog } from "./phase/PhaseSchedulingDialog";
+import { CategoryStartDatesDialog } from "./CategoryStartDatesDialog";
+import { secureProjectService } from "@/services/secureProjectService";
 
 interface ProjectDetailProps {
   project: Project;
@@ -63,6 +65,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   const [teamMembersCount, setTeamMembersCount] = useState(project.teamMembers.length);
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
   const [selectedPhaseForScheduling, setSelectedPhaseForScheduling] = useState<Phase | null>(null);
+  const [categoryDatesDialogOpen, setCategoryDatesDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Load phase colors from the database when project loads
@@ -460,30 +463,35 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const handleStartDateChange = async (date: Date | undefined) => {
-    if (!date) return;
+    // Close the date picker first
+    setIsDatePickerOpen(false);
+    
+    // Open the category dates dialog
+    setCategoryDatesDialogOpen(true);
+  };
 
+  const handleCategoryStartDatesSave = async (projectStartDate: string, categoryDates: Record<string, string>) => {
     try {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      
-      // Update project in database
-      const updatedProject = { ...project, startDate: formattedDate };
-      await projectService.updateProject(updatedProject);
+      // Update project in database using the new service method
+      await secureProjectService.updateProjectStartDates(project.id, projectStartDate, categoryDates);
       
       // Update local state
+      const updatedProject = { 
+        ...project, 
+        startDate: projectStartDate,
+        categoryStartDates: categoryDates 
+      };
       onUpdateProject(updatedProject);
       
-      // Close the date picker
-      setIsDatePickerOpen(false);
-      
       toast({
-        title: "Startdatum bijgewerkt",
-        description: "De project startdatum is succesvol gewijzigd.",
+        title: "Startdatums bijgewerkt",
+        description: "De project startdatum en categorie startdatums zijn succesvol gewijzigd.",
       });
     } catch (error) {
-      console.error('Error updating start date:', error);
+      console.error('Error updating start dates:', error);
       toast({
         title: "Fout",
-        description: "Kon startdatum niet bijwerken.",
+        description: "Kon startdatums niet bijwerken.",
         variant: "destructive",
       });
     }
@@ -1060,6 +1068,14 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         phase={selectedPhaseForScheduling}
         onSave={handlePhaseUpdate}
         previousPhaseEndDate={selectedPhaseForScheduling ? getPreviousPhaseEndDate(selectedPhaseForScheduling.id) : undefined}
+      />
+
+      <CategoryStartDatesDialog
+        open={categoryDatesDialogOpen}
+        onOpenChange={setCategoryDatesDialogOpen}
+        projectStartDate={project.startDate}
+        categoryStartDates={(project as any).categoryStartDates || null}
+        onSave={handleCategoryStartDatesSave}
       />
     </div>
   );

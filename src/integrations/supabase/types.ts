@@ -415,6 +415,7 @@ export type Database = {
         Row: {
           address: string | null
           building_year: number | null
+          category_start_dates: Json | null
           city: string | null
           created_at: string | null
           created_by: string
@@ -441,6 +442,7 @@ export type Database = {
         Insert: {
           address?: string | null
           building_year?: number | null
+          category_start_dates?: Json | null
           city?: string | null
           created_at?: string | null
           created_by: string
@@ -467,6 +469,7 @@ export type Database = {
         Update: {
           address?: string | null
           building_year?: number | null
+          category_start_dates?: Json | null
           city?: string | null
           created_at?: string | null
           created_by?: string

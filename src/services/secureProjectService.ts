@@ -153,7 +153,7 @@ export const secureProjectService = {
     };
   },
 
-  async updateProject(project: Project): Promise<void> {
+  async updateProject(project: Project & { categoryStartDates?: Record<string, string> }): Promise<void> {
     // Validate input
     const validatedProject = projectSchema.parse({
       name: project.name,
@@ -169,12 +169,17 @@ export const secureProjectService = {
     }
 
     // Sanitize inputs
-    const sanitizedProject = {
+    const sanitizedProject: any = {
       name: sanitizeInput(validatedProject.name),
       description: validatedProject.description ? sanitizeInput(validatedProject.description) : null,
       current_phase: validatedProject.currentPhase,
       start_date: validatedProject.startDate
     };
+
+    // Add category start dates if provided
+    if (project.categoryStartDates) {
+      sanitizedProject.category_start_dates = project.categoryStartDates;
+    }
 
     const { error } = await supabase
       .from('projects')
@@ -183,6 +188,27 @@ export const secureProjectService = {
 
     if (error) {
       console.error('Error updating project:', error);
+      throw error;
+    }
+  },
+
+  async updateProjectStartDates(projectId: string, startDate: string, categoryStartDates: Record<string, string>): Promise<void> {
+    // Get current user for authorization check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        start_date: startDate,
+        category_start_dates: categoryStartDates
+      })
+      .eq('id', projectId);
+
+    if (error) {
+      console.error('Error updating project start dates:', error);
       throw error;
     }
   },
