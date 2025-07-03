@@ -35,9 +35,7 @@ export function PhaseCalendarPlanner({
 }: PhaseCalendarPlannerProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  // Filter out Sundays (day 0) from planning
-  const days = allDays.filter(day => getDay(day) !== 0);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const previousMonth = () => {
     const newDate = new Date(currentDate);
@@ -52,6 +50,9 @@ export function PhaseCalendarPlanner({
   };
 
   const getPhasesForDate = (date: Date) => {
+    // Don't show phases on Sundays
+    if (getDay(date) === 0) return [];
+    
     return phases.filter(phase => {
       if (!phase.start_date || !phase.end_date) return false;
       
@@ -91,27 +92,29 @@ export function PhaseCalendarPlanner({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-6 gap-1 mb-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        <div className="grid grid-cols-7 gap-1 mb-4">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
             <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
               {day}
             </div>
           ))}
         </div>
         
-        <div className="grid grid-cols-6 gap-1">
+        <div className="grid grid-cols-7 gap-1">
           {days.map((day) => {
             const dayPhases = getPhasesForDate(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
+            const isSunday = getDay(day) === 0;
             
             return (
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "min-h-[80px] p-1 border rounded-lg transition-colors hover:bg-muted/50",
+                  "min-h-[80px] p-1 border rounded-lg transition-colors",
                   !isCurrentMonth && "opacity-50",
-                  isToday && "ring-2 ring-primary"
+                  isToday && "ring-2 ring-primary",
+                  isSunday ? "bg-muted/30 border-dashed" : "hover:bg-muted/50"
                 )}
               >
                 <div className={cn(
