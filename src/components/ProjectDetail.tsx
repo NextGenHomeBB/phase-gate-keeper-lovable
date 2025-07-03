@@ -463,11 +463,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const handleStartDateChange = async (date: Date | undefined) => {
+    console.log('handleStartDateChange called with:', date);
+    console.log('Current categoryDatesDialogOpen state:', categoryDatesDialogOpen);
+    
     // Close the date picker first
     setIsDatePickerOpen(false);
     
     // Open the category dates dialog
     setCategoryDatesDialogOpen(true);
+    console.log('Setting categoryDatesDialogOpen to true');
   };
 
   const handleCategoryStartDatesSave = async (projectStartDate: string, categoryDates: Record<string, string>) => {

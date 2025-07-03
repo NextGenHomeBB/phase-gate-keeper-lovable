@@ -113,6 +113,7 @@ export interface Project {
   executor?: string;
   planned_delivery_date?: string;
   special_considerations?: string;
+  categoryStartDates?: Record<string, string>;
 }
 
 const Index = () => {
