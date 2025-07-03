@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, getDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,9 @@ export function PhaseCalendarPlanner({
 }: PhaseCalendarPlannerProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Filter out Sundays (day 0) from planning
+  const days = allDays.filter(day => getDay(day) !== 0);
 
   const previousMonth = () => {
     const newDate = new Date(currentDate);
@@ -89,15 +91,15 @@ export function PhaseCalendarPlanner({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-1 mb-4">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        <div className="grid grid-cols-6 gap-1 mb-4">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
             <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
               {day}
             </div>
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-6 gap-1">
           {days.map((day) => {
             const dayPhases = getPhasesForDate(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
