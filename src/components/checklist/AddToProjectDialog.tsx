@@ -181,16 +181,16 @@ export function AddToProjectDialog({ checklist, isOpen, onClose }: AddToProjectD
                            <Badge variant="outline" className="text-xs ml-2">New: Phase 1</Badge>
                          </div>
                        </SelectItem>
-                       {availablePhases.map((phase) => (
-                         <SelectItem key={phase.id} value={phase.id.toString()}>
-                           <div className="flex items-center justify-between w-full">
-                             <span>After: {phase.name}</span>
-                             <Badge variant="outline" className="text-xs ml-2">
-                               New: Phase {phase.id + 1}
-                             </Badge>
-                           </div>
-                         </SelectItem>
-                       ))}
+                        {availablePhases.map((phase, index) => (
+                          <SelectItem key={phase.id} value={phase.id.toString()}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>After: {phase.name}</span>
+                              <Badge variant="outline" className="text-xs ml-2">
+                                New: Phase {index + 2}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
                      </SelectContent>
                    </Select>
                  </div>
