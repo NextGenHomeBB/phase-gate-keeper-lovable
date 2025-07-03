@@ -290,9 +290,21 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   const scrollToTeamMembers = () => {
+    console.log('Attempting to scroll to team members section');
     const element = document.getElementById('team-members-section');
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      console.log('Team members section found, scrolling...');
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      console.log('Team members section not found, retrying...');
+      // Retry once after a short delay
+      setTimeout(() => {
+        const retryElement = document.getElementById('team-members-section');
+        if (retryElement) {
+          console.log('Team members section found on retry, scrolling...');
+          retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
   };
 
@@ -550,10 +562,11 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }));
     
     // Auto-scroll to team members section when a responsible is selected
-    if (responsibleId !== "none") {
+    if (responsibleId && responsibleId !== "none" && responsibleId !== "") {
+      console.log('Phase responsible selected:', responsibleId, 'starting scroll timer');
       setTimeout(() => {
         scrollToTeamMembers();
-      }, 100); // Small delay to ensure dropdown closes first
+      }, 300); // Increased delay to ensure dropdown fully closes and DOM updates
     }
   };
 
