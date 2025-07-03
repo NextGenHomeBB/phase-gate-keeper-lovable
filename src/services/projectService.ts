@@ -448,12 +448,14 @@ export const projectService = {
   },
 
   async addProject(project: Omit<Project, 'id' | 'phases'>): Promise<Project> {
-    // Get the current user
-    const { data: { user } } = await supabase.auth.getUser();
+    // Get the current session first, then check user
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session?.user) {
       throw new Error('User must be authenticated to create projects');
     }
+
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('projects')
