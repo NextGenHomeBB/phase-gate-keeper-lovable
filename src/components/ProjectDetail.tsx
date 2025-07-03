@@ -31,7 +31,7 @@ import { ProjectTeamManager } from "./ProjectTeamManager";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { PhaseCalendarPlanner } from "./phase/PhaseCalendarPlanner";
+
 import { PhaseTimeline } from "./phase/PhaseTimeline";
 import { PhaseSchedulingDialog } from "./phase/PhaseSchedulingDialog";
 import { CategoryStartDatesDialog } from "./CategoryStartDatesDialog";
@@ -619,12 +619,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center justify-between">
-              Leveringen
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-primary" />
+                Leveringen
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsAddingDate(true)}
-                className="h-8 px-3"
+                className="h-8 px-3 hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Toevoegen
@@ -633,67 +636,75 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {projectDates.length > 0 ? (
-                <>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {projectDates.map((entry, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border">
-                        <div className="flex-1">
-                          <div className="font-medium text-sm text-gray-900">{entry.item}</div>
-                          <div className="text-xs text-gray-500">{format(entry.date, "dd/MM/yyyy")}</div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const newDates = projectDates.filter((_, i) => i !== index);
-                            setProjectDates(newDates);
-                          }}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex-shrink-0"
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t pt-2">
-                    <div className="flex items-center text-sm font-medium">
-                      <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                      Totaal: {projectDates.length} levering{projectDates.length !== 1 ? 'en' : ''}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">Geen leveringen toegevoegd</p>
-                </div>
-              )}
+               {projectDates.length > 0 ? (
+                 <>
+                   <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
+                     {projectDates.map((entry, index) => (
+                       <div key={index} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg border border-border/50 hover:bg-muted/70 transition-colors">
+                         <div className="flex-1 min-w-0">
+                           <div className="font-medium text-sm text-foreground truncate">{entry.item}</div>
+                           <div className="text-xs text-muted-foreground">{format(entry.date, "dd MMM yyyy")}</div>
+                         </div>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => {
+                             const newDates = projectDates.filter((_, i) => i !== index);
+                             setProjectDates(newDates);
+                           }}
+                           className="h-7 w-7 p-0 text-destructive hover:text-destructive/80 hover:bg-destructive/10 flex-shrink-0 rounded-md"
+                         >
+                           <Trash2 className="h-3 w-3" />
+                         </Button>
+                       </div>
+                     ))}
+                   </div>
+                   <div className="border-t border-border/50 pt-3 mt-3">
+                     <div className="flex items-center text-sm font-medium text-muted-foreground">
+                       <Package className="w-4 h-4 mr-2 text-primary" />
+                       Totaal: {projectDates.length} levering{projectDates.length !== 1 ? 'en' : ''}
+                     </div>
+                   </div>
+                 </>
+               ) : (
+                 <div className="text-center py-6 text-muted-foreground">
+                   <Package className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+                   <p className="text-sm">Geen leveringen toegevoegd</p>
+                   <p className="text-xs mt-1">Klik op 'Toevoegen' om een levering toe te voegen</p>
+                 </div>
+               )}
             </div>
           </CardContent>
         </Card>
 
         {isAddingDate && (
           <Dialog open={isAddingDate} onOpenChange={setIsAddingDate}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[450px] bg-background">
               <DialogHeader>
-                <DialogTitle>Levering Toevoegen</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary" />
+                  Levering Toevoegen
+                </DialogTitle>
                 <DialogDescription>
                   Selecteer een leveringstype en datum om toe te voegen aan de project leveringen lijst.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <div className="space-y-6 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
                     Leveringstype
                   </label>
                   <Select value={selectedItem} onValueChange={setSelectedItem}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Selecteer leveringstype" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-lg z-50">
+                    <SelectContent className="bg-background border shadow-lg z-[100]">
                       {deliveryItems.map((item) => (
-                        <SelectItem key={item} value={item} className="hover:bg-gray-100">
+                        <SelectItem 
+                          key={item} 
+                          value={item} 
+                          className="hover:bg-muted focus:bg-muted cursor-pointer"
+                        >
                           {item}
                         </SelectItem>
                       ))}
@@ -701,8 +712,8 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                   </Select>
                 </div>
                 
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
                     Leveringsdatum
                   </label>
                   <Popover>
@@ -710,46 +721,55 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal focus:ring-2 focus:ring-primary/20",
                           !selectedDate && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Selecteer een datum"}
+                        {selectedDate ? format(selectedDate, "dd MMM yyyy") : "Selecteer een datum"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                    <PopoverContent className="w-auto p-0 bg-background border shadow-lg z-[100]" align="start">
                       <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className={cn("p-3 pointer-events-auto bg-background")}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setIsAddingDate(false);
-                  setSelectedDate(undefined);
-                  setSelectedItem("");
-                }}>
-                  Annuleren
-                </Button>
-                <Button onClick={() => {
-                  if (selectedDate && selectedItem) {
-                    setProjectDates([...projectDates, { date: selectedDate, item: selectedItem }]);
+              <DialogFooter className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
                     setIsAddingDate(false);
                     setSelectedDate(undefined);
                     setSelectedItem("");
-                    toast({
-                      title: "Levering toegevoegd",
-                      description: `${selectedItem} op ${format(selectedDate, "dd/MM/yyyy")} is toegevoegd.`,
-                    });
-                  }
-                }} disabled={!selectedDate || !selectedItem}>
+                  }}
+                  className="flex-1"
+                >
+                  Annuleren
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (selectedDate && selectedItem) {
+                      setProjectDates([...projectDates, { date: selectedDate, item: selectedItem }]);
+                      setIsAddingDate(false);
+                      setSelectedDate(undefined);
+                      setSelectedItem("");
+                      toast({
+                        title: "Levering toegevoegd",
+                        description: `${selectedItem} op ${format(selectedDate, "dd MMM yyyy")} is toegevoegd.`,
+                      });
+                    }
+                  }} 
+                  disabled={!selectedDate || !selectedItem}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
                   Toevoegen
                 </Button>
               </DialogFooter>
@@ -886,12 +906,15 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
         </TabsContent>
 
         <TabsContent value="calendar">
-          <PhaseCalendarPlanner
-            phases={project.phases}
-            currentDate={currentCalendarDate}
-            onDateChange={setCurrentCalendarDate}
-            onPhaseClick={handlePhaseScheduleClick}
-          />
+          <div className="space-y-4">
+            <div className="text-center py-8 bg-muted/20 rounded-lg border-dashed border-2">
+              <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">Calendar View</h3>
+              <p className="text-sm text-muted-foreground">
+                Project calendar functionality will be available soon.
+              </p>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="timeline">
