@@ -1228,35 +1228,46 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                         )}
                        </div>
 
-                       {/* Phase Responsible Selection */}
-                       <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
-                         <div className="text-xs font-medium text-muted-foreground">Fase Verantwoordelijke</div>
-                          <Select 
-                            value={phaseResponsibles[phase.id] || "none"} 
-                            onValueChange={(value) => handlePhaseResponsibleChange(phase.id, value)}
-                         >
-                           <SelectTrigger className="h-8 text-xs">
-                             <SelectValue placeholder="Selecteer verantwoordelijke" />
-                           </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Geen verantwoordelijke</SelectItem>
-                             {allTeamMembers.map((member) => (
-                               <SelectItem key={member.id} value={member.id}>
-                                 <div className="flex items-center gap-2">
-                                   <span className="font-medium">{member.name}</span>
-                                   <span className="text-xs text-muted-foreground">
-                                     {member.roles ? member.roles.join(", ") : member.role}
-                                   </span>
-                                 </div>
-                               </SelectItem>
-                             ))}
-                           </SelectContent>
-                         </Select>
-                         {phaseResponsibles[phase.id] && (
-                           <div className="text-xs text-muted-foreground">
-                             Verantwoordelijk: {allTeamMembers.find(m => m.id === phaseResponsibles[phase.id])?.name}
-                           </div>
-                         )}
+                        {/* Phase Responsible Selection */}
+                        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="text-xs font-medium text-muted-foreground">Fase Verantwoordelijke</div>
+                          {!phaseResponsibles[phase.id] || phaseResponsibles[phase.id] === "none" ? (
+                            <Select 
+                              value={phaseResponsibles[phase.id] || "none"} 
+                              onValueChange={(value) => handlePhaseResponsibleChange(phase.id, value)}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Selecteer verantwoordelijke" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Geen verantwoordelijke</SelectItem>
+                                {allTeamMembers.map((member) => (
+                                  <SelectItem key={member.id} value={member.id}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">{member.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {member.roles ? member.roles.join(", ") : member.role}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="flex items-center justify-between p-2 border rounded-md bg-muted/50">
+                              <div className="text-xs">
+                                <span className="font-medium">
+                                  {allTeamMembers.find(m => m.id === phaseResponsibles[phase.id])?.name}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handlePhaseResponsibleChange(phase.id, "none")}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                Wijzigen
+                              </button>
+                            </div>
+                          )}
                        </div>
                        
                       {/* Enhanced Progress Section */}
