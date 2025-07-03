@@ -50,8 +50,9 @@ export function PhaseCalendarPlanner({
   };
 
   const getPhasesForDate = (date: Date) => {
-    // Don't show phases on Sundays (day 0)
-    if (getDay(date) === 0) return [];
+    const dayOfWeek = getDay(date);
+    // Don't show phases on Sundays (day 0 = Sunday)
+    if (dayOfWeek === 0) return [];
     
     return phases.filter(phase => {
       if (!phase.start_date || !phase.end_date) return false;
