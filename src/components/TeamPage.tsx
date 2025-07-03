@@ -287,7 +287,8 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
             <Button 
               onClick={() => {
                 if (teamMembers.length > 0) {
-                  openEditDialog(teamMembers[0]);
+                  setIsEditDialogOpen(true);
+                  // Don't pre-select a member, let user choose from dropdown
                 }
               }}
               variant="outline"
@@ -455,6 +456,7 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
             }}
             onSave={handleEditTeamMember}
             member={editingMember}
+            teamMembers={teamMembers}
           />
           
           <CreateWorkerDialog

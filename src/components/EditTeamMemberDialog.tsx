@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { X, Edit } from "lucide-react";
 import { TeamMember } from "@/components/TeamPage";
 
@@ -20,6 +27,7 @@ interface EditTeamMemberDialogProps {
   onClose: () => void;
   onSave: (memberId: string, updatedData: Partial<TeamMember>) => void;
   member: TeamMember | null;
+  teamMembers: TeamMember[]; // Add this to get all team members for selection
 }
 
 const predefinedRoles = [
@@ -37,12 +45,13 @@ const predefinedRoles = [
   "Materials Coordinator"
 ];
 
-export function EditTeamMemberDialog({ isOpen, onClose, onSave, member }: EditTeamMemberDialogProps) {
+export function EditTeamMemberDialog({ isOpen, onClose, onSave, member, teamMembers }: EditTeamMemberDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
   });
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [customRole, setCustomRole] = useState('');
 
@@ -54,6 +63,7 @@ export function EditTeamMemberDialog({ isOpen, onClose, onSave, member }: EditTe
         email: member.email,
         phone: member.phone || '',
       });
+      setSelectedMemberId(member.id);
       setSelectedRoles(member.roles || [member.role]);
     } else {
       setFormData({
@@ -61,15 +71,31 @@ export function EditTeamMemberDialog({ isOpen, onClose, onSave, member }: EditTe
         email: '',
         phone: '',
       });
+      setSelectedMemberId('');
       setSelectedRoles([]);
     }
     setCustomRole('');
   }, [member]);
 
+  // Handle team member selection from dropdown
+  const handleMemberSelection = (memberId: string) => {
+    const selectedMember = teamMembers.find(m => m.id === memberId);
+    if (selectedMember) {
+      setSelectedMemberId(memberId);
+      setFormData({
+        name: selectedMember.name,
+        email: selectedMember.email,
+        phone: selectedMember.phone || '',
+      });
+      setSelectedRoles(selectedMember.roles || [selectedMember.role]);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (member && formData.name && formData.email && selectedRoles.length > 0) {
-      onSave(member.id, {
+    const currentMember = teamMembers.find(m => m.id === selectedMemberId);
+    if (currentMember && formData.name && formData.email && selectedRoles.length > 0) {
+      onSave(selectedMemberId, {
         name: formData.name,
         email: formData.email,
         role: selectedRoles.join(', '), // Legacy field for backward compatibility
@@ -104,10 +130,12 @@ export function EditTeamMemberDialog({ isOpen, onClose, onSave, member }: EditTe
   };
 
   const isFormValid = () => {
-    return formData.name && formData.email && selectedRoles.length > 0;
+    return selectedMemberId && formData.name && formData.email && selectedRoles.length > 0;
   };
 
-  if (!member) return null;
+  const selectedMember = teamMembers.find(m => m.id === selectedMemberId);
+
+  if (!teamMembers || teamMembers.length === 0) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -118,124 +146,147 @@ export function EditTeamMemberDialog({ isOpen, onClose, onSave, member }: EditTe
             Teamlid Bewerken
           </DialogTitle>
           <DialogDescription>
-            Bewerk de gegevens en rollen van {member.name}.
+            Selecteer een teamlid om te bewerken en pas de gegevens aan.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4">
             <div>
-              <Label htmlFor="edit-name">Naam *</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Volledige naam"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="edit-email">Email *</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="email@bedrijf.nl"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="edit-phone">Telefoon</Label>
-              <Input
-                id="edit-phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+31 6 12345678"
-              />
+              <Label htmlFor="member-select">Teamlid Selecteren *</Label>
+              <Select value={selectedMemberId} onValueChange={handleMemberSelection}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer een teamlid om te bewerken" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((teamMember) => (
+                    <SelectItem key={teamMember.id} value={teamMember.id}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{teamMember.name}</span>
+                        <span className="text-sm text-muted-foreground">({teamMember.email})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-3">
-              <Label>Rollen * (selecteer één of meerdere)</Label>
-              
-              {/* Selected roles display */}
-              {selectedRoles.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
-                  {selectedRoles.map((role) => (
-                    <Badge 
-                      key={role} 
-                      variant="secondary" 
-                      className="flex items-center gap-1"
-                    >
-                      {role}
+            {selectedMember && (
+              <>
+                <div>
+                  <Label htmlFor="edit-name">Naam *</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Volledige naam"
+                    required
+                  />
+                </div>
+            
+                <div>
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="email@bedrijf.nl"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-phone">Telefoon</Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="+31 6 12345678"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Rollen * (selecteer één of meerdere)</Label>
+                  
+                  {/* Selected roles display */}
+                  {selectedRoles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
+                      {selectedRoles.map((role) => (
+                        <Badge 
+                          key={role} 
+                          variant="secondary" 
+                          className="flex items-center gap-1"
+                        >
+                          {role}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 hover:bg-transparent"
+                            onClick={() => handleRemoveRole(role)}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Predefined roles */}
+                  <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
+                    <div className="text-sm font-medium text-muted-foreground mb-2">
+                      Beschikbare rollen:
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {predefinedRoles.map((role) => (
+                        <div key={role} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-role-${role}`}
+                            checked={selectedRoles.includes(role)}
+                            onCheckedChange={(checked) => handleRoleToggle(role, checked as boolean)}
+                          />
+                          <Label 
+                            htmlFor={`edit-role-${role}`} 
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {role}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom role input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-customRole" className="text-sm">
+                      Aangepaste rol toevoegen:
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="edit-customRole"
+                        value={customRole}
+                        onChange={(e) => setCustomRole(e.target.value)}
+                        placeholder="Voer aangepaste rol in..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCustomRole();
+                          }
+                        }}
+                      />
                       <Button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto p-0 hover:bg-transparent"
-                        onClick={() => handleRemoveRole(role)}
+                        variant="outline"
+                        onClick={handleAddCustomRole}
+                        disabled={!customRole.trim() || selectedRoles.includes(customRole.trim())}
                       >
-                        <X className="w-3 h-3" />
+                        Toevoegen
                       </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Predefined roles */}
-              <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
-                <div className="text-sm font-medium text-muted-foreground mb-2">
-                  Beschikbare rollen:
-                </div>
-                <div className="grid grid-cols-1 gap-2">
-                  {predefinedRoles.map((role) => (
-                    <div key={role} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`edit-role-${role}`}
-                        checked={selectedRoles.includes(role)}
-                        onCheckedChange={(checked) => handleRoleToggle(role, checked as boolean)}
-                      />
-                      <Label 
-                        htmlFor={`edit-role-${role}`} 
-                        className="text-sm cursor-pointer flex-1"
-                      >
-                        {role}
-                      </Label>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Custom role input */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-customRole" className="text-sm">
-                  Aangepaste rol toevoegen:
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="edit-customRole"
-                    value={customRole}
-                    onChange={(e) => setCustomRole(e.target.value)}
-                    placeholder="Voer aangepaste rol in..."
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddCustomRole();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAddCustomRole}
-                    disabled={!customRole.trim() || selectedRoles.includes(customRole.trim())}
-                  >
-                    Toevoegen
-                  </Button>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
           
           <DialogFooter className="flex gap-2">
