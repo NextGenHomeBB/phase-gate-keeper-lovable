@@ -289,6 +289,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
     }
   };
 
+  const scrollToTeamMembers = () => {
+    const element = document.getElementById('team-members-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const handleAddPhase = async () => {
     try {
       const newPhaseName = `Nieuwe Fase ${project.phases.length + 1}`;
@@ -541,6 +548,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
       ...prev,
       [phaseId]: responsibleId
     }));
+    
+    // Auto-scroll to team members section when a responsible is selected
+    if (responsibleId !== "none") {
+      setTimeout(() => {
+        scrollToTeamMembers();
+      }, 100); // Small delay to ensure dropdown closes first
+    }
   };
 
   const handleProjectResponsibleChange = async (responsibleId: string) => {
@@ -826,7 +840,7 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </Dialog>
         )}
 
-        <Card>
+        <Card id="team-members-section">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Team Members</CardTitle>
           </CardHeader>
