@@ -23,6 +23,23 @@ export interface DatabaseProject {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Extended fields for renovation/splitting projects
+  address?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  building_year?: number | null;
+  existing_building_type?: string | null;
+  transformation_description?: string | null;
+  number_of_units_after_split?: number | null;
+  unit_areas?: any | null; // JSONB
+  unit_purposes?: any | null; // JSONB
+  installation_concept?: any | null; // JSONB
+  unit_access_type?: string | null;
+  energy_labels?: any | null; // JSONB
+  project_manager?: string | null;
+  executor?: string | null;
+  planned_delivery_date?: string | null;
+  special_considerations?: string | null;
 }
 
 export interface DatabasePhase {
@@ -126,6 +143,23 @@ export const projectService = {
           currentPhase: project.current_phase || 1,
           startDate: project.start_date || new Date().toISOString().split('T')[0],
           teamMembers: teamMembers.map(tm => tm.name),
+          // Extended project info fields
+          address: project.address || undefined,
+          postal_code: project.postal_code || undefined,
+          city: project.city || undefined,
+          building_year: project.building_year || undefined,
+          existing_building_type: project.existing_building_type || undefined,
+          transformation_description: project.transformation_description || undefined,
+          number_of_units_after_split: project.number_of_units_after_split || undefined,
+          unit_areas: project.unit_areas as any || undefined,
+          unit_purposes: project.unit_purposes as any || undefined,
+          installation_concept: project.installation_concept as any || undefined,
+          unit_access_type: project.unit_access_type as 'gemeenschappelijke_entree' | 'eigen_opgang' || undefined,
+          energy_labels: project.energy_labels as any || undefined,
+          project_manager: project.project_manager || undefined,
+          executor: project.executor || undefined,
+          planned_delivery_date: project.planned_delivery_date || undefined,
+          special_considerations: project.special_considerations || undefined,
           phases: await Promise.all(phases.map(async (phase) => {
             const checklist = await this.fetchPhaseChecklist(project.id, phase.phase_number);
         return {
@@ -176,6 +210,23 @@ export const projectService = {
       currentPhase: data.current_phase || 1,
       startDate: data.start_date || new Date().toISOString().split('T')[0],
       teamMembers: teamMembers.map(tm => tm.name),
+      // Extended project info fields
+      address: data.address || undefined,
+      postal_code: data.postal_code || undefined,
+      city: data.city || undefined,
+      building_year: data.building_year || undefined,
+      existing_building_type: data.existing_building_type || undefined,
+      transformation_description: data.transformation_description || undefined,
+      number_of_units_after_split: data.number_of_units_after_split || undefined,
+      unit_areas: data.unit_areas as any || undefined,
+      unit_purposes: data.unit_purposes as any || undefined,
+      installation_concept: data.installation_concept as any || undefined,
+      unit_access_type: data.unit_access_type as 'gemeenschappelijke_entree' | 'eigen_opgang' || undefined,
+      energy_labels: data.energy_labels as any || undefined,
+      project_manager: data.project_manager || undefined,
+      executor: data.executor || undefined,
+      planned_delivery_date: data.planned_delivery_date || undefined,
+      special_considerations: data.special_considerations || undefined,
       phases: await Promise.all(phases.map(async (phase) => {
         const checklist = await this.fetchPhaseChecklist(projectId, phase.phase_number);
         return {
@@ -583,7 +634,24 @@ export const projectService = {
         name: project.name,
         description: project.description,
         current_phase: project.currentPhase,
-        start_date: project.startDate
+        start_date: project.startDate,
+        // Extended project info fields
+        address: project.address || null,
+        postal_code: project.postal_code || null,
+        city: project.city || null,
+        building_year: project.building_year || null,
+        existing_building_type: project.existing_building_type || null,
+        transformation_description: project.transformation_description || null,
+        number_of_units_after_split: project.number_of_units_after_split || null,
+        unit_areas: project.unit_areas as any || null,
+        unit_purposes: project.unit_purposes as any || null,
+        installation_concept: project.installation_concept as any || null,
+        unit_access_type: project.unit_access_type || null,
+        energy_labels: project.energy_labels as any || null,
+        project_manager: project.project_manager || null,
+        executor: project.executor || null,
+        planned_delivery_date: project.planned_delivery_date || null,
+        special_considerations: project.special_considerations || null,
       })
       .eq('id', project.id);
 

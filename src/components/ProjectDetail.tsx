@@ -9,10 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Grid3X3, Kanban } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Grid3X3, Kanban, Info } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
+import { ProjectInfoOverview } from "./ProjectInfoOverview";
 import { MaterialsCalculator } from "./MaterialsCalculator";
 import { ProjectFiles } from "./ProjectFiles";
 import { useToast } from "@/hooks/use-toast";
@@ -611,6 +612,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             <FileText className="w-4 h-4 mr-2" />
             {t('projectDetail.overview')}
           </TabsTrigger>
+          <TabsTrigger value="info">
+            <Info className="w-4 h-4 mr-2" />
+            Project Info
+          </TabsTrigger>
           <TabsTrigger value="phases">
             <Clock className="w-4 h-4 mr-2" />
             {t('projectDetail.phases')}
@@ -641,6 +646,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
           </TabsTrigger>
         </TabsList>
         
+        <TabsContent value="info" className="space-y-6">
+          <ProjectInfoOverview project={project} onUpdateProject={onUpdateProject} />
+        </TabsContent>
+
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>

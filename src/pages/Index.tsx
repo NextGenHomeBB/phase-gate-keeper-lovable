@@ -65,6 +65,29 @@ export interface Phase {
   labour: Labour[];
 }
 
+export interface UnitArea {
+  unit: string;
+  go_area: number;
+  bvo_area?: number;
+}
+
+export interface UnitPurpose {
+  unit: string;
+  purpose: 'verhuur' | 'verkoop';
+}
+
+export interface InstallationConcept {
+  heating?: string;
+  ventilation?: string;
+  electrical?: string;
+}
+
+export interface EnergyLabel {
+  unit: string;
+  current?: string;
+  planned?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -73,6 +96,23 @@ export interface Project {
   currentPhase: number;
   startDate: string;
   teamMembers: string[];
+  // Extended fields for renovation/splitting projects
+  address?: string;
+  postal_code?: string;
+  city?: string;
+  building_year?: number;
+  existing_building_type?: string;
+  transformation_description?: string;
+  number_of_units_after_split?: number;
+  unit_areas?: UnitArea[];
+  unit_purposes?: UnitPurpose[];
+  installation_concept?: InstallationConcept;
+  unit_access_type?: 'gemeenschappelijke_entree' | 'eigen_opgang';
+  energy_labels?: EnergyLabel[];
+  project_manager?: string;
+  executor?: string;
+  planned_delivery_date?: string;
+  special_considerations?: string;
 }
 
 const Index = () => {

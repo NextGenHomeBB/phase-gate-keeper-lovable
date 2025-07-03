@@ -413,33 +413,81 @@ export type Database = {
       }
       projects: {
         Row: {
+          address: string | null
+          building_year: number | null
+          city: string | null
           created_at: string | null
           created_by: string
           current_phase: number | null
           description: string | null
+          energy_labels: Json | null
+          executor: string | null
+          existing_building_type: string | null
           id: string
+          installation_concept: Json | null
           name: string
+          number_of_units_after_split: number | null
+          planned_delivery_date: string | null
+          postal_code: string | null
+          project_manager: string | null
+          special_considerations: string | null
           start_date: string | null
+          transformation_description: string | null
+          unit_access_type: string | null
+          unit_areas: Json | null
+          unit_purposes: Json | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          building_year?: number | null
+          city?: string | null
           created_at?: string | null
           created_by: string
           current_phase?: number | null
           description?: string | null
+          energy_labels?: Json | null
+          executor?: string | null
+          existing_building_type?: string | null
           id?: string
+          installation_concept?: Json | null
           name: string
+          number_of_units_after_split?: number | null
+          planned_delivery_date?: string | null
+          postal_code?: string | null
+          project_manager?: string | null
+          special_considerations?: string | null
           start_date?: string | null
+          transformation_description?: string | null
+          unit_access_type?: string | null
+          unit_areas?: Json | null
+          unit_purposes?: Json | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          building_year?: number | null
+          city?: string | null
           created_at?: string | null
           created_by?: string
           current_phase?: number | null
           description?: string | null
+          energy_labels?: Json | null
+          executor?: string | null
+          existing_building_type?: string | null
           id?: string
+          installation_concept?: Json | null
           name?: string
+          number_of_units_after_split?: number | null
+          planned_delivery_date?: string | null
+          postal_code?: string | null
+          project_manager?: string | null
+          special_considerations?: string | null
           start_date?: string | null
+          transformation_description?: string | null
+          unit_access_type?: string | null
+          unit_areas?: Json | null
+          unit_purposes?: Json | null
           updated_at?: string | null
         }
         Relationships: []
