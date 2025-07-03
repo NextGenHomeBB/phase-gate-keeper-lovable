@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/AddTeamMemberDialog";
 import { CreateWorkerDialog } from "@/components/admin/CreateWorkerDialog";
@@ -31,6 +32,7 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;
+  roles?: string[]; // New field for multiple roles
   phone?: string;
   startDate: string;
   avatar?: string;
@@ -325,9 +327,23 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {member.role}
-                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {member.roles && member.roles.length > 0 ? (
+                          member.roles.map((role, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="secondary" 
+                              className="text-xs bg-primary/10 text-primary border-primary/20"
+                            >
+                              {role}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            {member.role}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {member.phone ? (
