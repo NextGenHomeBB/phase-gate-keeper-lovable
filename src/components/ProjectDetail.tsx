@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid2X2, Kanban } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Users, CheckCircle, Clock, Lock, Camera, FileText, Package, Euro, ExternalLink, Hammer, Plus, Trash2, Palette, Wrench, PaintBucket, Zap, Building, Drill, HardHat, Activity, ChevronDown, Pencil, Grid3X3, Kanban } from "lucide-react";
 import { Project, Phase } from "@/pages/Index";
 import { CameraCapture } from "./CameraCapture";
 import { PhotoGallery } from "./PhotoGallery";
@@ -736,19 +736,19 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    {/* Primary View Toggle */}
-                    <div className="bg-gradient-to-r from-indigo-100 to-blue-100 p-2 rounded-xl border-2 border-indigo-400 shadow-lg">
+                    {/* Primary View Toggle - Now uses Grid3X3 and different styling */}
+                    <div className="bg-gradient-to-r from-emerald-100 to-teal-100 p-2 rounded-xl border-2 border-emerald-400 shadow-lg">
                       <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
-                        <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white shadow-md">
-                          <Grid2X2 className="w-5 h-5" />
+                        <ToggleGroupItem value="grid" aria-label="Advanced Grid weergave" className="data-[state=on]:bg-emerald-500 data-[state=on]:text-white shadow-md border-emerald-300">
+                          <Grid3X3 className="w-5 h-5" />
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="kanban" aria-label="Kanban weergave" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white shadow-md">
+                        <ToggleGroupItem value="kanban" aria-label="Advanced Kanban weergave" className="data-[state=on]:bg-emerald-500 data-[state=on]:text-white shadow-md border-emerald-300">
                           <Kanban className="w-5 h-5" />
                         </ToggleGroupItem>
                       </ToggleGroup>
                     </div>
                     
-                    {/* Secondary View Toggle */}
+                    {/* Secondary View Toggle - Keeps original Grid2X2 */}
                     <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl border-2 border-purple-400 shadow-lg">
                       <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
                         <ToggleGroupItem value="grid" aria-label="Grid weergave" className="data-[state=on]:bg-purple-500 data-[state=on]:text-white shadow-md">
