@@ -80,7 +80,7 @@ export function PhaseDatePicker({
                   date < new Date()
                 }
                 initialFocus
-                className="p-3 pointer-events-auto"
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -113,7 +113,7 @@ export function PhaseDatePicker({
                   date < new Date()
                 }
                 initialFocus
-                className="p-3 pointer-events-auto"
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
