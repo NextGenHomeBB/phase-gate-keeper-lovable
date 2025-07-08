@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, Phone, Mail, Key, UserCheck, UserX, Building } from 'lucide-react';
+import { Trash2, Phone, Mail, Key, UserCheck, UserX, Building, MessageCircle } from 'lucide-react';
+import { SendWhatsAppButton } from '@/components/SendWhatsAppButton';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -395,6 +396,9 @@ export function WorkersList({ refreshTrigger }: WorkersListProps) {
                       <div className="flex items-center space-x-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <span>{worker.team_member.phone}</span>
+                        <SendWhatsAppButton to={worker.team_member.phone} className="ml-2 h-7 px-2">
+                          <MessageCircle className="h-3 w-3" />
+                        </SendWhatsAppButton>
                       </div>
                     )}
                   </TableCell>

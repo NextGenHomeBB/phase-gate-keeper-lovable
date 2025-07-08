@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, Phone, Mail } from "lucide-react";
+import { Edit2, Trash2, Phone, Mail, MessageCircle } from "lucide-react";
+import { SendWhatsAppButton } from "@/components/SendWhatsAppButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,7 +77,10 @@ export function SubcontractorTable({ subcontractors, loading, onEdit, onDelete }
                   {subcontractor.phone && (
                     <div className="flex items-center text-sm text-gray-600">
                       <Phone className="h-3 w-3 mr-1" />
-                      {subcontractor.phone}
+                      <span className="mr-2">{subcontractor.phone}</span>
+                      <SendWhatsAppButton to={subcontractor.phone} className="h-6 px-2">
+                        <MessageCircle className="h-3 w-3" />
+                      </SendWhatsAppButton>
                     </div>
                   )}
                   {subcontractor.email && (

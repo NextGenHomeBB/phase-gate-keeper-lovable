@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog, Edit } from "lucide-react";
+import { Plus, Mail, Phone, User, UserPlus, Shield, UserCog, Edit, MessageCircle } from "lucide-react";
+import { SendWhatsAppButton } from "@/components/SendWhatsAppButton";
 import { AddTeamMemberDialog } from "@/components/AddTeamMemberDialog";
 import { EditTeamMemberDialog } from "@/components/EditTeamMemberDialog";
 import { CreateWorkerDialog } from "@/components/admin/CreateWorkerDialog";
@@ -405,6 +406,9 @@ export function TeamPage({ teamMembers, onUpdateTeamMembers }: TeamPageProps) {
                         <div className="flex items-center space-x-2">
                           <Phone className="w-4 h-4 text-gray-400" />
                           <span>{member.phone}</span>
+                          <SendWhatsAppButton to={member.phone} className="ml-2">
+                            <MessageCircle className="w-4 h-4" />
+                          </SendWhatsAppButton>
                         </div>
                       ) : (
                         <span className="text-gray-400">-</span>

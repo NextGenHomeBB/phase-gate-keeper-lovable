@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Users, Phone, Calendar, Mail, User } from "lucide-react";
+import { Plus, X, Users, Phone, Calendar, Mail, User, MessageCircle } from "lucide-react";
+import { SendWhatsAppButton } from "@/components/SendWhatsAppButton";
 import {
   Dialog,
   DialogContent,
@@ -265,9 +266,14 @@ export function ProjectTeamManager({ projectId, onTeamMembersChange, autoSelectM
                 {selectedMemberInfo.phone && (
                   <div className="flex items-center space-x-3">
                     <Phone className="w-4 h-4 text-gray-500" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600">Telefoon</p>
-                      <p className="font-medium">{selectedMemberInfo.phone}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{selectedMemberInfo.phone}</p>
+                        <SendWhatsAppButton to={selectedMemberInfo.phone} className="h-8">
+                          <MessageCircle className="w-4 h-4" />
+                        </SendWhatsAppButton>
+                      </div>
                     </div>
                   </div>
                 )}

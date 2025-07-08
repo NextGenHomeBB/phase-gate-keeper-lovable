@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, Phone, Mail, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit2, Trash2, Phone, Mail, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
+import { SendWhatsAppButton } from "@/components/SendWhatsAppButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +92,12 @@ export function SubcontractorCard({ subcontractor, onEdit, onDelete }: Subcontra
               <Phone className="h-4 w-4" />
               Call
             </Button>
+          )}
+          {subcontractor.phone && (
+            <SendWhatsAppButton to={subcontractor.phone} className="flex-1">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              WhatsApp
+            </SendWhatsAppButton>
           )}
           {subcontractor.email && (
             <Button
