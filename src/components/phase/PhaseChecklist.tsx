@@ -9,6 +9,7 @@ import { ChecklistItemEditor } from "./ChecklistItemEditor";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { materialService } from "@/services/materialService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PhaseChecklistProps {
   phase: Phase;
@@ -31,6 +32,7 @@ export function PhaseChecklist({
 }: PhaseChecklistProps) {
   const { t } = useLanguage(); 
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [editingChecklistItem, setEditingChecklistItem] = useState<{phaseId: number, itemId: string} | null>(null);
   const [editingItemText, setEditingItemText] = useState("");
   const [editingItemNotes, setEditingItemNotes] = useState("");
@@ -210,8 +212,8 @@ export function PhaseChecklist({
         {onAddChecklistItem && (
           <Button
             onClick={handleAddNewItem}
-            size="sm"
-            className="bg-green-600 hover:bg-green-700 text-white"
+            size={isMobile ? "default" : "sm"}
+            className={`bg-green-600 hover:bg-green-700 text-white ${isMobile ? 'min-h-[44px]' : ''}`}
           >
             <Plus className="w-4 h-4 mr-1" />
             Add Item
@@ -225,8 +227,8 @@ export function PhaseChecklist({
           
           return (
             <li key={item.id} className="flex flex-col p-4 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center flex-1">
+              <div className={`flex items-center ${isMobile ? 'flex-col gap-3' : 'justify-between'}`}>
+                <div className={`flex items-center ${isMobile ? 'w-full' : 'flex-1'}`}>
                   <input
                     type="checkbox"
                     id={item.id}
@@ -243,34 +245,36 @@ export function PhaseChecklist({
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className={`flex items-center ${isMobile ? 'w-full justify-between' : 'space-x-2'}`}>
                   {item.photos && item.photos.length > 0 && (
                     <Badge variant="secondary" className="mr-2 bg-blue-50 text-blue-700">
                       <Camera className="w-3 h-3 mr-1" />
                       {item.photos.length} {t('projectDetail.photos')}
                     </Badge>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditChecklistItem(phase.id, item.id)}
-                    className="hover:bg-blue-50 hover:scale-105 transition-all"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <CameraCapture
-                    onCapture={(photoBlob) => onAddPhotoToChecklist(phase.id, item.id, photoBlob)}
-                  />
-                  {onRemoveChecklistItem && (
+                  <div className={`flex items-center ${isMobile ? 'gap-1' : 'space-x-2'}`}>
                     <Button
                       variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveChecklistItem(item.id)}
-                      className="hover:bg-red-50 hover:scale-105 transition-all text-red-500 hover:text-red-700"
+                      size={isMobile ? "default" : "sm"}
+                      onClick={() => handleEditChecklistItem(phase.id, item.id)}
+                      className={`hover:bg-blue-50 hover:scale-105 transition-all ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
                     >
-                      <X className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                     </Button>
-                  )}
+                    <CameraCapture
+                      onCapture={(photoBlob) => onAddPhotoToChecklist(phase.id, item.id, photoBlob)}
+                    />
+                    {onRemoveChecklistItem && (
+                      <Button
+                        variant="ghost"
+                        size={isMobile ? "default" : "sm"}
+                        onClick={() => handleRemoveChecklistItem(item.id)}
+                        className={`hover:bg-red-50 hover:scale-105 transition-all text-red-500 hover:text-red-700 ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
