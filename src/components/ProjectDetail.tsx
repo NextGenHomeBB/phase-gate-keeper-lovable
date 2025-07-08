@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ function getPhaseStatus(phase: Phase): PhaseStatus {
 export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetailProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("phases");
   const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
@@ -605,24 +607,34 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
   };
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-4", isMobile ? "px-2" : "space-y-6")}>
       {/* Project Name Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-900 tracking-wide uppercase">
+      <div className={cn(isMobile ? "text-left" : "text-center")}>
+        <h1 className={cn(
+          "font-bold text-blue-900 tracking-wide uppercase",
+          isMobile ? "text-xl" : "text-4xl"
+        )}>
           {project.name}
         </h1>
       </div>
 
       {/* Header with back button */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft className="w-5 h-5 mr-2" />
+        <Button 
+          variant="ghost" 
+          onClick={onBack}
+          className={cn(isMobile ? "h-10 px-3" : "")}
+        >
+          <ArrowLeft className={cn("mr-2", isMobile ? "w-4 h-4" : "w-5 h-5")} />
           Ga terug
         </Button>
       </div>
 
       {/* Project Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={cn(
+        "grid gap-4",
+        isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+      )}>
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Project planning</CardTitle>
@@ -875,42 +887,44 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">
-            <FileText className="w-4 h-4 mr-2" />
-            Project Overview
+        <TabsList className={cn(
+          isMobile ? "grid grid-cols-2 gap-1 h-auto p-1" : "flex flex-wrap"
+        )}>
+          <TabsTrigger value="overview" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <FileText className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Overview" : "Project Overview"}
           </TabsTrigger>
-          <TabsTrigger value="info">
-            <Info className="w-4 h-4 mr-2" />
-            Project Info
+          <TabsTrigger value="info" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <Info className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Info" : "Project Info"}
           </TabsTrigger>
-          <TabsTrigger value="phases">
-            <Clock className="w-4 h-4 mr-2" />
-            {t('projectDetail.phases')}
+          <TabsTrigger value="phases" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <Clock className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Phases" : t('projectDetail.phases')}
           </TabsTrigger>
-          <TabsTrigger value="calendar">
-            <CalendarIcon className="w-4 h-4 mr-2" />
+          <TabsTrigger value="calendar" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <CalendarIcon className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
             Calendar
           </TabsTrigger>
-          <TabsTrigger value="timeline">
-            <Activity className="w-4 h-4 mr-2" />
+          <TabsTrigger value="timeline" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <Activity className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
             Timeline
           </TabsTrigger>
-          <TabsTrigger value="photos">
-            <Camera className="w-4 h-4 mr-2" />
-            Project Photos
+          <TabsTrigger value="photos" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <Camera className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Photos" : "Project Photos"}
           </TabsTrigger>
-          <TabsTrigger value="drawings">
-            <FileText className="w-4 h-4 mr-2" />
-            Bouwtekeningen
+          <TabsTrigger value="drawings" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <FileText className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Drawings" : "Bouwtekeningen"}
           </TabsTrigger>
-          <TabsTrigger value="styling">
-            <Hammer className="w-4 h-4 mr-2" />
-            Home Styling AI
+          <TabsTrigger value="styling" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <Hammer className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Styling" : "Home Styling AI"}
           </TabsTrigger>
-          <TabsTrigger value="documents">
-            <FileText className="w-4 h-4 mr-2" />
-            Documentatie
+          <TabsTrigger value="documents" className={cn(isMobile ? "text-xs px-2 py-1" : "")}>
+            <FileText className={cn(isMobile ? "w-3 h-3 mr-1" : "w-4 h-4 mr-2")} />
+            {isMobile ? "Docs" : "Documentatie"}
           </TabsTrigger>
         </TabsList>
         
@@ -958,7 +972,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={cn(
+                "gap-4",
+                isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2"
+              )}>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Startdatum</label>
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -1035,13 +1052,28 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
             </div>
             <div className="lg:col-span-3">
               {/* Enhanced Add Phase Button with View Toggle */}
-              <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100 border-2 border-indigo-200 rounded-xl p-6 shadow-sm">
-                <div className="flex justify-between items-center">
+              <div className={cn(
+                "bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-100 border-2 border-indigo-200 rounded-xl shadow-sm",
+                isMobile ? "p-4" : "p-6"
+              )}>
+                <div className={cn(
+                  "flex items-center",
+                  isMobile ? "flex-col space-y-3" : "justify-between"
+                )}>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-bold text-indigo-900 mb-1">Projectfases Beheren</h3>
-                    <p className="text-indigo-700 text-sm">Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
+                    <h3 className={cn(
+                      "font-bold text-indigo-900 mb-1",
+                      isMobile ? "text-lg" : "text-xl"
+                    )}>Projectfases Beheren</h3>
+                    <p className={cn(
+                      "text-indigo-700",
+                      isMobile ? "text-xs" : "text-sm"
+                    )}>Voeg nieuwe fasen toe of beheer bestaande fasen van uw project.</p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "flex items-center",
+                    isMobile ? "flex-col space-y-2 w-full" : "gap-4"
+                  )}>
                     {/* Primary View Toggle - Now uses Grid3X3 and different styling */}
                     <div className="bg-gradient-to-r from-emerald-100 to-teal-100 p-2 rounded-xl border-2 border-emerald-400 shadow-lg">
                       <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'kanban')}>
@@ -1066,23 +1098,32 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                       </ToggleGroup>
                     </div>
                     
-                    <div className="flex gap-3">
+                    <div className={cn(
+                      "flex gap-2",
+                      isMobile ? "flex-col w-full" : "gap-3"
+                    )}>
                       <Button 
                         onClick={handleAddPhase} 
-                        size="lg"
-                        className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                        size={isMobile ? "sm" : "lg"}
+                        className={cn(
+                          "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all hover:shadow-xl hover:scale-105",
+                          isMobile ? "w-full h-10" : ""
+                        )}
                       >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Nieuwe Fase Toevoegen
+                        <Plus className={cn("mr-2", isMobile ? "w-4 h-4" : "w-5 h-5")} />
+                        {isMobile ? "Nieuwe Fase" : "Nieuwe Fase Toevoegen"}
                       </Button>
                       <Button 
                         onClick={() => navigate('/checklist-creator')} 
-                        size="lg"
+                        size={isMobile ? "sm" : "lg"}
                         variant="outline"
-                        className="border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                        className={cn(
+                          "border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-lg transition-all hover:shadow-xl hover:scale-105",
+                          isMobile ? "w-full h-10" : ""
+                        )}
                       >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Checklist Toevoegen
+                        <Plus className={cn("mr-2", isMobile ? "w-4 h-4" : "w-5 h-5")} />
+                        {isMobile ? "Checklist" : "Checklist Toevoegen"}
                       </Button>
                     </div>
                   </div>
@@ -1102,7 +1143,10 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
               getPhaseStatus={getPhaseStatus}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={cn(
+              "gap-4",
+              isMobile ? "grid grid-cols-1" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            )}>
               {project.phases.map((phase, index) => {
                 const PhaseIcon = getPhaseIcon(index);
                 const progress = getPhaseProgress(phase);
@@ -1120,39 +1164,63 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                     className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 transform shadow-md hover:shadow-lg ${getPhaseColor(phase, index)} backdrop-blur-sm`} 
                     onClick={() => !isEditingName && !isEditingDescription && handlePhaseClick(phase)}
                   >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-bold flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-white/60 backdrop-blur-sm">
-                            <PhaseIcon className="w-5 h-5 text-gray-700" />
+                    <CardHeader className={cn(isMobile ? "pb-2 p-3" : "pb-3")}>
+                      <CardTitle className={cn(
+                        "font-bold flex items-center justify-between",
+                        isMobile ? "text-sm" : "text-base"
+                      )}>
+                        <div className={cn(
+                          "flex items-center",
+                          isMobile ? "gap-2" : "gap-3"
+                        )}>
+                          <div className={cn(
+                            "rounded-lg bg-white/60 backdrop-blur-sm",
+                            isMobile ? "p-1" : "p-2"
+                          )}>
+                            <PhaseIcon className={cn(
+                              "text-gray-700",
+                              isMobile ? "w-4 h-4" : "w-5 h-5"
+                            )} />
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col flex-1 min-w-0">
                             {isEditingName ? (
                               <Input
                                 value={editingPhaseName}
                                 onChange={(e) => setEditingPhaseName(e.target.value)}
                                 onKeyDown={(e) => handlePhaseNameKeyDown(e, phase.id)}
                                 onBlur={() => handleSavePhaseName(phase.id)}
-                                className="text-sm font-bold bg-white/80 border-blue-300 focus:border-blue-500"
+                                className={cn(
+                                  "font-bold bg-white/80 border-blue-300 focus:border-blue-500",
+                                  isMobile ? "text-xs h-8" : "text-sm"
+                                )}
                                 autoFocus
                                 onClick={(e) => e.stopPropagation()}
                               />
                             ) : (
-                              <span className="text-gray-800 leading-tight">{phase.name}</span>
+                              <span className={cn(
+                                "text-gray-800 leading-tight truncate",
+                                isMobile ? "text-xs" : ""
+                              )}>{phase.name}</span>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className={cn(
+                          "flex items-center",
+                          isMobile ? "gap-0.5 flex-shrink-0" : "gap-1"
+                        )}>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
+                            className={cn(
+                              "p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110",
+                              isMobile ? "h-6 w-6" : "h-8 w-8"
+                            )}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEditPhaseName(phase);
                             }}
                           >
-                            <Pencil className="w-4 h-4" />
+                            <Pencil className={cn(isMobile ? "w-3 h-3" : "w-4 h-4")} />
                           </Button>
                           <Popover 
                             open={colorPopoverOpen[phase.id] || false}
@@ -1162,10 +1230,13 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110"
+                                className={cn(
+                                  "p-0 hover:bg-white/70 transition-all duration-200 hover:scale-110",
+                                  isMobile ? "h-6 w-6" : "h-8 w-8"
+                                )}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <Palette className="w-4 h-4" />
+                                <Palette className={cn(isMobile ? "w-3 h-3" : "w-4 h-4")} />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80 bg-white border-gray-200 shadow-lg z-50">
@@ -1197,13 +1268,16 @@ export function ProjectDetail({ project, onUpdateProject, onBack }: ProjectDetai
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-red-100 text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-110"
+                            className={cn(
+                              "p-0 hover:bg-red-100 text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-110",
+                              isMobile ? "h-6 w-6" : "h-8 w-8"
+                            )}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeletePhase(phase.id);
                             }}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className={cn(isMobile ? "w-3 h-3" : "w-4 h-4")} />
                           </Button>
                         </div>
                       </CardTitle>
